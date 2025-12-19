@@ -1,0 +1,1059 @@
+{
+    "common": {
+        "appName": "Bank Basha",
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "success": "Success",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "save": "Save",
+        "edit": "Edit",
+        "delete": "Delete",
+        "approve": "Approve",
+        "reject": "Reject",
+        "search": "Search",
+        "filter": "Filter",
+        "back": "Back",
+        "next": "Next",
+        "submit": "Submit",
+        "close": "Close",
+        "yes": "Yes",
+        "no": "No",
+        "currency": "USD",
+        "currencySymbol": "$",
+        "view": "View",
+        "details": "Details",
+        "actions": "Actions",
+        "status": "Status",
+        "history": "History",
+        "date": "Date",
+        "time": "Time",
+        "amount": "Amount",
+        "total": "Total",
+        "fee": "Fee",
+        "all": "All",
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "completed": "Completed",
+        "failed": "Failed",
+        "processing": "Processing",
+        "noData": "No data available",
+        "noResults": "No results found",
+        "refresh": "Refresh",
+        "download": "Download",
+        "share": "Share",
+        "copy": "Copy",
+        "copied": "Copied",
+        "upload": {
+            "title": "Upload",
+            "dragDrop": "Click or drag image here",
+            "formats": "JPG, PNG or WebP (Max {maxSize}MB)"
+        },
+        "required": "Required",
+        "optional": "Optional",
+        "phone": "Phone Number",
+        "email": "Email",
+        "name": "Name",
+        "description": "Description",
+        "note": "Note",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "notifications": "Notifications",
+        "profile": "Profile",
+        "logout": "Logout",
+        "verifiedAccount": "Verified Account",
+        "unverifiedAccount": "Unverified Account",
+        "businessAccount": "Business Account",
+        "commercialAccount": "Commercial Account",
+        "customer": "Customer",
+        "notes": "Notes",
+        "password": "Password"
+    },
+    "nav": {
+        "home": "Home",
+        "dashboard": "Dashboard",
+        "wallet": "Wallet",
+        "transfer": "Transfer",
+        "history": "History",
+        "settings": "Settings",
+        "logout": "Logout",
+        "login": "Login",
+        "register": "Register",
+        "admin": "Admin",
+        "agent": "Agent",
+        "merchant": "Merchant",
+        "services": "Services",
+        "transactions": "Transactions",
+        "users": "Users",
+        "settlements": "Settlements",
+        "ledger": "Ledger"
+    },
+    "landing": {
+        "hero": {
+            "title": "Your Digital Financial Partner",
+            "subtitle": "Fast, Secure, and Easy financial services at your fingertips",
+            "cta": "Get Started",
+            "learnMore": "Learn More"
+        },
+        "features": {
+            "title": "Our Services",
+            "deposit": {
+                "title": "Cash Deposit",
+                "description": "Convert your cash to digital balance through our local agents"
+            },
+            "withdraw": {
+                "title": "Cash Withdrawal",
+                "description": "Get cash from any agent near you"
+            },
+            "transfer": {
+                "title": "Money Transfer",
+                "description": "Send money instantly to anyone"
+            },
+            "payment": {
+                "title": "QR Payment",
+                "description": "Pay at merchants with a simple QR scan"
+            }
+        },
+        "agents": {
+            "title": "Find an Agent",
+            "description": "Our agents are available throughout State Of Bashan"
+        },
+        "security": {
+            "title": "Bank-Level Security",
+            "description": "Your money and data are protected with the highest security standards"
+        },
+        "download": {
+            "title": "Start Today",
+            "description": "Create your free account in minutes"
+        }
+    },
+    "auth": {
+        "login": {
+            "title": "Welcome Back",
+            "subtitle": "Login to your account",
+            "phone": "Phone Number",
+            "password": "Password",
+            "rememberMe": "Remember me",
+            "forgotPassword": "Forgot password?",
+            "submit": "Login",
+            "noAccount": "Don't have an account?",
+            "register": "Register now"
+        },
+        "register": {
+            "title": "Create Account",
+            "subtitle": "Join Bank Basha today",
+            "fullName": "Full Name",
+            "fullNameAr": "Arabic Name",
+            "phone": "Phone Number",
+            "email": "Email (optional)",
+            "password": "Password",
+            "confirmPassword": "Confirm Password",
+            "city": "City",
+            "terms": "I agree to the Terms of Service and Privacy Policy",
+            "submit": "Create Account",
+            "hasAccount": "Already have an account?",
+            "login": "Login",
+            "success": {
+                "title": "Account Created Successfully!",
+                "subtitle": "You can now login",
+                "goToLogin": "Go to Login"
+            }
+        },
+        "kyc": {
+            "title": "Identity Verification",
+            "subtitle": "Please verify your identity to unlock all features",
+            "idCard": "ID Card Photo",
+            "selfie": "Take a Selfie",
+            "submit": "Submit for Review",
+            "pending": "Your documents are under review",
+            "approved": "Your identity is verified",
+            "rejected": "Verification rejected. Please resubmit."
+        }
+    },
+    "wallet": {
+        "balance": "Current Balance",
+        "available": "Available",
+        "frozen": "Frozen",
+        "actions": {
+            "deposit": "Deposit",
+            "withdraw": "Withdraw",
+            "transfer": "Transfer",
+            "pay": "Pay"
+        },
+        "limits": {
+            "daily": "Daily Limit",
+            "monthly": "Monthly Limit"
+        },
+        "recentTransactions": "Recent Transactions",
+        "noTransactions": "No transactions",
+        "viewAll": "View All"
+    },
+    "transaction": {
+        "types": {
+            "deposit": "Deposit",
+            "withdraw": "Withdrawal",
+            "transfer": "Transfer",
+            "payment": "Payment",
+            "settlement": "Settlement",
+            "service_purchase": "Service Purchase",
+            "commission": "Commission"
+        },
+        "status": {
+            "pending": "Pending",
+            "processing": "Processing",
+            "completed": "Completed",
+            "failed": "Failed",
+            "cancelled": "Cancelled",
+            "held": "Held"
+        },
+        "details": {
+            "reference": "Reference Number",
+            "amount": "Amount",
+            "fee": "Fee",
+            "total": "Total",
+            "date": "Date",
+            "time": "Time",
+            "from": "From",
+            "to": "To",
+            "type": "Type",
+            "status": "Status",
+            "description": "Description"
+        },
+        "sender": "Sender",
+        "receiver": "Receiver",
+        "fee": "Fee",
+        "reference": "Reference Number",
+        "transfer": {
+            "title": "Send Money",
+            "recipient": "Recipient Phone",
+            "amount": "Amount",
+            "note": "Note (optional)",
+            "fee": "Transfer Fee",
+            "total": "Total Amount",
+            "confirm": "Confirm Transfer",
+            "success": "Transfer Successful!",
+            "enterOtp": "Enter Verification Code",
+            "otpSent": "Verification code sent",
+            "recipientNotFound": "Recipient not found",
+            "insufficientBalance": "Insufficient balance"
+        },
+        "deposit": {
+            "title": "Deposit Money",
+            "selectAgent": "Select Agent",
+            "nearbyAgents": "Nearby Agents",
+            "agentCode": "Agent Code",
+            "instructions": "Deposit Instructions"
+        },
+        "withdraw": {
+            "title": "Withdraw Money",
+            "amount": "Withdrawal Amount",
+            "confirm": "Confirm Withdrawal",
+            "success": "Withdrawal Successful"
+        },
+        "pay": {
+            "title": "Payment",
+            "scanQr": "Scan QR Code",
+            "enterCode": "Or enter merchant code",
+            "merchantCode": "Merchant Code",
+            "merchantName": "Merchant Name",
+            "selectMethod": "Select Payment Method",
+            "confirm": "Confirm Payment",
+            "success": "Payment Successful!"
+        },
+        "receipt": {
+            "title": "Transaction Receipt",
+            "generatedBy": "Generated by Bank Basha System",
+            "error": "Failed to generate receipt. Please try again."
+        }
+    },
+    "support": {
+        "title": "Support",
+        "newTicket": "New Ticket",
+        "myTickets": "My Tickets",
+        "ticketDetails": "Ticket Details",
+        "createTicket": "Create Support Ticket",
+        "subject": "Subject",
+        "description": "Description",
+        "category": "Category",
+        "priority": "Priority",
+        "status": "Status",
+        "attachments": "Attachments",
+        "addAttachment": "Add Screenshot",
+        "send": "Send Message",
+        "reply": "Reply",
+        "close": "Close Ticket",
+        "ticketNumber": "Ticket #",
+        "createdAt": "Created",
+        "lastUpdate": "Last Updated",
+        "assignedTo": "Assigned To",
+        "unassigned": "Unassigned",
+        "contactInfo": "Contact Information",
+        "contactName": "Your Name",
+        "contactPhone": "Phone Number",
+        "contactEmail": "Email (optional)",
+        "categories": {
+            "ACCOUNT_ISSUE": "Account Issue",
+            "PAYMENT_ISSUE": "Payment Issue",
+            "TECHNICAL_ISSUE": "Technical Issue",
+            "KYC_VERIFICATION": "KYC Verification",
+            "SUSPENSION_APPEAL": "Suspension Appeal",
+            "FEATURE_REQUEST": "Feature Request",
+            "OTHER": "Other"
+        },
+        "statuses": {
+            "OPEN": "Open",
+            "IN_PROGRESS": "In Progress",
+            "WAITING_USER": "Waiting for You",
+            "WAITING_ADMIN": "Waiting for Support",
+            "RESOLVED": "Resolved",
+            "CLOSED": "Closed"
+        },
+        "priorities": {
+            "LOW": "Low",
+            "MEDIUM": "Medium",
+            "HIGH": "High",
+            "URGENT": "Urgent"
+        },
+        "messages": {
+            "noTickets": "No tickets found",
+            "ticketCreated": "Ticket created successfully",
+            "messageSent": "Message sent",
+            "ticketClosed": "Ticket closed",
+            "uploadSuccess": "File uploaded successfully",
+            "uploadError": "Failed to upload file"
+        }
+    },
+    "agent": {
+        "dashboard": {
+            "title": "Agent Dashboard",
+            "balance": "Digital Balance",
+            "cashCollected": "Cash Collected",
+            "todayTransactions": "Today's Transactions",
+            "pendingSettlement": "Pending Settlement",
+            "agentCode": "Agent Code",
+            "creditLimit": "Credit Limit",
+            "currentCredit": "Current Credit",
+            "availableCredit": "Available Credit"
+        },
+        "deposit": {
+            "title": "Deposit for Customer",
+            "customerPhone": "Customer Phone",
+            "amount": "Amount",
+            "cashReceived": "Cash Received",
+            "confirm": "Confirm Deposit",
+            "success": "Deposit Successful"
+        },
+        "withdraw": {
+            "title": "Withdraw for Customer",
+            "customerPhone": "Customer Phone",
+            "amount": "Amount",
+            "cashGiven": "Cash Given",
+            "confirm": "Confirm Withdrawal",
+            "success": "Withdrawal Successful"
+        },
+        "settlement": {
+            "title": "Settlement Request",
+            "summary": "Settlement Summary",
+            "creditUsed": "Credit Used",
+            "cashCollected": "Cash Collected",
+            "yourShare": "Your Commission",
+            "platformShare": "Platform Share",
+            "amountDue": "Amount Due",
+            "request": "Request Settlement",
+            "noSettlements": "No settlements",
+            "pendingSettlements": "Pending Settlements",
+            "description": "This is the total cash collected from deposit operations",
+            "minimum": "Minimum settlement: $10",
+            "history": "Settlement History",
+            "commission": "Commission",
+            "notesPlaceholder": "Write your notes here... (will be sent to admin)"
+        },
+        "transactions": {
+            "title": "Transaction History",
+            "noTransactions": "No transactions"
+        }
+    },
+    "merchant": {
+        "dashboard": {
+            "title": "Merchant Dashboard",
+            "todaySales": "Today's Sales",
+            "totalSales": "Total Sales",
+            "transactions": "Transactions",
+            "businessName": "Business Name"
+        },
+        "qr": {
+            "title": "Your QR Code",
+            "subtitle": "Customers can scan this to pay you",
+            "description": "Customers can scan this to pay",
+            "download": "Download QR",
+            "merchantCode": "Merchant Code",
+            "scanToPay": "Scan to Pay"
+        },
+        "transactions": {
+            "title": "Recent Transactions",
+            "empty": "No transactions yet",
+            "received": "Received Payments"
+        },
+        "orders": {
+            "title": "Orders",
+            "pending": "Pending Orders",
+            "completed": "Completed Orders",
+            "noOrders": "No orders"
+        },
+        "becomemerchant": {
+            "title": "Open Business Account",
+            "subtitle": "Start accepting payments from customers",
+            "businessName": "Business Name",
+            "businessNameAr": "Business Name (Arabic)",
+            "businessType": "Business Type",
+            "license": "License Photo",
+            "idPhoto": "ID Photo",
+            "submit": "Submit Application",
+            "pendingReview": "Your application is under review"
+        }
+    },
+    "admin": {
+        "dashboard": {
+            "title": "Admin Dashboard",
+            "totalUsers": "Total Users",
+            "totalAgents": "Active Agents",
+            "totalMerchants": "Active Merchants",
+            "todayVolume": "Today's Volume",
+            "overview": "Overview",
+            "subtitle": "Welcome, here is an overview of the system",
+            "pendingKyc": "Pending KYC",
+            "pendingSettlements": "Pending Settlements",
+            "quickActions": "Quick Actions",
+            "noPendingKYC": "No pending requests",
+            "noPendingSettlements": "No pending settlements"
+        },
+        "users": {
+            "title": "User Management",
+            "pending": "Pending Verification",
+            "active": "Active Users",
+            "all": "All Users",
+            "search": "Search users...",
+            "searchPlaceholder": "Search by name or phone...",
+            "filter": {
+                "allTypes": "All Types",
+                "users": "Users",
+                "business": "Business Account",
+                "agents": "Agents",
+                "allKyc": "All KYC Status",
+                "allStatus": "All Status"
+            },
+            "kycStatus": {
+                "pending": "Under Review",
+                "approved": "Verified",
+                "rejected": "Rejected",
+                "notSubmitted": "Not Submitted"
+            },
+            "changeRole": "Change Role",
+            "block": "Block",
+            "unblock": "Unblock",
+            "viewDetails": "View Details",
+            "roles": {
+                "user": "User",
+                "agent": "Agent",
+                "merchant": "Merchant",
+                "admin": "Admin"
+            }
+        },
+        "agents": {
+            "title": "Agent Management",
+            "grantCredit": "Grant Credit",
+            "revokeCredit": "Revoke Credit",
+            "creditLimit": "Credit Limit",
+            "currentCredit": "Current Credit",
+            "newAgent": "Add New Agent",
+            "agentCode": "Agent Code",
+            "commission": "Commission",
+            "agentPhone": "Agent Phone Number",
+            "amount": "Credit Amount",
+            "searchPlaceholder": "Search by name, code, or phone...",
+            "noAgents": "No agents found",
+            "digitalCredit": "Digital Credit",
+            "totalCash": "Total Cash",
+            "totalDeposits": "Total Deposits",
+            "totalWithdrawals": "Total Withdrawals"
+        },
+        "services": {
+            "title": "Services Management",
+            "addService": "Add Service",
+            "addServiceAction": "Add Service",
+            "addFirstService": "Add First Service",
+            "tabs": {
+                "services": "Services",
+                "requests": "Merchant Requests"
+            },
+            "noServices": "No services found",
+            "purchasesCount": "purchases",
+            "noRequests": "No service requests",
+            "newRequests": "New Requests",
+            "providedBy": "Provided by:",
+            "editService": "Edit Service",
+            "addNewService": "Add New Service",
+            "reviewService": "Review Service",
+            "rejectReason": "Rejection Reason (Optional)",
+            "rejectReasonPlaceholder": "Enter rejection reason if rejecting...",
+            "deleteConfirm": "Are you sure you want to delete this service?",
+            "form": {
+                "nameEn": "Name (English)",
+                "nameAr": "Name (Arabic)",
+                "descEn": "Description (English)",
+                "descAr": "Description (Arabic)",
+                "category": "Category",
+                "price": "Price",
+                "flexiblePrice": "Flexible Price (Buyer decides amount)",
+                "minPrice": "Minimum Price ($)",
+                "maxPrice": "Maximum Price ($)",
+                "requiredInfo": "Required Information from Buyer",
+                "customField": "Custom Field (Optional)...",
+                "isActive": "Service Active"
+            }
+        },
+        "transactions": {
+            "title": "All Transactions",
+            "noTransactions": "No transactions found",
+            "all": "All Transactions",
+            "search": "Search...",
+            "filter": "Filter",
+            "export": "Export"
+        },
+        "merchants": {
+            "title": "Merchant Management",
+            "requestsTitle": "Merchant Requests",
+            "pendingRequests": "Pending Requests",
+            "activeMerchants": "Active Merchants",
+            "approve": "Approve",
+            "reject": "Reject",
+            "businessName": "Business Name",
+            "searchPlaceholder": "Search by name, code, or phone...",
+            "noMerchants": "No merchants found",
+            "totalSales": "Total Sales",
+            "totalTransactions": "Transactions Count"
+        },
+        "settlements": {
+            "title": "Settlements",
+            "pending": "Pending Settlements",
+            "filters": {
+                "pending": "Pending",
+                "completed": "Completed",
+                "rejected": "Rejected",
+                "all": "All"
+            },
+            "labels": {
+                "cashCollected": "Cash Collected",
+                "amountDue": "Amount Due"
+            },
+            "status": {
+                "pending": "Pending",
+                "completed": "Completed",
+                "rejected": "Rejected"
+            },
+            "empty": "No settlements found"
+        },
+        "bin": {
+            "title": "Recycle Bin",
+            "subtitle": "Restore or permanently delete removed items",
+            "empty": "Recycle bin is empty",
+            "itemType": "Item Type",
+            "deletedBy": "Deleted By",
+            "deletedAt": "Deletion Date",
+            "restore": "Restore",
+            "permanentDelete": "Delete Permanently",
+            "confirmRestore": "Do you want to restore this item?",
+            "confirmPermanent": "Warning: This item will be permanently deleted and cannot be recovered!",
+            "restoreSuccess": "Successfully restored",
+            "deleteSuccess": "Permanently deleted",
+            "types": {
+                "USER": "User",
+                "SERVICE": "Service",
+                "AGENT": "Agent",
+                "MERCHANT": "Merchant",
+                "MERCHANT_REQUEST": "Merchant Request"
+            },
+            "filter": {
+                "all": "All",
+                "users": "Users",
+                "services": "Services",
+                "agents": "Agents",
+                "merchants": "Merchants"
+            }
+        },
+        "settings": {
+            "title": "Settings",
+            "advancedSettings": "Advanced Settings",
+            "systemSettings": "System Settings",
+            "fees": {
+                "title": "Fees & Commissions",
+                "depositFee": "Deposit Fee",
+                "withdrawFee": "Withdrawal Fee",
+                "transferFee": "Transfer Fee",
+                "paymentFee": "QR Payment Fee",
+                "agentCommission": "Agent Commission",
+                "settlementPlatform": "Platform Settlement Commission",
+                "settlementAgent": "Agent Settlement Commission"
+            },
+            "save": "Save Settings",
+            "saved": "Settings Saved",
+            "loadFailed": "Failed to load settings",
+            "saveFailed": "Failed to save settings"
+        },
+        "ledger": {
+            "title": "General Ledger",
+            "subtitle": "Double Entry Ledger System",
+            "description": "All accounting entries for financial transactions in the system",
+            "empty": "No ledger entries found",
+            "entryNumber": "Entry #",
+            "from": "From (Debit)",
+            "to": "To (Credit)",
+            "amount": "Amount",
+            "fee": "Fee",
+            "net": "Net",
+            "status": {
+                "completed": "Completed",
+                "pending": "Pending",
+                "failed": "Failed"
+            }
+        },
+        "riskManagement": {
+            "title": "Risk Management",
+            "subtitle": "Review alerts and held transactions",
+            "refresh": "Refresh",
+            "tabs": {
+                "alerts": "Risk Alerts",
+                "held": "Held Transactions"
+            },
+            "emptyAlerts": "No alerts found",
+            "emptyAlertsDesc": "All transactions are normal",
+            "emptyHeld": "No held transactions",
+            "emptyHeldDesc": "All transactions completed successfully",
+            "riskScore": "Risk Score",
+            "actions": {
+                "approve": "Approve",
+                "block": "Block",
+                "dismiss": "Dismiss",
+                "release": "Release",
+                "cancel": "Cancel"
+            },
+            "alertTypes": {
+                "HIGH_AMOUNT": "High Amount",
+                "RAPID_TRANSACTIONS": "Rapid Transactions",
+                "DEVICE_CHANGE": "New Device",
+                "SUSPICIOUS_IP": "Suspicious IP",
+                "LIMIT_EXCEEDED": "Limit Exceeded"
+            }
+        },
+        "centralBank": {
+            "title": "Central Bank",
+            "balance": "Central Bank Balance",
+            "negativeHint": "(Negative = Funds distributed to agents and users)",
+            "positiveHint": "(Positive = Funds held)",
+            "userBalance": "User Balances",
+            "agentCredit": "Agent Digital Credit",
+            "agentCash": "Agent Cash",
+            "systemBalance": "System Balance",
+            "equationTitle": "Accounting Equation",
+            "equation": "Central Bank Balance + User Balances = 0",
+            "balanced": "If System Balance = 0, the system is balanced accounting-wise",
+            "recentGrants": "Recent Credit Grants",
+            "noGrants": "No credit grants yet"
+        },
+        "internalAccounts": {
+            "title": "Internal Accounts",
+            "subtitle": "Monitor and track internal account balances",
+            "sync": "Sync Balances",
+            "syncSuccess": "Balances synced successfully",
+            "syncFailed": "Sync failed",
+            "balanced": "System Balanced",
+            "unbalanced": "Warning: System Unbalanced!",
+            "systemReserve": "System Reserve",
+            "otherTotal": "Other Accounts Total",
+            "difference": "Difference",
+            "balance": "Balance",
+            "frozen": "Frozen",
+            "explanation": {
+                "title": "Accounts Explanation",
+                "systemReserve": "Source of all funds in the system (negative)",
+                "usersLedger": "Total balances of all users",
+                "merchantsLedger": "Total balances of all merchants",
+                "agentsLedger": "Total credit granted to agents",
+                "settlements": "Amounts due for settlement with agents",
+                "commissions": "Total commissions collected from transactions"
+            }
+        },
+        "merchantRequests": {
+            "title": "Merchant Account Requests",
+            "pending": "Pending Requests",
+            "recent": "Recently Processed",
+            "table": {
+                "business": "Business",
+                "applicant": "Applicant",
+                "status": "Status",
+                "reviewedAt": "Reviewed At"
+            },
+            "details": {
+                "title": "Request Details",
+                "businessTo": "Business Name",
+                "type": "Type",
+                "address": "Address",
+                "phone": "Phone",
+                "applicant": "Applicant",
+                "description": "Description",
+                "documents": "Documents",
+                "license": "Commercial License",
+                "idPhoto": "ID Photo",
+                "rejectionReason": "Rejection Reason"
+            },
+            "actions": {
+                "approve": "Approve",
+                "reject": "Reject",
+                "cancel": "Cancel",
+                "view": "View Details"
+            },
+            "empty": "No pending requests",
+            "types": {
+                "RETAIL": "Retail",
+                "RESTAURANT": "Restaurant",
+                "SERVICE": "Service",
+                "ONLINE": "E-commerce",
+                "OTHER": "Other"
+            }
+        },
+        "agentDetails": {
+            "title": "Agent Info",
+            "toggleStatus": {
+                "suspend": "Suspend Account",
+                "activate": "Activate Account",
+                "confirmSuspend": "Are you sure you want to suspend this agent?",
+                "confirmActivate": "Are you sure you want to activate this agent?"
+            },
+            "stats": {
+                "status": "Status",
+                "active": "Active",
+                "inactive": "Inactive",
+                "digitalBalance": "Digital Balance",
+                "cashCollected": "Cash Collected",
+                "walletBalance": "Wallet Balance",
+                "totalDeposits": "Total Deposits",
+                "totalWithdrawals": "Total Withdrawals",
+                "txCount": "Transactions Count"
+            },
+            "tabs": {
+                "info": "Personal Info",
+                "transactions": "Transactions",
+                "settlements": "Settlements"
+            },
+            "info": {
+                "title": "Agent Information",
+                "fullName": "Full Name",
+                "phone": "Phone Number",
+                "email": "Email",
+                "dob": "Date of Birth",
+                "city": "City",
+                "address": "Address",
+                "businessName": "Business Name",
+                "agentCode": "Agent Code",
+                "kycStatus": "KYC Status",
+                "joinedAt": "Registered At"
+            },
+            "docs": {
+                "title": "Documents",
+                "idPhoto": "ID Photo",
+                "selfie": "Selfie Photo"
+            },
+            "empty": {
+                "notFound": "Agent not found",
+                "back": "Back to Agents",
+                "noTx": "No transactions found",
+                "noSettlements": "No settlements found"
+            }
+        },
+        "userDetails": {
+            "title": "User Details",
+            "notFound": "User not found",
+            "backToUsers": "Back to Users",
+            "kyc": {
+                "title": "KYC Documents",
+                "submitted": "Submitted",
+                "approved": "Approved",
+                "pending": "Pending",
+                "rejected": "Rejected",
+                "notSubmitted": "Not Submitted",
+                "submittedAt": "Submitted at: {date}",
+                "idPhoto": "ID Photo",
+                "selfie": "Selfie Photo",
+                "approve": "Approve KYC",
+                "reject": "Reject KYC",
+                "reasonRequired": "Rejection reason is required",
+                "reasonPlaceholder": "Rejection reason (if rejecting)..."
+            },
+            "status": {
+                "active": "Active",
+                "inactive": "Inactive"
+            },
+            "history": {
+                "title": "Transaction History",
+                "empty": "No financial transactions found",
+                "completed": "Completed",
+                "pending": "Pending",
+                "failed": "Failed",
+                "fee": "Fee"
+            },
+            "roles": {
+                "title": "Role Management",
+                "businessAccount": "Business Account",
+                "businessHint": "Activated upon business request approval",
+                "changeRole": "Change Role To",
+                "kycRequired": "KYC approval is required before changing roles",
+                "confirmChange": "Are you sure you want to change this user's role to {newRole}?",
+                "agent": "Agent",
+                "user": "User",
+                "normalUser": "Normal User"
+            },
+            "info": {
+                "phone": "Phone Number",
+                "email": "Email",
+                "dob": "Date of Birth",
+                "balance": "Wallet Balance",
+                "joinedAt": "Registered At"
+            }
+        },
+        "transactionDetails": {
+            "title": "Transaction Details",
+            "amounts": {
+                "title": "Amount Breakdown",
+                "base": "Base Amount",
+                "platformFee": "Platform Fee",
+                "agentFee": "Agent Commission",
+                "totalFee": "Total Fees",
+                "net": "Net Amount"
+            },
+            "info": {
+                "type": "Transaction Type",
+                "status": "Status",
+                "reference": "Reference Number",
+                "createdAt": "Created At",
+                "completedAt": "Completed At",
+                "description": "Description"
+            },
+            "parties": {
+                "sender": "Sender",
+                "receiver": "Receiver"
+            },
+            "types": {
+                "DEPOSIT": "Deposit",
+                "WITHDRAW": "Withdraw",
+                "TRANSFER": "Transfer",
+                "QR_PAYMENT": "QR Payment",
+                "CREDIT_GRANT": "Credit Grant"
+            },
+            "empty": {
+                "notFound": "Transaction not found",
+                "back": "Back to Transactions"
+            }
+        },
+        "advancedSettings": {
+            "title": "Advanced Settings",
+            "subtitle": "Manage limits, risk, and backup",
+            "save": "Save Changes",
+            "saving": "Saving...",
+            "success": "Settings saved successfully",
+            "error": "Failed to save settings",
+            "sections": {
+                "users": "User Limits",
+                "merchants": "Merchant Limits",
+                "agents": "Agent Limits",
+                "risk": "Risk Thresholds",
+                "backup": "Backup Settings"
+            },
+            "labels": {
+                "dailyLimit": "Daily Limit ($)",
+                "weeklyLimit": "Weekly Limit ($)",
+                "monthlyLimit": "Monthly Limit ($)",
+                "rateLimit": "Limit per 10 min (Count)",
+                "merchantDaily": "Daily Payment Limit ($)",
+                "merchantMonthly": "Monthly Limit ($)",
+                "agentCredit": "Daily Credit Limit ($)",
+                "agentWithdraw": "Daily Withdraw Limit ($)",
+                "agentCashHold": "Max Cash Hold ($)",
+                "riskHighAmount": "High Amount Threshold ($)",
+                "riskRapidTx": "Rapid Tx Threshold (Count/10m)",
+                "riskNewDevice": "New Device Freeze Days",
+                "autoFreezeHigh": "Auto-freeze High Amounts",
+                "autoFreezeDevice": "Auto-freeze New Devices",
+                "autoFreezeIP": "Auto-freeze Suspicious IPs",
+                "autoFreezeRapid": "Auto-freeze Rapid Transactions",
+                "backupEnabled": "Enable Daily Backup",
+                "backupHour": "Backup Hour (0-23)",
+                "backupRetention": "Retention Period (Days)"
+            }
+        },
+        "monitor": {
+            "title": "Live Monitor",
+            "autoRefresh": "Auto Refresh",
+            "stopped": "Stopped",
+            "stats": {
+                "today": "Today's Transactions",
+                "totalVolume": "Total Volume",
+                "pending": "Pending",
+                "alerts": "Alerts"
+            },
+            "liveTransactions": "Live Transactions",
+            "noRecentTransactions": "No recent transactions",
+            "activeUsers": "Active Users Now",
+            "online": "Online",
+            "noActiveUsers": "No active users currently",
+            "userTypes": {
+                "agent": "Agent",
+                "business": "Business",
+                "user": "User"
+            }
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "account": "Account",
+        "profile": "Profile",
+        "phoneNumber": "Phone Number",
+        "kyc": "Verification (KYC)",
+        "verified": "Verified ✓",
+        "notVerified": "Not Verified",
+        "security": "Security",
+        "appLock": "App Lock PIN",
+        "paymentPin": "Payment PIN",
+        "changePassword": "Change Password",
+        "twoFactor": "Two-Factor Authentication",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "preferences": "Preferences",
+        "language": "Language",
+        "notifications": "Notifications",
+        "market": "Market",
+        "myServices": "My Services",
+        "sellServices": "Sell Your Services",
+        "dangerZone": "Danger Zone",
+        "deleteAccount": "Delete Account",
+        "verifiedAccount": "Verified Account",
+        "languageApplied": "New language will be applied immediately",
+        "sixDigits": "6 digits",
+        "fourDigits": "4 digits",
+        "password": {
+            "title": "Change Password",
+            "current": "Current Password",
+            "new": "New Password",
+            "confirm": "Confirm New Password",
+            "submit": "Change Password",
+            "success": "Password changed successfully"
+        },
+        "appLockSettings": {
+            "title": "App Lock PIN",
+            "current": "Current PIN",
+            "new": "New PIN",
+            "confirm": "Confirm New PIN",
+            "submit": "Save PIN",
+            "success": "PIN saved successfully"
+        },
+        "paymentPinSettings": {
+            "title": "Payment PIN",
+            "current": "Current PIN",
+            "new": "New PIN",
+            "confirm": "Confirm New PIN",
+            "submit": "Save PIN",
+            "success": "PIN saved successfully"
+        },
+        "notificationsSettings": {
+            "title": "Notification Settings",
+            "pushNotifications": "Push Notifications",
+            "emailNotifications": "Email Notifications",
+            "transfers": "Transfers",
+            "deposits": "Deposits",
+            "withdrawals": "Withdrawals",
+            "marketing": "Offers & Alerts"
+        }
+    },
+    "services": {
+        "title": "Services",
+        "allServices": "All Services",
+        "purchase": "Purchase",
+        "confirmPurchase": "Confirm Purchase",
+        "price": "Price",
+        "flexiblePrice": "Flexible Price",
+        "minPrice": "Minimum",
+        "maxPrice": "Maximum",
+        "phoneNumber": "Phone Number",
+        "email": "Email",
+        "username": "Username",
+        "notes": "Notes",
+        "purchaseSuccess": "Purchase Successful!",
+        "categories": {
+            "recharge": "Mobile Recharge",
+            "bill": "Bill Payment",
+            "subscription": "Subscriptions",
+            "other": "Other",
+            "gaming": "Gaming",
+            "entertainment": "Entertainment"
+        },
+        "myServices": {
+            "title": "My Services",
+            "addService": "Add Service",
+            "editService": "Edit Service",
+            "deleteService": "Delete Service",
+            "noServices": "No services",
+            "pendingApproval": "Pending Approval",
+            "active": "Active",
+            "rejected": "Rejected"
+        },
+        "orders": {
+            "title": "Orders",
+            "pending": "Pending Orders",
+            "completed": "Completed Orders",
+            "cancelled": "Cancelled Orders",
+            "respond": "Respond to Order",
+            "complete": "Complete Order",
+            "cancel": "Cancel Order"
+        }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "markAllRead": "Mark All as Read",
+        "noNotifications": "No notifications",
+        "transferReceived": "Transfer Received",
+        "transferSent": "Transfer Sent",
+        "depositSuccess": "Deposit Successful",
+        "withdrawSuccess": "Withdrawal Successful",
+        "paymentReceived": "Payment Received",
+        "kycApproved": "KYC Approved",
+        "kycRejected": "KYC Rejected"
+    },
+    "errors": {
+        "required": "This field is required",
+        "invalidPhone": "Invalid phone number",
+        "invalidEmail": "Invalid email address",
+        "passwordMismatch": "Passwords do not match",
+        "passwordWeak": "Password must be at least 8 characters",
+        "insufficientBalance": "Insufficient balance",
+        "transactionFailed": "Transaction failed",
+        "unauthorized": "Unauthorized access",
+        "networkError": "Network error. Please try again.",
+        "loadFailed": "Failed to load",
+        "saveFailed": "Failed to save",
+        "notFound": "Not found",
+        "invalidData": "Invalid data",
+        "accountSuspended": "Your account has been suspended. Contact support.",
+        "accountLocked": "Account locked. Try again later.",
+        "invalidCredentials": "Invalid phone number or password"
+    },
+    "time": {
+        "justNow": "Just now",
+        "minutesAgo": "minutes ago",
+        "hoursAgo": "hours ago",
+        "daysAgo": "days ago"
+    }
+}

@@ -1,0 +1,1059 @@
+﻿{
+    "common": {
+        "appName": "بنك باشا",
+        "loading": "جاري التحميل...",
+        "error": "حدث خطأ",
+        "success": "تمت العملية بنجاح",
+        "confirm": "تأكيد",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "approve": "موافقة",
+        "reject": "رفض",
+        "search": "بحث",
+        "filter": "تصفية",
+        "back": "رجوع",
+        "next": "التالي",
+        "submit": "إرسال",
+        "close": "إغلاق",
+        "yes": "نعم",
+        "no": "لا",
+        "currency": "USD",
+        "currencySymbol": "$",
+        "view": "عرض",
+        "details": "التفاصيل",
+        "actions": "الإجراءات",
+        "status": "الحالة",
+        "history": "سجل العمليات",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "amount": "المبلغ",
+        "total": "الإجمالي",
+        "fee": "الرسوم",
+        "all": "الكل",
+        "active": "نشط",
+        "inactive": "غير نشط",
+        "pending": "معلق",
+        "approved": "مقبول",
+        "rejected": "مرفوض",
+        "completed": "مكتمل",
+        "failed": "فشل",
+        "processing": "قيد المعالجة",
+        "noData": "لا توجد بيانات",
+        "noResults": "لا توجد نتائج",
+        "refresh": "تحديث",
+        "download": "تحميل",
+        "share": "مشاركة",
+        "copy": "نسخ",
+        "copied": "تم النسخ",
+        "upload": {
+            "title": "رفع",
+            "dragDrop": "اضغط أو اسحب الصورة هنا",
+            "formats": "JPG, PNG أو WebP (حد أقصى {maxSize}MB)"
+        },
+        "required": "مطلوب",
+        "optional": "اختياري",
+        "phone": "رقم الهاتف",
+        "email": "البريد الإلكتروني",
+        "name": "الاسم",
+        "description": "الوصف",
+        "note": "ملاحظة",
+        "today": "اليوم",
+        "yesterday": "أمس",
+        "thisWeek": "هذا الأسبوع",
+        "thisMonth": "هذا الشهر",
+        "notifications": "الإشعارات",
+        "profile": "الملف الشخصي",
+        "logout": "تسجيل الخروج",
+        "verifiedAccount": "حساب موثق",
+        "unverifiedAccount": "حساب غير موثق",
+        "businessAccount": "حساب البزنس",
+        "commercialAccount": "حساب تجاري",
+        "customer": "العميل",
+        "notes": "الملاحظات",
+        "password": "كلمة المرور"
+    },
+    "nav": {
+        "home": "الرئيسية",
+        "dashboard": "لوحة التحكم",
+        "wallet": "المحفظة",
+        "transfer": "تحويل",
+        "history": "السجل",
+        "settings": "الإعدادات",
+        "logout": "تسجيل الخروج",
+        "login": "تسجيل الدخول",
+        "register": "إنشاء حساب",
+        "admin": "الإدارة",
+        "agent": "الوكيل",
+        "merchant": "التاجر",
+        "services": "الخدمات",
+        "transactions": "المعاملات",
+        "users": "المستخدمون",
+        "settlements": "التسويات",
+        "ledger": "دفتر الأستاذ"
+    },
+    "landing": {
+        "hero": {
+            "title": "شريكك المالي الرقمي",
+            "subtitle": "خدمات مالية سريعة وآمنة وسهلة في متناول يدك",
+            "cta": "ابدأ الآن",
+            "learnMore": "اعرف المزيد"
+        },
+        "features": {
+            "title": "خدماتنا",
+            "deposit": {
+                "title": "إيداع نقدي",
+                "description": "حوّل أموالك النقدية إلى رصيد رقمي عبر وكلائنا المحليين"
+            },
+            "withdraw": {
+                "title": "سحب نقدي",
+                "description": "احصل على النقد من أي وكيل بالقرب منك"
+            },
+            "transfer": {
+                "title": "تحويل فوري",
+                "description": "أرسل الأموال فوراً لأي شخص"
+            },
+            "payment": {
+                "title": "دفع QR",
+                "description": "ادفع للتجار بمسح كود QR بسيط"
+            }
+        },
+        "agents": {
+            "title": "اعثر على وكيل",
+            "description": "وكلاؤنا متواجدون في جميع أنحاء جبل باشان"
+        },
+        "security": {
+            "title": "أمان بمستوى البنوك",
+            "description": "أموالك وبياناتك محمية بأعلى معايير الأمان"
+        },
+        "download": {
+            "title": "ابدأ اليوم",
+            "description": "أنشئ حسابك المجاني في دقائق"
+        }
+    },
+    "auth": {
+        "login": {
+            "title": "مرحباً بعودتك",
+            "subtitle": "سجّل دخولك إلى حسابك",
+            "phone": "رقم الهاتف",
+            "password": "كلمة المرور",
+            "rememberMe": "تذكرني",
+            "forgotPassword": "نسيت كلمة المرور؟",
+            "submit": "تسجيل الدخول",
+            "noAccount": "ليس لديك حساب؟",
+            "register": "سجّل الآن"
+        },
+        "register": {
+            "title": "إنشاء حساب",
+            "subtitle": "انضم إلى بنك باشا اليوم",
+            "fullName": "الاسم الكامل",
+            "fullNameAr": "الاسم بالعربي",
+            "phone": "رقم الهاتف",
+            "email": "البريد الإلكتروني (اختياري)",
+            "password": "كلمة المرور",
+            "confirmPassword": "تأكيد كلمة المرور",
+            "city": "المدينة",
+            "terms": "أوافق على شروط الخدمة وسياسة الخصوصية",
+            "submit": "إنشاء الحساب",
+            "hasAccount": "لديك حساب بالفعل؟",
+            "login": "تسجيل الدخول",
+            "success": {
+                "title": "تم إنشاء الحساب بنجاح!",
+                "subtitle": "يمكنك الآن تسجيل الدخول",
+                "goToLogin": "الذهاب لتسجيل الدخول"
+            }
+        },
+        "kyc": {
+            "title": "التحقق من الهوية",
+            "subtitle": "يرجى التحقق من هويتك لتفعيل جميع الميزات",
+            "idCard": "صورة البطاقة الشخصية",
+            "selfie": "التقط صورة سيلفي",
+            "submit": "إرسال للمراجعة",
+            "pending": "وثائقك قيد المراجعة",
+            "approved": "تم التحقق من هويتك",
+            "rejected": "تم رفض التحقق. يرجى إعادة الإرسال."
+        }
+    },
+    "wallet": {
+        "balance": "الرصيد الحالي",
+        "available": "متاح",
+        "frozen": "مجمد",
+        "actions": {
+            "deposit": "إيداع",
+            "withdraw": "سحب",
+            "transfer": "تحويل",
+            "pay": "دفع"
+        },
+        "limits": {
+            "daily": "الحد اليومي",
+            "monthly": "الحد الشهري"
+        },
+        "recentTransactions": "آخر المعاملات",
+        "noTransactions": "لا توجد معاملات",
+        "viewAll": "عرض الكل"
+    },
+    "transaction": {
+        "types": {
+            "deposit": "إيداع",
+            "withdraw": "سحب",
+            "transfer": "تحويل",
+            "payment": "دفع",
+            "settlement": "تسوية",
+            "service_purchase": "شراء خدمة",
+            "commission": "عمولة"
+        },
+        "status": {
+            "pending": "قيد الانتظار",
+            "processing": "قيد المعالجة",
+            "completed": "مكتملة",
+            "failed": "فشلت",
+            "cancelled": "ملغاة",
+            "held": "محجوزة"
+        },
+        "details": {
+            "reference": "رقم المرجع",
+            "amount": "المبلغ",
+            "fee": "الرسوم",
+            "total": "الإجمالي",
+            "date": "التاريخ",
+            "time": "الوقت",
+            "from": "من",
+            "to": "إلى",
+            "type": "النوع",
+            "status": "الحالة",
+            "description": "الوصف"
+        },
+        "sender": "المرسل",
+        "receiver": "المستلم",
+        "fee": "الرسوم",
+        "reference": "رقم المرجع",
+        "transfer": {
+            "title": "إرسال أموال",
+            "recipient": "رقم هاتف المستلم",
+            "amount": "المبلغ",
+            "note": "ملاحظة (اختياري)",
+            "fee": "رسوم التحويل",
+            "total": "المبلغ الإجمالي",
+            "confirm": "تأكيد التحويل",
+            "success": "تم التحويل بنجاح!",
+            "enterOtp": "أدخل رمز التأكيد",
+            "otpSent": "تم إرسال رمز التأكيد",
+            "recipientNotFound": "المستلم غير موجود",
+            "insufficientBalance": "الرصيد غير كافي"
+        },
+        "deposit": {
+            "title": "إيداع أموال",
+            "selectAgent": "اختر الوكيل",
+            "nearbyAgents": "الوكلاء القريبين",
+            "agentCode": "كود الوكيل",
+            "instructions": "تعليمات الإيداع"
+        },
+        "withdraw": {
+            "title": "سحب أموال",
+            "amount": "مبلغ السحب",
+            "confirm": "تأكيد السحب",
+            "success": "تم السحب بنجاح"
+        },
+        "pay": {
+            "title": "الدفع",
+            "scanQr": "امسح كود QR",
+            "enterCode": "أو أدخل كود التاجر",
+            "merchantCode": "كود التاجر",
+            "merchantName": "اسم التاجر",
+            "selectMethod": "اختر طريقة الدفع",
+            "confirm": "تأكيد الدفع",
+            "success": "تم الدفع بنجاح!"
+        },
+        "receipt": {
+            "title": "إيصال معاملة",
+            "generatedBy": "تم الإصدار بواسطة نظام بنك باشا",
+            "error": "فشل في إنشاء الإيصال. حاول مرة أخرى."
+        }
+    },
+    "support": {
+        "title": "الدعم الفني",
+        "newTicket": "تذكرة جديدة",
+        "myTickets": "تذاكري",
+        "ticketDetails": "تفاصيل التذكرة",
+        "createTicket": "إنشاء تذكرة دعم",
+        "subject": "الموضوع",
+        "description": "الوصف",
+        "category": "الفئة",
+        "priority": "الأولوية",
+        "status": "الحالة",
+        "attachments": "المرفقات",
+        "addAttachment": "إضافة لقطة شاشة",
+        "send": "إرسال رسالة",
+        "reply": "الرد",
+        "close": "إغلاق التذكرة",
+        "ticketNumber": "رقم التذكرة #",
+        "createdAt": "تاريخ الإنشاء",
+        "lastUpdate": "آخر تحديث",
+        "assignedTo": "مسندة إلى",
+        "unassigned": "غير مسندة",
+        "contactInfo": "معلومات الاتصال",
+        "contactName": "اسمك",
+        "contactPhone": "رقم الهاتف",
+        "contactEmail": "البريد الإلكتروني (اختياري)",
+        "categories": {
+            "ACCOUNT_ISSUE": "مشكلة في الحساب",
+            "PAYMENT_ISSUE": "مشكلة في الدفع",
+            "TECHNICAL_ISSUE": "مشكلة تقنية",
+            "KYC_VERIFICATION": "التحقق من الهوية",
+            "SUSPENSION_APPEAL": "استئناف التعليق",
+            "FEATURE_REQUEST": "طلب ميزة",
+            "OTHER": "أخرى"
+        },
+        "statuses": {
+            "OPEN": "مفتوحة",
+            "IN_PROGRESS": "قيد المعالجة",
+            "WAITING_USER": "بانتظار ردك",
+            "WAITING_ADMIN": "بانتظار الدعم",
+            "RESOLVED": "تم الحل",
+            "CLOSED": "مغلقة"
+        },
+        "priorities": {
+            "LOW": "منخفضة",
+            "MEDIUM": "متوسطة",
+            "HIGH": "عالية",
+            "URGENT": "عاجلة"
+        },
+        "messages": {
+            "noTickets": "لا توجد تذاكر",
+            "ticketCreated": "تم إنشاء التذكرة بنجاح",
+            "messageSent": "تم إرسال الرسالة",
+            "ticketClosed": "تم إغلاق التذكرة",
+            "uploadSuccess": "تم رفع الملف بنجاح",
+            "uploadError": "فشل رفع الملف"
+        }
+    },
+    "agent": {
+        "dashboard": {
+            "title": "لوحة الوكيل",
+            "balance": "الرصيد الرقمي",
+            "cashCollected": "النقد المتجمع",
+            "todayTransactions": "معاملات اليوم",
+            "pendingSettlement": "التسوية المعلقة",
+            "agentCode": "كود الوكيل",
+            "creditLimit": "حد الائتمان",
+            "currentCredit": "الائتمان الحالي",
+            "availableCredit": "الائتمان المتاح"
+        },
+        "deposit": {
+            "title": "إيداع للعميل",
+            "customerPhone": "رقم هاتف العميل",
+            "amount": "المبلغ",
+            "cashReceived": "النقد المستلم",
+            "confirm": "تأكيد الإيداع",
+            "success": "تم الإيداع بنجاح"
+        },
+        "withdraw": {
+            "title": "سحب للعميل",
+            "customerPhone": "رقم هاتف العميل",
+            "amount": "المبلغ",
+            "cashGiven": "النقد المسلّم",
+            "confirm": "تأكيد السحب",
+            "success": "تم السحب بنجاح"
+        },
+        "settlement": {
+            "title": "طلب تسوية",
+            "summary": "ملخص التسوية",
+            "creditUsed": "الرصيد المستخدم",
+            "cashCollected": "النقد المتجمع",
+            "yourShare": "عمولتك",
+            "platformShare": "حصة المنصة",
+            "amountDue": "المبلغ المستحق",
+            "request": "طلب التسوية",
+            "noSettlements": "لا توجد تسويات",
+            "pendingSettlements": "التسويات المعلقة",
+            "description": "هذا المبلغ هو إجمالي النقد الذي جمعته من عمليات الإيداع",
+            "minimum": "الحد الأدنى للتسوية: 10 $",
+            "history": "سجل التسويات",
+            "commission": "العمولة",
+            "notesPlaceholder": "اكتب ملاحظاتك هنا... (سيتم إرسالها للإدارة)"
+        },
+        "transactions": {
+            "title": "سجل المعاملات",
+            "noTransactions": "لا توجد معاملات"
+        }
+    },
+    "merchant": {
+        "dashboard": {
+            "title": "لوحة التاجر",
+            "todaySales": "مبيعات اليوم",
+            "totalSales": "إجمالي المبيعات",
+            "transactions": "المعاملات",
+            "businessName": "اسم المحل"
+        },
+        "qr": {
+            "title": "رمز QR الخاص بك",
+            "subtitle": "يمكن للعملاء مسحه للدفع لك",
+            "description": "يمكن للعملاء مسحه للدفع",
+            "download": "تحميل QR",
+            "merchantCode": "رمز التاجر",
+            "scanToPay": "امسح للدفع"
+        },
+        "transactions": {
+            "title": "آخر المعاملات",
+            "empty": "لا توجد معاملات بعد",
+            "received": "مدفوعات مستلمة"
+        },
+        "orders": {
+            "title": "الطلبات",
+            "pending": "طلبات معلقة",
+            "completed": "طلبات مكتملة",
+            "noOrders": "لا توجد طلبات"
+        },
+        "becomemerchant": {
+            "title": "فتح حساب بزنس",
+            "subtitle": "ابدأ باستقبال المدفوعات من العملاء",
+            "businessName": "اسم المحل/النشاط",
+            "businessNameAr": "اسم المحل بالعربي",
+            "businessType": "نوع النشاط",
+            "license": "صورة الرخصة",
+            "idPhoto": "صورة الهوية",
+            "submit": "تقديم الطلب",
+            "pendingReview": "طلبك قيد المراجعة"
+        }
+    },
+    "admin": {
+        "dashboard": {
+            "title": "لوحة الإدارة",
+            "totalUsers": "إجمالي المستخدمين",
+            "totalAgents": "الوكلاء النشطين",
+            "totalMerchants": "التجار النشطين",
+            "todayVolume": "حجم التداول اليوم",
+            "overview": "نظرة عامة",
+            "subtitle": "مرحباً، هذه نظرة عامة على النظام",
+            "pendingKyc": "طلبات التوثيق",
+            "pendingSettlements": "التسويات المعلقة",
+            "quickActions": "إجراءات سريعة",
+            "noPendingKYC": "لا توجد طلبات معلقة",
+            "noPendingSettlements": "لا توجد تسويات معلقة"
+        },
+        "users": {
+            "title": "إدارة المستخدمين",
+            "pending": "بانتظار التحقق",
+            "active": "المستخدمون النشطون",
+            "all": "جميع المستخدمين",
+            "search": "بحث عن مستخدم...",
+            "searchPlaceholder": "ابحث بالاسم أو رقم الهاتف...",
+            "filter": {
+                "allTypes": "جميع الأنواع",
+                "users": "مستخدمين",
+                "business": "حساب بزنس",
+                "agents": "وكلاء",
+                "allKyc": "جميع حالات KYC",
+                "allStatus": "جميع الحالات"
+            },
+            "kycStatus": {
+                "pending": "قيد المراجعة",
+                "approved": "موثق",
+                "rejected": "مرفوض",
+                "notSubmitted": "غير مقدم"
+            },
+            "changeRole": "تغيير الصلاحية",
+            "block": "حظر",
+            "unblock": "إلغاء الحظر",
+            "viewDetails": "عرض التفاصيل",
+            "roles": {
+                "user": "مستخدم",
+                "agent": "وكيل",
+                "merchant": "تاجر",
+                "admin": "مدير"
+            }
+        },
+        "agents": {
+            "title": "إدارة الوكلاء",
+            "grantCredit": "منح رصيد",
+            "revokeCredit": "سحب رصيد",
+            "creditLimit": "حد الائتمان",
+            "currentCredit": "الرصيد الحالي",
+            "newAgent": "إضافة وكيل جديد",
+            "agentCode": "كود الوكيل",
+            "commission": "العمولة",
+            "agentPhone": "رقم هاتف الوكيل",
+            "amount": "مبلغ الرصيد",
+            "searchPlaceholder": "ابحث بالاسم أو الكود أو رقم الهاتف...",
+            "noAgents": "لا يوجد وكلاء",
+            "digitalCredit": "الرصيد الرقمي",
+            "totalCash": "النقد المجموع",
+            "totalDeposits": "إجمالي الإيداعات",
+            "totalWithdrawals": "إجمالي السحوبات"
+        },
+        "services": {
+            "title": "إدارة الخدمات",
+            "addService": "إضافة خدمة",
+            "addServiceAction": "إضافة الخدمة",
+            "addFirstService": "إضافة أول خدمة",
+            "tabs": {
+                "services": "الخدمات",
+                "requests": "طلبات التجار"
+            },
+            "noServices": "لا توجد خدمات",
+            "purchasesCount": "عملية شراء",
+            "noRequests": "لا توجد طلبات خدمات",
+            "newRequests": "طلبات جديدة",
+            "providedBy": "مقدم من:",
+            "editService": "تعديل الخدمة",
+            "addNewService": "إضافة خدمة جديدة",
+            "reviewService": "مراجعة الخدمة",
+            "rejectReason": "سبب الرفض (اختياري)",
+            "rejectReasonPlaceholder": "اكتب سبب الرفض إذا أردت الرفض...",
+            "deleteConfirm": "هل أنت متأكد من حذف هذه الخدمة؟",
+            "form": {
+                "nameEn": "الاسم (English)",
+                "nameAr": "الاسم (عربي)",
+                "descEn": "الوصف (English)",
+                "descAr": "الوصف (عربي)",
+                "category": "التصنيف",
+                "price": "السعر",
+                "flexiblePrice": "السعر مفتوح (المشتري يحدد المبلغ)",
+                "minPrice": "الحد الأدنى ($)",
+                "maxPrice": "الحد الأقصى ($)",
+                "requiredInfo": "المعلومات المطلوبة من المشتري",
+                "customField": "حقل مخصص آخر (اختياري)...",
+                "isActive": "خدمة مفعلة"
+            }
+        },
+        "transactions": {
+            "title": "جميع المعاملات",
+            "noTransactions": "لا توجد معاملات",
+            "all": "جميع المعاملات",
+            "search": "بحث...",
+            "filter": "تصفية",
+            "export": "تصدير"
+        },
+        "merchants": {
+            "title": "إدارة التجار",
+            "requestsTitle": "طلبات البزنس",
+            "pendingRequests": "طلبات معلقة",
+            "activeMerchants": "التجار النشطين",
+            "approve": "موافقة",
+            "reject": "رفض",
+            "businessName": "اسم المحل",
+            "searchPlaceholder": "ابحث بالاسم أو الكود أو رقم الهاتف...",
+            "noMerchants": "لا يوجد تجار",
+            "totalSales": "إجمالي المبيعات",
+            "totalTransactions": "عدد المعاملات"
+        },
+        "settlements": {
+            "title": "التسويات المالية",
+            "pending": "تسويات معلقة",
+            "filters": {
+                "pending": "قيد الانتظار",
+                "completed": "مكتمل",
+                "rejected": "مرفوض",
+                "all": "الكل"
+            },
+            "labels": {
+                "cashCollected": "النقد المجموع",
+                "amountDue": "المبلغ المستحق"
+            },
+            "status": {
+                "pending": "قيد الانتظار",
+                "completed": "مكتمل",
+                "rejected": "مرفوض"
+            },
+            "empty": "لا توجد تسويات"
+        },
+        "bin": {
+            "title": "سلة المحذوفات",
+            "subtitle": "استرجاع أو حذف العناصر المحذوفة نهائياً",
+            "empty": "سلة المحذوفات فارغة",
+            "itemType": "نوع العنصر",
+            "deletedBy": "تم الحذف بواسطة",
+            "deletedAt": "تاريخ الحذف",
+            "restore": "استرجاع",
+            "permanentDelete": "حذف نهائي",
+            "confirmRestore": "هل تريد استرجاع هذا العنصر؟",
+            "confirmPermanent": "تحذير: سيتم حذف هذا العنصر نهائياً ولا يمكن استرجاعه!",
+            "restoreSuccess": "تم الاسترجاع بنجاح",
+            "deleteSuccess": "تم الحذف نهائياً",
+            "types": {
+                "USER": "مستخدم",
+                "SERVICE": "خدمة",
+                "AGENT": "وكيل",
+                "MERCHANT": "تاجر",
+                "MERCHANT_REQUEST": "طلب تاجر"
+            },
+            "filter": {
+                "all": "الكل",
+                "users": "المستخدمين",
+                "services": "الخدمات",
+                "agents": "الوكلاء",
+                "merchants": "التجار"
+            }
+        },
+        "settings": {
+            "title": "الإعدادات",
+            "advancedSettings": "الإعدادات المتقدمة",
+            "systemSettings": "إعدادات النظام",
+            "fees": {
+                "title": "الرسوم والعمولات",
+                "depositFee": "رسوم الإيداع",
+                "withdrawFee": "رسوم السحب",
+                "transferFee": "رسوم التحويل",
+                "paymentFee": "رسوم الدفع QR",
+                "agentCommission": "عمولة الوكيل",
+                "settlementPlatform": "عمولة المنصة من التسوية",
+                "settlementAgent": "عمولة الوكيل من التسوية"
+            },
+            "save": "حفظ الإعدادات",
+            "saved": "تم حفظ الإعدادات",
+            "loadFailed": "فشل تحميل الإعدادات",
+            "saveFailed": "فشل حفظ الإعدادات"
+        },
+        "ledger": {
+            "title": "دفتر الأستاذ",
+            "subtitle": "نظام القيد المزدوج - Double Entry Ledger",
+            "description": "جميع القيود المحاسبية للمعاملات المالية في النظام",
+            "empty": "لا توجد قيود محاسبية",
+            "entryNumber": "رقم القيد",
+            "from": "من (مدين)",
+            "to": "إلى (دائن)",
+            "amount": "المبلغ",
+            "fee": "الرسوم",
+            "net": "الصافي",
+            "status": {
+                "completed": "مكتمل",
+                "pending": "معلق",
+                "failed": "فشل"
+            }
+        },
+        "riskManagement": {
+            "title": "إدارة المخاطر",
+            "subtitle": "مراجعة التنبيهات والمعاملات المجمدة",
+            "refresh": "تحديث",
+            "tabs": {
+                "alerts": "تنبيهات المخاطر",
+                "held": "معاملات مجمدة"
+            },
+            "emptyAlerts": "لا توجد تنبيهات",
+            "emptyAlertsDesc": "جميع المعاملات طبيعية",
+            "emptyHeld": "لا توجد معاملات مجمدة",
+            "emptyHeldDesc": "جميع المعاملات تمت بنجاح",
+            "riskScore": "درجة الخطورة",
+            "actions": {
+                "approve": "موافقة",
+                "block": "حظر",
+                "dismiss": "تجاهل",
+                "release": "تحرير",
+                "cancel": "إلغاء"
+            },
+            "alertTypes": {
+                "HIGH_AMOUNT": "مبلغ كبير",
+                "RAPID_TRANSACTIONS": "معاملات سريعة",
+                "DEVICE_CHANGE": "جهاز جديد",
+                "SUSPICIOUS_IP": "IP مشبوه",
+                "LIMIT_EXCEEDED": "تجاوز الحد"
+            }
+        },
+        "centralBank": {
+            "title": "البنك المركزي",
+            "balance": "رصيد البنك المركزي",
+            "negativeHint": "(السالب = أموال تم توزيعها على الوكلاء والمستخدمين)",
+            "positiveHint": "(الموجب = أموال محتجزة)",
+            "userBalance": "رصيد المستخدمين",
+            "agentCredit": "رصيد الوكلاء الرقمي",
+            "agentCash": "النقد لدى الوكلاء",
+            "systemBalance": "توازن النظام",
+            "equationTitle": "معدلة التوازن المحاسبي",
+            "equation": "رصيد البنك المركزي + رصيد المستخدمين = 0",
+            "balanced": "إذا كان توازن النظام = 0 فالنظام متوازن محاسبياً",
+            "recentGrants": "آخر عمليات منح الرصيد",
+            "noGrants": "لا توجد عمليات منح رصيد بعد"
+        },
+        "internalAccounts": {
+            "title": "الحسابات الداخلية",
+            "subtitle": "مراقبة وتتبع أرصدة الحسابات الداخلية",
+            "sync": "مزامنة الأرصدة",
+            "syncSuccess": "تم مزامنة الأرصدة بنجاح",
+            "syncFailed": "فشل في المزامنة",
+            "balanced": "النظام متوازن",
+            "unbalanced": "تحذير: النظام غير متوازن!",
+            "systemReserve": "احتياطي النظام",
+            "otherTotal": "مجموع الحسابات الأخرى",
+            "difference": "الفرق",
+            "balance": "الرصيد",
+            "frozen": "مجمد",
+            "explanation": {
+                "title": "شرح الحسابات",
+                "systemReserve": "مصدر جميع الأموال في النظام (يكون سالباً)",
+                "usersLedger": "مجموع أرصدة جميع المستخدمين",
+                "merchantsLedger": "مجموع أرصدة جميع التجار",
+                "agentsLedger": "مجموع الائتمان الممنوح للوكلاء",
+                "settlements": "المبالغ المستحقة للتسوية مع الوكلاء",
+                "commissions": "إجمالي العمولات المحصلة من المعاملات"
+            }
+        },
+        "merchantRequests": {
+            "title": "طلبات حسابات البزنس",
+            "pending": "طلبات معلقة",
+            "recent": "الطلبات المعالجة مؤخراً",
+            "table": {
+                "business": "البزنس",
+                "applicant": "مقدم الطلب",
+                "status": "الحالة",
+                "reviewedAt": "تاريخ المراجعة"
+            },
+            "details": {
+                "title": "تفاصيل الطلب",
+                "businessTo": "اسم البزنس",
+                "type": "النوع",
+                "address": "العنوان",
+                "phone": "الهاتف",
+                "applicant": "مقدم الطلب",
+                "description": "الوصف",
+                "documents": "المستندات",
+                "license": "رخصة تجارية",
+                "idPhoto": "صورة هوية",
+                "rejectionReason": "سبب الرفض"
+            },
+            "actions": {
+                "approve": "موافقة",
+                "reject": "رفض",
+                "cancel": "إلغاء",
+                "view": "تفاصيل"
+            },
+            "empty": "لا توجد طلبات معلقة",
+            "types": {
+                "RETAIL": "تجارة تجزئة",
+                "RESTAURANT": "مطعم / مقهى",
+                "SERVICE": "خدمات",
+                "ONLINE": "تجارة إلكترونية",
+                "OTHER": "أخرى"
+            }
+        },
+        "agentDetails": {
+            "title": "معلومات الوكيل",
+            "toggleStatus": {
+                "suspend": "تعليق الحساب",
+                "activate": "تفعيل الحساب",
+                "confirmSuspend": "هل تريد تعليق حساب هذا الوكيل؟",
+                "confirmActivate": "هل تريد تفعيل حساب هذا الوكيل؟"
+            },
+            "stats": {
+                "status": "الحالة",
+                "active": "نشط",
+                "inactive": "غير نشط",
+                "digitalBalance": "الرصيد الرقمي",
+                "cashCollected": "النقد المجموع",
+                "walletBalance": "رصيد المحفظة",
+                "totalDeposits": "إجمالي الإيداعات",
+                "totalWithdrawals": "إجمالي السحوبات",
+                "txCount": "عدد العمليات"
+            },
+            "tabs": {
+                "info": "المعلومات الشخصية",
+                "transactions": "العمليات",
+                "settlements": "التسويات"
+            },
+            "info": {
+                "title": "معلومات الوكيل",
+                "fullName": "الاسم الكامل",
+                "phone": "رقم الهاتف",
+                "email": "البريد الإلكتروني",
+                "dob": "تاريخ الميلاد",
+                "city": "المدينة",
+                "address": "العنوان",
+                "businessName": "اسم المحل",
+                "agentCode": "كود الوكيل",
+                "kycStatus": "حالة التوثيق",
+                "joinedAt": "تاريخ التسجيل"
+            },
+            "docs": {
+                "title": "المستندات",
+                "idPhoto": "صورة الهوية",
+                "selfie": "صورة السيلفي"
+            },
+            "empty": {
+                "notFound": "الوكيل غير موجود",
+                "back": "العودة للوكلاء",
+                "noTx": "لا توجد عمليات",
+                "noSettlements": "لا توجد تسويات"
+            }
+        },
+        "userDetails": {
+            "title": "تفاصيل المستخدم",
+            "notFound": "المستخدم غير موجود",
+            "backToUsers": "العودة للمستخدمين",
+            "kyc": {
+                "title": "مستندات KYC",
+                "submitted": "تم الإرسال",
+                "approved": "تمت الموافقة",
+                "pending": "قيد الانتظار",
+                "rejected": "مرفوض",
+                "notSubmitted": "لم يتم التقديم",
+                "submittedAt": "تاريخ التقديم: {date}",
+                "idPhoto": "صورة الهوية",
+                "selfie": "صورة سيلفي",
+                "approve": "الموافقة على KYC",
+                "reject": "رفض KYC",
+                "reasonRequired": "سبب الرفض مطلوب",
+                "reasonPlaceholder": "سبب الرفض (في حالة الرفض فقط)..."
+            },
+            "status": {
+                "active": "نشط",
+                "inactive": "غير نشط"
+            },
+            "history": {
+                "title": "سجل العمليات المالية",
+                "empty": "لا توجد عمليات مالية",
+                "completed": "مكتملة",
+                "pending": "معلقة",
+                "failed": "فشلت",
+                "fee": "الرسوم"
+            },
+            "roles": {
+                "title": "إدارة الصلاحيات",
+                "businessAccount": "حساب بزنس",
+                "businessHint": "يتم تفعيله عند قبول طلب البزنس",
+                "changeRole": "تغيير الصلاحية إلى",
+                "kycRequired": "يجب الموافقة على KYC أولاً لتغيير الصلاحيات",
+                "confirmChange": "هل أنت متأكد من تغيير صلاحية هذا المستخدم إلى {newRole}؟",
+                "agent": "وكيل",
+                "user": "مستخدم",
+                "normalUser": "مستخدم عادي"
+            },
+            "info": {
+                "phone": "رقم الهاتف",
+                "email": "البريد الإلكتروني",
+                "dob": "تاريخ الميلاد",
+                "balance": "رصيد المحفظة",
+                "joinedAt": "تاريخ التسجيل"
+            }
+        },
+        "transactionDetails": {
+            "title": "تفاصيل المعاملة",
+            "amounts": {
+                "title": "تفاصيل المبالغ",
+                "base": "المبلغ الأساسي",
+                "platformFee": "رسوم المنصة",
+                "agentFee": "عمولة الوكيل",
+                "totalFee": "إجمالي الرسوم",
+                "net": "صافي المبلغ"
+            },
+            "info": {
+                "type": "نوع العملية",
+                "status": "الحالة",
+                "reference": "رقم المرجع",
+                "createdAt": "تاريخ الإنشاء",
+                "completedAt": "تاريخ الإتمام",
+                "description": "الوصف"
+            },
+            "parties": {
+                "sender": "المُرسل",
+                "receiver": "المُستلم"
+            },
+            "types": {
+                "DEPOSIT": "إيداع",
+                "WITHDRAW": "سحب",
+                "TRANSFER": "تحويل",
+                "QR_PAYMENT": "دفع QR",
+                "CREDIT_GRANT": "منح ائتمان"
+            },
+            "empty": {
+                "notFound": "المعاملة غير موجودة",
+                "back": "العودة للمعاملات"
+            }
+        },
+        "advancedSettings": {
+            "title": "الإعدادات المتقدمة",
+            "subtitle": "إدارة الحدود والمخاطر والنسخ الاحتياطي",
+            "save": "حفظ التغييرات",
+            "saving": "جاري الحفظ...",
+            "success": "تم حفظ الإعدادات بنجاح",
+            "error": "فشل في حفظ الإعدادات",
+            "sections": {
+                "users": "حدود المستخدمين",
+                "merchants": "حدود التجار",
+                "agents": "حدود الوكلاء",
+                "risk": "عتبات المخاطر",
+                "backup": "إعدادات النسخ الاحتياطي"
+            },
+            "labels": {
+                "dailyLimit": "الحد اليومي ($)",
+                "weeklyLimit": "الحد الأسبوعي ($)",
+                "monthlyLimit": "الحد الشهري ($)",
+                "rateLimit": "الحد كل 10 دقائق (عدد)",
+                "merchantDaily": "حد الدفع اليومي ($)",
+                "merchantMonthly": "الحد الشهري ($)",
+                "agentCredit": "حد الائتمان اليومي ($)",
+                "agentWithdraw": "حد السحب اليومي ($)",
+                "agentCashHold": "الحد الأقصى للنقد ($)",
+                "riskHighAmount": "عتبة المبلغ العالي ($)",
+                "riskRapidTx": "عتبة المعاملات السريعة (عدد/10د)",
+                "riskNewDevice": "أيام تجميد الجهاز الجديد",
+                "autoFreezeHigh": "تجميد تلقائي للمبالغ العالية",
+                "autoFreezeDevice": "تجميد تلقائي للأجهزة الجديدة",
+                "autoFreezeIP": "تجميد تلقائي لـ IP المشبوه",
+                "autoFreezeRapid": "تجميد تلقائي للمعاملات السريعة",
+                "backupEnabled": "تفعيل النسخ الاحتياطي اليومي",
+                "backupHour": "ساعة النسخ الاحتياطي (0-23)",
+                "backupRetention": "مدة الاحتفاظ (أيام)"
+            }
+        },
+        "monitor": {
+            "title": "المراقبة الحية",
+            "autoRefresh": "تحديث تلقائي",
+            "stopped": "متوقف",
+            "stats": {
+                "today": "معاملات اليوم",
+                "totalVolume": "إجمالي الحجم",
+                "pending": "معلقة",
+                "alerts": "تنبيهات"
+            },
+            "liveTransactions": "المعاملات الحية",
+            "noRecentTransactions": "لا توجد معاملات حديثة",
+            "activeUsers": "المستخدمون النشطون الآن",
+            "online": "متصل",
+            "noActiveUsers": "لا يوجد مستخدمون نشطون حالياً",
+            "userTypes": {
+                "agent": "وكيل",
+                "business": "حساب بزنس",
+                "user": "مستخدم"
+            }
+        }
+    },
+    "settings": {
+        "title": "الإعدادات",
+        "account": "الحساب",
+        "profile": "الملف الشخصي",
+        "phoneNumber": "رقم الهاتف",
+        "kyc": "التوثيق (KYC)",
+        "verified": "موثق ✓",
+        "notVerified": "غير موثق",
+        "security": "الأمان",
+        "appLock": "رمز فتح التطبيق",
+        "paymentPin": "رمز الدفع",
+        "changePassword": "تغيير كلمة المرور",
+        "twoFactor": "التحقق بخطوتين",
+        "enabled": "مفعل",
+        "disabled": "معطل",
+        "preferences": "التفضيلات",
+        "language": "اللغة",
+        "notifications": "الإشعارات",
+        "market": "السوق",
+        "myServices": "خدماتي",
+        "sellServices": "بيع خدماتك",
+        "dangerZone": "منطقة الخطر",
+        "deleteAccount": "حذف الحساب",
+        "verifiedAccount": "حساب موثق",
+        "languageApplied": "سيتم تطبيق اللغة الجديدة فوراً",
+        "sixDigits": "6 أرقام",
+        "fourDigits": "4 أرقام",
+        "password": {
+            "title": "تغيير كلمة المرور",
+            "current": "كلمة المرور الحالية",
+            "new": "كلمة المرور الجديدة",
+            "confirm": "تأكيد كلمة المرور الجديدة",
+            "submit": "تغيير كلمة المرور",
+            "success": "تم تغيير كلمة المرور بنجاح"
+        },
+        "appLockSettings": {
+            "title": "رمز فتح التطبيق",
+            "current": "الرمز الحالي",
+            "new": "الرمز الجديد",
+            "confirm": "تأكيد الرمز الجديد",
+            "submit": "حفظ الرمز",
+            "success": "تم حفظ الرمز بنجاح"
+        },
+        "paymentPinSettings": {
+            "title": "رمز الدفع",
+            "current": "الرمز الحالي",
+            "new": "الرمز الجديد",
+            "confirm": "تأكيد الرمز الجديد",
+            "submit": "حفظ الرمز",
+            "success": "تم حفظ الرمز بنجاح"
+        },
+        "notificationsSettings": {
+            "title": "إعدادات الإشعارات",
+            "pushNotifications": "الإشعارات الفورية",
+            "emailNotifications": "إشعارات البريد",
+            "transfers": "التحويلات",
+            "deposits": "الإيداعات",
+            "withdrawals": "السحوبات",
+            "marketing": "العروض والتنبيهات"
+        }
+    },
+    "services": {
+        "title": "الخدمات",
+        "allServices": "جميع الخدمات",
+        "purchase": "شراء",
+        "confirmPurchase": "تأكيد الشراء",
+        "price": "السعر",
+        "flexiblePrice": "السعر مفتوح",
+        "minPrice": "الحد الأدنى",
+        "maxPrice": "الحد الأقصى",
+        "phoneNumber": "رقم الهاتف",
+        "email": "البريد الإلكتروني",
+        "username": "اسم المستخدم",
+        "notes": "ملاحظات",
+        "purchaseSuccess": "تم الشراء بنجاح!",
+        "categories": {
+            "recharge": "شحن رصيد",
+            "bill": "دفع فواتير",
+            "subscription": "اشتراكات",
+            "other": "أخرى",
+            "gaming": "ألعاب",
+            "entertainment": "ترفيه"
+        },
+        "myServices": {
+            "title": "خدماتي",
+            "addService": "إضافة خدمة",
+            "editService": "تعديل الخدمة",
+            "deleteService": "حذف الخدمة",
+            "noServices": "لا توجد خدمات",
+            "pendingApproval": "بانتظار الموافقة",
+            "active": "نشطة",
+            "rejected": "مرفوضة"
+        },
+        "orders": {
+            "title": "الطلبات",
+            "pending": "طلبات معلقة",
+            "completed": "طلبات مكتملة",
+            "cancelled": "طلبات ملغاة",
+            "respond": "الرد على الطلب",
+            "complete": "إكمال الطلب",
+            "cancel": "إلغاء الطلب"
+        }
+    },
+    "notifications": {
+        "title": "الإشعارات",
+        "markAllRead": "تعليم الكل كمقروء",
+        "noNotifications": "لا توجد إشعارات",
+        "transferReceived": "تم استلام تحويل",
+        "transferSent": "تم إرسال تحويل",
+        "depositSuccess": "تم الإيداع بنجاح",
+        "withdrawSuccess": "تم السحب بنجاح",
+        "paymentReceived": "تم استلام دفعة",
+        "kycApproved": "تم التحقق من الهوية",
+        "kycRejected": "تم رفض التحقق"
+    },
+    "errors": {
+        "required": "هذا الحقل مطلوب",
+        "invalidPhone": "رقم هاتف غير صالح",
+        "invalidEmail": "بريد إلكتروني غير صالح",
+        "passwordMismatch": "كلمات المرور غير متطابقة",
+        "passwordWeak": "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+        "insufficientBalance": "رصيد غير كافي",
+        "transactionFailed": "فشلت العملية",
+        "unauthorized": "غير مصرح",
+        "networkError": "خطأ في الشبكة. حاول مرة أخرى.",
+        "loadFailed": "فشل التحميل",
+        "saveFailed": "فشل الحفظ",
+        "notFound": "غير موجود",
+        "invalidData": "بيانات غير صالحة",
+        "accountSuspended": "تم تعليق حسابك. تواصل مع الدعم.",
+        "accountLocked": "الحساب مغلق. حاول لاحقاً.",
+        "invalidCredentials": "رقم الهاتف أو كلمة المرور غير صحيحة"
+    },
+    "time": {
+        "justNow": "الآن",
+        "minutesAgo": "دقائق مضت",
+        "hoursAgo": "ساعات مضت",
+        "daysAgo": "أيام مضت"
+    }
+}

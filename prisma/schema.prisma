@@ -1,0 +1,1016 @@
+// Prisma Schema for Bank Basha
+// Digital Financial Platform
+// Supports both SQLite (development) and PostgreSQL (production)
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MANAGEMENT
+// ============================================
+
+// UserType: USER, AGENT, MERCHANT, ADMIN
+// UserStatus: PENDING, ACTIVE, SUSPENDED, BLOCKED
+// KYCStatus: NOT_SUBMITTED, PENDING, APPROVED, REJECTED
+
+model User {
+  id              String      @id @default(uuid())
+  phone           String      @unique
+  email           String?     @unique
+  passwordHash    String
+  fullName        String
+  fullNameAr      String?
+  userType        String      @default("USER")
+  status          String      @default("PENDING")
+  kycStatus       String      @default("NOT_SUBMITTED")
+  isActive        Boolean     @default(false)
+  
+  // Profile
+  avatarUrl       String?
+  address         String?
+  city            String?     @default("السويداء")
+  dateOfBirth     DateTime?
+  
+  // KYC Documents
+  idPhotoUrl      String?
+  selfiePhotoUrl  String?
+  kycSubmittedAt  DateTime?
+  kycReviewedAt   DateTime?
+  kycReviewedBy   String?
+  kycRejectionReason String?
+  
+  // Security
+  pinHash         String?
+  appLockPin      String?   // 6-digit hashed PIN for app lock
+  paymentPin      String?   // 4-digit hashed PIN for payments
+  fcmToken        String?   // Firebase Cloud Messaging token for push notifications
+  failedAttempts  Int         @default(0)
+  lockedUntil     DateTime?
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Soft Delete
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  // Business Account
+  hasMerchantAccount  Boolean     @default(false)
+  activeAccountType   String      @default("PERSONAL") // PERSONAL or BUSINESS
+  businessWalletId    String?     @unique
+  
+  // Relations
+  wallet          Wallet?     @relation("PersonalWallet")
+  businessWallet  Wallet?     @relation("BusinessWallet", fields: [businessWalletId], references: [id])
+  kycDocuments    KYCDocument[]
+  sentTransactions      Transaction[]   @relation("TransactionSender")
+  receivedTransactions  Transaction[]   @relation("TransactionReceiver")
+  agentProfile    AgentProfile?
+  merchantProfile MerchantProfile?
+  merchantRequests MerchantRequest[]
+  sessions        Session[]
+  notifications   Notification[]
+  servicePurchases ServicePurchase[]
+  services        Service[]  @relation("UserServices")
+  transferOTPs    TransferOTP[]
+  tickets         Ticket[]   @relation("UserTickets")
+  assignedTickets Ticket[]   @relation("AssignedTickets")
+  ticketMessages  TicketMessage[] @relation("TicketMessageAuthor")
+  ticketAttachments TicketAttachment[] @relation("TicketAttachmentUploader")
+  
+  @@index([phone])
+  @@index([email])
+  @@index([userType])
+  @@index([status])
+}
+
+model Session {
+  id            String    @id @default(uuid())
+  userId        String
+  token         String    @unique
+  refreshToken  String    @unique
+  userAgent     String?
+  ipAddress     String?
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+}
+
+model KYCDocument {
+  id            String      @id @default(uuid())
+  userId        String
+  documentType  String      // ID_CARD, PASSPORT, SELFIE
+  documentUrl   String
+  status        String      @default("PENDING")
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  rejectionReason String?
+  createdAt     DateTime    @default(now())
+  
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================
+// WALLET & ACCOUNTS
+// ============================================
+
+model Wallet {
+  id              String    @id @default(uuid())
+  userId          String?   @unique
+  balance         Float     @default(0)
+  frozenBalance   Float     @default(0)
+  currency        String    @default("USD")
+  walletType      String    @default("PERSONAL") // PERSONAL or BUSINESS
+  isActive        Boolean   @default(true)
+  dailyLimit      Float     @default(1000000)
+  monthlyLimit    Float     @default(10000000)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  user            User?     @relation("PersonalWallet", fields: [userId], references: [id], onDelete: Cascade)
+  businessUser    User?     @relation("BusinessWallet")
+  
+  @@index([walletType])
+}
+
+// ============================================
+// AGENT MANAGEMENT
+// ============================================
+
+model AgentProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  agentCode       String    @unique
+  businessName    String
+  businessNameAr  String?
+  businessAddress String
+  creditLimit     Float     @default(0)
+  currentCredit   Float     @default(0)
+  cashCollected   Float     @default(0)
+  
+  // Stats
+  totalDeposits   Float     @default(0)
+  totalWithdrawals Float    @default(0)
+  
+  // Commission rates (override defaults if set)
+  depositCommission   Float?
+  withdrawCommission  Float?
+  
+  // Location
+  latitude        Float?
+  longitude       Float?
+  
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Soft Delete
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  settlements     Settlement[]
+  
+  @@index([agentCode])
+  @@index([userId])
+}
+
+// ============================================
+// MERCHANT MANAGEMENT
+// ============================================
+
+model MerchantProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  merchantCode    String    @unique
+  businessName    String
+  businessNameAr  String?
+  businessType    String
+  businessAddress String
+  
+  // QR Code for payments
+  qrCode          String    @unique
+  
+  // Stats
+  totalSales      Float     @default(0)
+  totalTransactions Int     @default(0)
+  
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Soft Delete
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([merchantCode])
+  @@index([qrCode])
+  @@index([userId])
+}
+
+// ============================================
+// TRANSACTIONS
+// ============================================
+
+// TransactionType: DEPOSIT, WITHDRAW, TRANSFER, QR_PAYMENT, SETTLEMENT, CREDIT_GRANT, CREDIT_REVOKE, FEE, REFUND
+// TransactionStatus: PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED, REVERSED
+
+model Transaction {
+  id                String    @id @default(uuid())
+  referenceNumber   String    @unique
+  type              String    // TransactionType
+  status            String    @default("PENDING") // TransactionStatus
+  
+  // Parties
+  senderId          String?
+  receiverId        String?
+  agentId           String?
+  
+  // Amounts
+  amount            Float
+  fee               Float     @default(0)
+  platformFee       Float     @default(0)
+  agentFee          Float     @default(0)
+  netAmount         Float
+  
+  currency          String    @default("USD")
+  
+  // Metadata
+  description       String?
+  descriptionAr     String?
+  metadata          String?   // JSON string for additional data
+  
+  // PDF Receipt
+  receiptUrl        String?
+  receiptHash       String?   // For verification
+  
+  // Ledger
+  ledgerEntryId     String?
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  completedAt       DateTime?
+  
+  // Relations
+  sender            User?     @relation("TransactionSender", fields: [senderId], references: [id])
+  receiver          User?     @relation("TransactionReceiver", fields: [receiverId], references: [id])
+  ledgerEntry       LedgerEntry? @relation(fields: [ledgerEntryId], references: [id])
+  
+  @@index([referenceNumber])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// DOUBLE-ENTRY LEDGER
+// ============================================
+
+// AccountType: ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+
+model LedgerAccount {
+  id          String      @id @default(uuid())
+  code        String      @unique
+  name        String
+  nameAr      String?
+  type        String      // AccountType
+  parentId    String?
+  balance     Float       @default(0)
+  isSystem    Boolean     @default(false)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  parent      LedgerAccount?  @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children    LedgerAccount[] @relation("AccountHierarchy")
+  entries     LedgerEntryLine[]
+  
+  @@index([code])
+  @@index([type])
+}
+
+model LedgerEntry {
+  id            String    @id @default(uuid())
+  entryNumber   String    @unique
+  description   String
+  descriptionAr String?
+  
+  // Balances
+  totalDebit    Float     @default(0)
+  totalCredit   Float     @default(0)
+  
+  // Verification
+  hash          String?   // SHA-256 hash of entry data
+  previousHash  String?   // Hash of previous entry (blockchain-like)
+  
+  createdAt     DateTime  @default(now())
+  createdBy     String?
+  
+  lines         LedgerEntryLine[]
+  transactions  Transaction[]
+  
+  @@index([entryNumber])
+  @@index([createdAt])
+}
+
+model LedgerEntryLine {
+  id            String    @id @default(uuid())
+  entryId       String
+  accountId     String
+  debit         Float     @default(0)
+  credit        Float     @default(0)
+  
+  entry         LedgerEntry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account       LedgerAccount @relation(fields: [accountId], references: [id])
+  
+  @@index([entryId])
+  @@index([accountId])
+}
+
+// ============================================
+// SETTLEMENTS
+// ============================================
+
+// SettlementStatus: PENDING, APPROVED, COMPLETED, REJECTED
+
+model Settlement {
+  id              String    @id @default(uuid())
+  settlementNumber String   @unique
+  agentId         String
+  
+  // Amounts
+  creditUsed      Float     // How much credit was sold
+  cashCollected   Float     // Cash collected from users
+  platformShare   Float     // Platform's commission
+  agentShare      Float     // Agent's commission
+  amountDue       Float     // Cash to be given to platform
+  
+  status          String    @default("PENDING") // SettlementStatus
+  
+  notes           String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  
+  agent           AgentProfile @relation(fields: [agentId], references: [id])
+  
+  @@index([agentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+// NotificationType: TRANSACTION, SECURITY, SYSTEM, PROMOTION
+
+model Notification {
+  id          String    @id @default(uuid())
+  userId      String
+  type        String    // NotificationType
+  title       String
+  titleAr     String?
+  message     String
+  messageAr   String?
+  isRead      Boolean   @default(false)
+  metadata    String?   // JSON
+  
+  createdAt   DateTime  @default(now())
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================
+// SYSTEM SETTINGS
+// ============================================
+
+model SystemSettings {
+  id                      String    @id @default(uuid())
+  
+  // Commission Rates (percentages)
+  depositFeePercent       Float     @default(1.0)
+  depositFeeFixed         Float     @default(0.0)
+  withdrawalFeePercent    Float     @default(1.5)
+  withdrawalFeeFixed      Float     @default(0.0)
+  transferFeePercent      Float     @default(0.5)
+  transferFeeFixed        Float     @default(0.0)
+  qrPaymentFeePercent     Float     @default(0.5)
+  qrPaymentFeeFixed       Float     @default(0.0)
+  serviceFeePercent       Float     @default(0.0)
+  serviceFeeFixed         Float     @default(0.0)
+  agentCommissionPercent  Float     @default(50.0)  // Agent gets 50% of fees
+  
+  // Settlement Commission Rates (percentages)
+  settlementPlatformCommission Float  @default(0.5)  // Platform share from settlement
+  settlementAgentCommission    Float  @default(0.5)  // Agent share from settlement
+  
+  // Transaction Limits (USD)
+  dailyTransactionLimit   Float     @default(10000.0)
+  weeklyTransactionLimit  Float     @default(50000.0)
+  monthlyTransactionLimit Float     @default(200000.0)
+  minTransactionAmount    Float     @default(1.0)
+  maxTransactionAmount    Float     @default(50000.0)
+  
+  // Metadata
+  updatedAt               DateTime  @updatedAt
+  updatedBy               String?
+  
+  @@map("system_settings")
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  userId      String?
+  action      String
+  entity      String
+  entityId    String?
+  oldValue    String?   // JSON
+  newValue    String?   // JSON
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+// ============================================
+// INTERNAL ACCOUNTS (Ledger Separation)
+// ============================================
+
+model InternalAccount {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  name            String
+  nameAr          String?
+  type            String    // SYSTEM_RESERVE, USERS_LEDGER, MERCHANTS_LEDGER, AGENTS_LEDGER, SETTLEMENTS, FEES, SUSPENSE
+  balance         Float     @default(0)
+  frozenBalance   Float     @default(0)
+  description     String?
+  
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([code])
+  @@index([type])
+  @@map("internal_accounts")
+}
+
+// ============================================
+// RISK ENGINE
+// ============================================
+
+// RiskAlertType: HIGH_AMOUNT, RAPID_TRANSACTIONS, DEVICE_CHANGE, SUSPICIOUS_IP, UNUSUAL_PATTERN
+// RiskAlertStatus: PENDING, UNDER_REVIEW, APPROVED, BLOCKED, DISMISSED
+
+model RiskAlert {
+  id              String    @id @default(uuid())
+  userId          String
+  transactionId   String?
+  
+  alertType       String    // RiskAlertType
+  riskScore       Float     // 0-100 risk score
+  reason          String    // Human readable reason
+  reasonAr        String?
+  
+  status          String    @default("PENDING") // RiskAlertStatus
+  
+  // Context
+  amount          Float?
+  ipAddress       String?
+  deviceInfo      String?
+  location        String?
+  
+  // Resolution
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  resolution      String?
+  resolutionNotes String?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([transactionId])
+  @@index([status])
+  @@index([alertType])
+  @@index([createdAt])
+  @@map("risk_alerts")
+}
+
+// Frozen/Held Transactions requiring manual review
+model HeldTransaction {
+  id              String    @id @default(uuid())
+  transactionId   String    @unique
+  riskAlertId     String?
+  
+  reason          String
+  reasonAr        String?
+  holdAmount      Float
+  
+  status          String    @default("HELD") // HELD, RELEASED, CANCELLED
+  
+  releasedBy      String?
+  releasedAt      DateTime?
+  releaseNotes    String?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([transactionId])
+  @@index([status])
+  @@map("held_transactions")
+}
+
+// ============================================
+// DAILY SNAPSHOTS (Backup System)
+// ============================================
+
+model DailySnapshot {
+  id              String    @id @default(uuid())
+  snapshotDate    DateTime  
+  
+  // Totals at snapshot time
+  totalUsers      Int
+  totalAgents     Int
+  totalMerchants  Int
+  
+  totalUserBalance    Float
+  totalAgentCredit    Float
+  totalAgentCash      Float
+  totalMerchantBalance Float
+  systemReserve       Float
+  feesCollected       Float
+  
+  totalTransactions   Int
+  totalVolume         Float
+  
+  // S3 Storage
+  s3BucketName    String?
+  s3Key           String?
+  s3Url           String?
+  fileSize        Int?      // in bytes
+  checksum        String?   // SHA-256 hash of file
+  
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  errorMessage    String?
+  
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  
+  @@unique([snapshotDate])
+  @@index([snapshotDate])
+  @@index([status])
+  @@map("daily_snapshots")
+}
+
+// ============================================
+// USER TRANSACTION LIMITS (Per User Tracking)
+// ============================================
+
+model UserTransactionLimit {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  
+  // Daily limits tracking
+  dailySpent      Float     @default(0)
+  dailyCount      Int       @default(0)
+  dailyResetAt    DateTime  @default(now())
+  
+  // Weekly limits tracking
+  weeklySpent     Float     @default(0)
+  weeklyCount     Int       @default(0)
+  weeklyResetAt   DateTime  @default(now())
+  
+  // Monthly limits tracking
+  monthlySpent    Float     @default(0)
+  monthlyCount    Int       @default(0)
+  monthlyResetAt  DateTime  @default(now())
+  
+  // Rate limiting (per 10 minutes)
+  recentCount     Int       @default(0)
+  recentResetAt   DateTime  @default(now())
+  
+  // Custom limits (null = use system default)
+  customDailyLimit    Float?
+  customWeeklyLimit   Float?
+  customMonthlyLimit  Float?
+  customRateLimit     Int?    // max per 10 min
+  
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+  @@map("user_transaction_limits")
+}
+
+// ============================================
+// REVERSE TRANSACTIONS (Immutable Ledger)
+// ============================================
+
+model ReversalTransaction {
+  id                  String    @id @default(uuid())
+  originalTransactionId String
+  reversalTransactionId String  @unique
+  
+  reason              String
+  reasonAr            String?
+  
+  reversedBy          String    // Admin who reversed
+  reversedAt          DateTime  @default(now())
+  
+  @@index([originalTransactionId])
+  @@map("reversal_transactions")
+}
+
+// ============================================
+// ENHANCED SYSTEM SETTINGS
+// ============================================
+
+model AdvancedSettings {
+  id                      String    @id @default(uuid())
+  
+  // User Limits
+  userDailyLimit          Float     @default(5000.0)
+  userWeeklyLimit         Float     @default(20000.0)
+  userMonthlyLimit        Float     @default(50000.0)
+  userRateLimitPer10Min   Int       @default(10)
+  
+  // Merchant Limits
+  merchantDailyPaymentLimit Float   @default(50000.0)
+  merchantMonthlyLimit      Float   @default(500000.0)
+  
+  // Agent Limits
+  agentDailyCreditLimit     Float   @default(100000.0)
+  agentDailyWithdrawLimit   Float   @default(50000.0)
+  agentMaxCashHold          Float   @default(100000.0)
+  
+  // Risk Thresholds
+  riskHighAmountThreshold   Float   @default(5000.0)    // Flag transactions above this
+  riskRapidTxThreshold      Int     @default(5)         // Flag if > N tx in 10 min
+  riskNewDeviceHoldDays     Int     @default(3)         // Hold funds for new devices
+  
+  // Auto-freeze triggers
+  autoFreezeHighAmount      Boolean @default(true)
+  autoFreezeNewDevice       Boolean @default(true)
+  autoFreezeSuspiciousIP    Boolean @default(true)
+  autoFreezeRapidTx         Boolean @default(true)
+  
+  // Snapshot settings
+  snapshotEnabled           Boolean @default(true)
+  snapshotTimeHour          Int     @default(3)         // 3 AM
+  snapshotRetentionDays     Int     @default(90)
+  
+  updatedAt                 DateTime @updatedAt
+  updatedBy                 String?
+  
+  @@map("advanced_settings")
+}
+
+// ============================================
+// DEVICE TRACKING (for Risk Engine)
+// ============================================
+
+model UserDevice {
+  id              String    @id @default(uuid())
+  userId          String
+  
+  deviceId        String    // Unique device fingerprint
+  deviceName      String?
+  deviceType      String?   // MOBILE, WEB, DESKTOP
+  userAgent       String?
+  
+  lastIpAddress   String?
+  lastLocation    String?
+  
+  isTrusted       Boolean   @default(false)
+  trustExpiresAt  DateTime?
+  
+  lastUsedAt      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@index([deviceId])
+  @@map("user_devices")
+}
+
+// ============================================
+// MERCHANT REQUEST (Business Account Application)
+// ============================================
+
+model MerchantRequest {
+  id              String    @id @default(uuid())
+  userId          String
+  
+  // Business Info
+  businessName    String
+  businessNameAr  String?
+  businessType    String    // RETAIL, RESTAURANT, SERVICE, ONLINE, OTHER
+  businessAddress String
+  businessPhone   String?
+  businessEmail   String?
+  businessDescription String?
+  
+  // Documents (S3 URLs)
+  licenseUrl      String?   // رخصة تجارية
+  idPhotoUrl      String?   // صورة هوية المالك
+  additionalDocs  String?   // JSON array of additional doc URLs
+  
+  // Status
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("merchant_requests")
+}
+
+// ============================================
+// SERVICES MARKETPLACE
+// ============================================
+
+model Service {
+  id              String    @id @default(uuid())
+  
+  // Seller Info
+  sellerId        String?   // null = admin service, otherwise user who created it
+  seller          User?     @relation("UserServices", fields: [sellerId], references: [id])
+  
+  // Basic Info
+  name            String
+  nameAr          String?
+  description     String
+  descriptionAr   String?
+  
+  // Category
+  category        String    // RECHARGE, BILL, SUBSCRIPTION, OTHER
+  categoryAr      String?
+  
+  // Pricing
+  price           Float             // Default/minimum price
+  isFlexiblePrice Boolean   @default(false)  // If true, buyer can set amount
+  minPrice        Float?            // Minimum price (if flexible)
+  maxPrice        Float?            // Maximum price (if flexible)
+  currency        String    @default("USD")
+  
+  // Display
+  iconUrl         String?
+  imageUrl        String?
+  sortOrder       Int       @default(0)
+  
+  // Approval Status
+  status          String    @default("PENDING")  // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  
+  // Status
+  isActive        Boolean   @default(true)
+  
+  // Required fields from buyer (JSON array of field definitions)
+  // e.g., [{"name": "phoneNumber", "label": "رقم الهاتف", "type": "tel", "required": true}]
+  requiredFields  String?
+  
+  // Metadata
+  metadata        String?   // JSON for extra fields
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Soft Delete
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  purchases       ServicePurchase[]
+  
+  @@index([sellerId])
+  @@index([category])
+  @@index([status])
+  @@index([isActive])
+  @@map("services")
+}
+
+model ServicePurchase {
+  id              String    @id @default(uuid())
+  serviceId       String
+  userId          String
+  
+  // Transaction Details
+  amount          Float
+  fee             Float     @default(0)
+  platformFee     Float     @default(0)
+  agentFee        Float     @default(0)
+  netAmount       Float     @default(0)
+  totalAmount     Float
+  
+  // Status
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED, REFUNDED
+  
+  // Reference
+  referenceNumber String    @unique
+  transactionId   String?   // Link to Transaction if applicable
+  
+  // User Input (e.g., phone number for recharge)
+  userInput       String?   // JSON
+  phoneNumber     String?   // رقم الهاتف للتعبئة
+  
+  // Seller Approval Flow
+  sellerResponse  String?   // PENDING | APPROVED | REJECTED
+  sellerNotes     String?   // ملاحظة التاجر (مثل: لا يوجد رصيد)
+  processedBy     String?   // ID of seller who processed
+  processedAt     DateTime?
+  refundedAt      DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  service         Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([sellerResponse])
+  @@map("service_purchases")
+}
+
+// Transfer OTP Model
+model TransferOTP {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // OTP Details
+  otpHash       String   // Hashed OTP (6 digits)
+  
+  // Transfer Details
+  amount        Float
+  recipientId   String
+  note          String?
+  
+  // Security
+  expiresAt     DateTime
+  attempts      Int      @default(0)
+  maxAttempts   Int      @default(3)
+  isUsed        Boolean  @default(false)
+  isExpired     Boolean  @default(false)
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([isUsed])
+  @@index([expiresAt])
+}
+
+// ============================================
+// SOFT DELETE TRACKING
+// ============================================
+
+model DeletedItem {
+  id          String   @id @default(uuid())
+  
+  // Item Info
+  itemType    String   // USER, SERVICE, AGENT, MERCHANT, MERCHANT_REQUEST, etc.
+  itemId      String
+  itemData    String   // JSON snapshot before deletion
+  
+  // Deletion Info
+  deletedBy   String
+  deletedAt   DateTime @default(now())
+  @@index([itemType])
+  @@index([itemId])
+  @@index([deletedAt])
+  @@map("deleted_items")
+}
+
+// ============================================
+// SUPPORT TICKETING SYSTEM
+// ============================================
+
+model Ticket {
+  id            String   @id @default(uuid())
+  ticketNumber  String   @unique // Auto-generated: TKT-XXXXXX
+  
+  // User info (can be null for public tickets)
+  userId        String?
+  user          User?    @relation("UserTickets", fields: [userId], references: [id])
+  
+  // Contact info (for public/suspended users)
+  contactName   String?
+  contactPhone  String?
+  contactEmail  String?
+  
+  // Ticket details
+  subject       String
+  description   String
+  category      String   // ACCOUNT_ISSUE, PAYMENT_ISSUE, TECHNICAL_ISSUE, KYC_VERIFICATION, SUSPENSION_APPEAL, FEATURE_REQUEST, OTHER
+  priority      String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status        String   @default("OPEN") // OPEN, IN_PROGRESS, WAITING_USER, WAITING_ADMIN, RESOLVED, CLOSED
+  
+  // Assignment
+  assignedToId  String?
+  assignedTo    User?    @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  closedAt      DateTime?
+  closedBy      String?
+  
+  // Relations
+  messages      TicketMessage[]
+  attachments   TicketAttachment[]
+  
+  @@index([userId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id          String   @id @default(uuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  // Author (null for system messages)
+  userId      String?
+  user        User?    @relation("TicketMessageAuthor", fields: [userId], references: [id])
+  isAdmin     Boolean  @default(false)
+  isSystem    Boolean  @default(false)
+  
+  message     String
+  
+  createdAt   DateTime @default(now())
+  
+  attachments TicketAttachment[]
+  
+  @@index([ticketId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model TicketAttachment {
+  id            String   @id @default(uuid())
+  ticketId      String
+  ticket        Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  messageId     String?
+  message       TicketMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  fileName      String
+  fileUrl       String
+  fileSize      Int
+  mimeType      String
+  
+  uploadedById  String?
+  uploadedBy    User?    @relation("TicketAttachmentUploader", fields: [uploadedById], references: [id])
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([ticketId])
+  @@index([messageId])
+}

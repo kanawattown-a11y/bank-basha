@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { verifyAccessToken, getSecurityHeaders } from '@/lib/auth/security';
+import { cookies } from 'next/headers';
+
+export async function GET(request: NextRequest) {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('accessToken')?.value;
+
+        if (!token) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401, headers: getSecurityHeaders() }
+            );
+        }
+
+        const payload = verifyAccessToken(token);
+        if (!payload || payload.userType !== 'AGENT') {
+            return NextResponse.json(
+                { error: 'Unauthorized - Agent access required' },
+                { status: 403, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Get agent profile with wallet
+        const agent = await prisma.user.findUnique({
+            where: { id: payload.userId },
+            include: {
+                wallet: true,
+                agentProfile: true,
+            },
+        });
+
+        if (!agent || !agent.agentProfile) {
+            return NextResponse.json(
+                { error: 'Agent profile not found' },
+                { status: 404, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Get today's transaction count
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todayTransactions = await prisma.transaction.count({
+            where: {
+                agentId: payload.userId,
+                createdAt: { gte: today },
+                status: 'COMPLETED',
+            },
+        });
+
+        // Get pending settlement amount
+        const pendingSettlements = await prisma.settlement.aggregate({
+            where: {
+                agentId: agent.agentProfile.id,
+                status: 'PENDING',
+            },
+            _sum: { amountDue: true },
+        });
+
+        return NextResponse.json(
+            {
+                digitalBalance: agent.wallet?.balance || 0,
+                cashCollected: agent.agentProfile.cashCollected,
+                todayTransactions,
+                pendingSettlement: pendingSettlements._sum.amountDue || 0,
+                agentCode: agent.agentProfile.agentCode,
+                businessName: agent.agentProfile.businessName,
+                businessNameAr: agent.agentProfile.businessNameAr,
+                currentCredit: agent.agentProfile.currentCredit,
+            },
+            { status: 200, headers: getSecurityHeaders() }
+        );
+    } catch (error) {
+        console.error('Agent dashboard error:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500, headers: getSecurityHeaders() }
+        );
+    }
+}

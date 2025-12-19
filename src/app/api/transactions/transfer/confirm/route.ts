@@ -1,0 +1,213 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { verifyAccessToken, getSecurityHeaders } from '@/lib/auth/security';
+import { verifyOTP, isOTPExpired } from '@/lib/otp/generator';
+import { processTransfer } from '@/lib/ledger/ledger';
+import { sendPushNotification } from '@/lib/firebase/admin';
+import { cookies } from 'next/headers';
+import { z } from 'zod';
+
+const confirmSchema = z.object({
+    transferRequestId: z.string(),
+    otp: z.string().length(6, 'OTP must be 6 digits'),
+});
+
+export async function POST(request: NextRequest) {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('accessToken')?.value;
+
+        if (!token) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401, headers: getSecurityHeaders() }
+            );
+        }
+
+        const payload = verifyAccessToken(token);
+        if (!payload) {
+            return NextResponse.json(
+                { error: 'Invalid token' },
+                { status: 401, headers: getSecurityHeaders() }
+            );
+        }
+
+        const body = await request.json();
+        const result = confirmSchema.safeParse(body);
+
+        if (!result.success) {
+            return NextResponse.json(
+                { error: result.error.errors[0].message },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        const { transferRequestId, otp } = result.data;
+
+        // Find OTP record
+        const otpRecord = await prisma.transferOTP.findUnique({
+            where: { id: transferRequestId },
+        });
+
+        if (!otpRecord) {
+            return NextResponse.json(
+                { error: 'Transfer request not found' },
+                { status: 404, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Verify ownership
+        if (otpRecord.userId !== payload.userId) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Check if already used
+        if (otpRecord.isUsed) {
+            return NextResponse.json(
+                { error: 'OTP already used' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Check if expired
+        if (isOTPExpired(otpRecord.expiresAt) || otpRecord.isExpired) {
+            await prisma.transferOTP.update({
+                where: { id: otpRecord.id },
+                data: { isExpired: true },
+            });
+            return NextResponse.json(
+                { error: 'OTP expired. Please request a new one' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Check max attempts
+        if (otpRecord.attempts >= otpRecord.maxAttempts) {
+            return NextResponse.json(
+                { error: 'Maximum attempts exceeded. Please request a new OTP' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Verify OTP
+        const isValid = await verifyOTP(otp, otpRecord.otpHash);
+
+        if (!isValid) {
+            // Increment attempts
+            await prisma.transferOTP.update({
+                where: { id: otpRecord.id },
+                data: { attempts: { increment: 1 } },
+            });
+
+            const remainingAttempts = otpRecord.maxAttempts - (otpRecord.attempts + 1);
+            return NextResponse.json(
+                {
+                    error: 'Invalid OTP',
+                    remainingAttempts,
+                },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // OTP is valid - Process the transfer
+        const transferResult = await processTransfer(
+            payload.userId,
+            otpRecord.recipientId,
+            otpRecord.amount,
+            otpRecord.note
+        );
+
+        if (!transferResult.success) {
+            return NextResponse.json(
+                { error: transferResult.error },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Mark OTP as used
+        await prisma.transferOTP.update({
+            where: { id: otpRecord.id },
+            data: { isUsed: true },
+        });
+
+        // Get sender and recipient info
+        const [sender, recipient] = await Promise.all([
+            prisma.user.findUnique({ where: { id: payload.userId } }),
+            prisma.user.findUnique({ where: { id: otpRecord.recipientId } }),
+        ]);
+
+        // Create notifications
+        await prisma.notification.createMany({
+            data: [
+                {
+                    userId: payload.userId,
+                    type: 'TRANSACTION',
+                    title: 'Transfer Sent',
+                    titleAr: 'تم إرسال التحويل',
+                    message: `You sent ${otpRecord.amount} $ to ${recipient?.fullName}`,
+                    messageAr: `أرسلت ${otpRecord.amount} $ إلى ${recipient?.fullNameAr || recipient?.fullName}`,
+                    metadata: JSON.stringify({ transactionId: transferResult.transactionId }),
+                },
+                {
+                    userId: otpRecord.recipientId,
+                    type: 'TRANSACTION',
+                    title: 'Transfer Received',
+                    titleAr: 'تم استلام تحويل',
+                    message: `You received ${otpRecord.amount} $`,
+                    messageAr: `استلمت ${otpRecord.amount} $`,
+                    metadata: JSON.stringify({ transactionId: transferResult.transactionId }),
+                },
+            ],
+        });
+
+        // Send Push Notifications
+        if (sender?.fcmToken) {
+            sendPushNotification(
+                sender.fcmToken,
+                '💸 تم إرسال التحويل',
+                `أرسلت $${otpRecord.amount.toFixed(2)} إلى ${recipient?.fullNameAr || recipient?.fullName}`,
+                { type: 'TRANSFER_SENT', amount: otpRecord.amount.toString() }
+            ).catch(err => console.error('Push send error:', err));
+        }
+
+        if (recipient?.fcmToken) {
+            sendPushNotification(
+                recipient.fcmToken,
+                '💰 تحويل وارد!',
+                `استلمت $${otpRecord.amount.toFixed(2)} من ${sender?.fullNameAr || sender?.fullName || 'مستخدم'}`,
+                { type: 'TRANSFER_RECEIVED', amount: otpRecord.amount.toString() }
+            ).catch(err => console.error('Push receive error:', err));
+        }
+
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: payload.userId,
+                action: 'TRANSFER_COMPLETED',
+                entity: 'Transaction',
+                entityId: transferResult.transactionId,
+                newValue: JSON.stringify({ amount: otpRecord.amount, recipientId: otpRecord.recipientId }),
+                ipAddress: request.headers.get('x-forwarded-for') || undefined,
+                userAgent: request.headers.get('user-agent') || undefined,
+            },
+        });
+
+        return NextResponse.json(
+            {
+                success: true,
+                transactionId: transferResult.transactionId,
+                referenceNumber: transferResult.referenceNumber,
+            },
+            { status: 200, headers: getSecurityHeaders() }
+        );
+    } catch (error) {
+        console.error('Confirm transfer error:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500, headers: getSecurityHeaders() }
+        );
+    }
+}
