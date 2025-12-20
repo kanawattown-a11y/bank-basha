@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { Secret } from 'jsonwebtoken';
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production';
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret-change-in-production';
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+const REFRESH_TOKEN_SECRET: Secret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
 
@@ -25,17 +25,17 @@ export interface TokenPayload {
 }
 
 export function generateAccessToken(payload: TokenPayload): string {
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload as object, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
         algorithm: 'HS256',
-    });
+    } as jwt.SignOptions);
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
-    return jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+    return jwt.sign(payload as object, REFRESH_TOKEN_SECRET, {
         expiresIn: REFRESH_TOKEN_EXPIRES_IN,
         algorithm: 'HS256',
-    });
+    } as jwt.SignOptions);
 }
 
 export function verifyAccessToken(token: string): TokenPayload | null {

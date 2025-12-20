@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
             payload.userId,
             otpRecord.recipientId,
             otpRecord.amount,
-            otpRecord.note
+            otpRecord.note ?? undefined
         );
 
         if (!transferResult.success) {

@@ -15,10 +15,10 @@ interface UserData {
     fullName: string;
     fullNameAr: string;
     phone: string;
-    email: string | null;
+    email: string;
     city: string;
-    address: string | null;
-    dateOfBirth: string | null;
+    address: string;
+    dateOfBirth: string;
 }
 
 export default function ProfileEditPage() {

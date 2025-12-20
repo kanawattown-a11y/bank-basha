@@ -4,7 +4,7 @@ import { verifyAccessToken, getSecurityHeaders } from '@/lib/auth/security';
 import { cookies } from 'next/headers';
 
 // Middleware to get current user from token
-export async function getCurrentUser(request: NextRequest) {
+async function getCurrentUser(request: NextRequest) {
     const cookieStore = await cookies();
     const token = cookieStore.get('accessToken')?.value;
 
