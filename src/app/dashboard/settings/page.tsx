@@ -12,6 +12,7 @@ import {
     LanguageIcon,
     ShieldCheckIcon,
     DevicePhoneMobileIcon,
+    BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline';
 
 interface UserData {
@@ -30,6 +31,7 @@ export default function SettingsPage() {
     const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<UserData | null>(null);
+    const [hasMerchantAccount, setHasMerchantAccount] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -42,6 +44,7 @@ export default function SettingsPage() {
             if (res.ok) {
                 const data = await res.json();
                 setUser(data.user);
+                setHasMerchantAccount(data.hasMerchantAccount || false);
             }
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -93,11 +96,11 @@ export default function SettingsPage() {
         <div className="min-h-screen bg-dark-950">
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <Link href="/dashboard" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
-                        <h1 className="text-xl font-bold text-white">{t('settings.title')}</h1>
+                        <h1 className="text-lg sm:text-lg sm:text-xl font-bold text-white">{t('settings.title')}</h1>
                     </div>
                 </div>
             </header>
@@ -113,7 +116,7 @@ export default function SettingsPage() {
                                 </span>
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold text-white">{user?.fullName}</h2>
+                                <h2 className="text-lg sm:text-xl font-bold text-white">{user?.fullName}</h2>
                                 <p className="text-dark-400">{user?.phone}</p>
                             </div>
                         </div>
@@ -136,7 +139,7 @@ export default function SettingsPage() {
                                         href={item.href}
                                         className="flex items-center justify-between p-3 rounded-xl hover:bg-dark-800 transition-colors"
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-dark-800 flex items-center justify-center">
                                                 <item.icon className="w-5 h-5 text-primary-500" />
                                             </div>
@@ -150,6 +153,24 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     ))}
+
+                    {/* Business Account Section */}
+                    {!hasMerchantAccount && (
+                        <Link href="/user/become-merchant" className="card p-6 bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent border-primary-500/20 hover:border-primary-500/40 transition-all group">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-primary-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <BuildingStorefrontIcon className="w-8 h-8 text-primary-500" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-white font-semibold mb-1">💼 هل لديك بزنس؟</h3>
+                                    <p className="text-dark-400 text-sm">افتح حساب تاجر واستقبل المدفوعات عبر QR Code</p>
+                                </div>
+                                <div className="text-primary-500 group-hover:translate-x-[-4px] transition-transform">
+                                    ←
+                                </div>
+                            </div>
+                        </Link>
+                    )}
 
                     {/* Danger Zone */}
                     <div className="card p-6 border-red-500/20">

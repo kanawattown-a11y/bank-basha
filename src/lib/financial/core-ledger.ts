@@ -404,7 +404,7 @@ export async function verifySystemBalance(): Promise<{
     };
 }
 
-export default {
+const coreLedger = {
     initializeInternalAccounts,
     createLedgerEntry,
     createReversalEntry,
@@ -413,3 +413,5 @@ export default {
     verifySystemBalance,
     INTERNAL_ACCOUNTS,
 };
+
+export default coreLedger;

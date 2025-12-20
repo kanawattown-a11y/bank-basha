@@ -170,11 +170,11 @@ export default function MyServicesPage() {
         <div className="min-h-screen bg-dark-950">
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <Link href="/dashboard/settings" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
-                        <h1 className="text-xl font-bold text-white">🛍️ خدماتي</h1>
+                        <h1 className="text-lg sm:text-xl font-bold text-white">🛍️ خدماتي</h1>
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
@@ -240,7 +240,7 @@ export default function MyServicesPage() {
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
                     <div className="card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold text-white mb-6">إضافة خدمة جديدة</h2>
+                        <h2 className="text-lg sm:text-xl font-bold text-white mb-6">إضافة خدمة جديدة</h2>
 
                         {message && (
                             <div className={`p-4 rounded-xl mb-4 ${message.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>

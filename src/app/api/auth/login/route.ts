@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
                 refreshToken,
                 userAgent: request.headers.get('user-agent') || undefined,
                 ipAddress: clientIp,
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days for WebView
             },
         });
 

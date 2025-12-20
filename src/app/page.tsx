@@ -40,26 +40,26 @@ export default function HomePage() {
             {/* Navigation */}
             <nav className="navbar">
                 <div className="navbar-container">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
+                    <Link href="/" className="flex items-center gap-1 sm:gap-2">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center">
                             <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                         </div>
-                        <span className="text-xl font-bold text-gradient hidden sm:block">{t('common.appName')}</span>
+                        <span className="text-lg sm:text-xl font-bold text-gradient hidden sm:block">{t('common.appName')}</span>
                     </Link>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
                         <button
                             onClick={toggleLanguage}
-                            className="btn-ghost btn-sm flex items-center gap-2"
+                            className="btn-ghost btn-sm flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
                             aria-label="Toggle Language"
                         >
-                            <LanguageIcon className="w-5 h-5" />
+                            <LanguageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                             <span>{locale === 'ar' ? 'EN' : 'ع'}</span>
                         </button>
-                        <Link href="/login" className="btn-ghost btn-sm">
+                        <Link href="/login" className="btn-ghost btn-sm text-xs sm:text-sm px-2 sm:px-3">
                             {t('nav.login')}
                         </Link>
-                        <Link href="/register" className="btn-primary btn-sm">
+                        <Link href="/register" className="btn-primary btn-sm text-xs sm:text-sm px-2 sm:px-3">
                             {t('nav.register')}
                         </Link>
                     </div>

@@ -430,7 +430,7 @@ export async function getHeldTransactions() {
     });
 }
 
-export default {
+const riskEngine = {
     checkTransactionRisk,
     createRiskAlert,
     holdTransaction,
@@ -438,3 +438,5 @@ export default {
     getPendingRiskAlerts,
     getHeldTransactions,
 };
+
+export default riskEngine;

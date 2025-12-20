@@ -144,7 +144,7 @@ export default function PayPage() {
         <div className="min-h-screen bg-dark-950">
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <button
                             onClick={() => {
                                 if (step === 'method') router.push('/dashboard');
@@ -154,7 +154,7 @@ export default function PayPage() {
                             }}
                             className="btn-ghost btn-icon"
                         >
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </button>
                         <h1 className="text-lg font-semibold text-white">💳 الدفع للتاجر</h1>
                     </div>

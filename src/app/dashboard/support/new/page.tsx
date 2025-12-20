@@ -84,7 +84,7 @@ export default function NewTicketPage() {
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
                     <button onClick={() => router.back()} className="btn-ghost btn-icon">
-                        <ArrowLeftIcon className="w-6 h-6" />
+                        <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <h1 className="text-2xl font-bold text-white">
                         {t('support.createTicket')}

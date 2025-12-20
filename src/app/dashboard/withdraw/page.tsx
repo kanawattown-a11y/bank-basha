@@ -60,9 +60,9 @@ export default function WithdrawPage() {
             {/* Header */}
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <Link href="/dashboard" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
                         <h1 className="text-lg font-semibold text-white">{t('wallet.actions.withdraw')}</h1>
                     </div>

@@ -102,11 +102,11 @@ export default function KYCPage() {
         <div className="min-h-screen bg-dark-950">
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <Link href="/dashboard/settings" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
-                        <h1 className="text-xl font-bold text-white">📋 التوثيق (KYC)</h1>
+                        <h1 className="text-lg sm:text-xl font-bold text-white">📋 التوثيق (KYC)</h1>
                     </div>
                 </div>
             </header>

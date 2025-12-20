@@ -122,7 +122,7 @@ export default function MerchantRequestsPage() {
                 <div className="navbar-container">
                     <div className="flex items-center gap-3">
                         <Link href="/admin" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
                         <BuildingStorefrontIcon className="w-8 h-8 text-primary-500" />
                         <h1 className="text-xl font-bold text-white">{t('admin.merchantRequests.title')}</h1>

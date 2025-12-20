@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { verifyAccessToken, getSecurityHeaders, validateAmount, generateReferenceNumber } from '@/lib/auth/security';
+import { getSecurityHeaders, validateAmount, generateReferenceNumber } from '@/lib/auth/security';
+import { verifyAuth, getAuthErrorMessage } from '@/lib/auth/verify-session';
 import { sendPushNotification } from '@/lib/firebase/admin';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const qrPaymentSchema = z.object({
@@ -12,23 +12,17 @@ const qrPaymentSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('accessToken')?.value;
+        // Full session verification (token + DB session + user status)
+        const auth = await verifyAuth(request);
 
-        if (!token) {
+        if (!auth.success || !auth.payload) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { error: getAuthErrorMessage(auth.error || 'INVALID_TOKEN', 'ar') },
                 { status: 401, headers: getSecurityHeaders() }
             );
         }
 
-        const payload = verifyAccessToken(token);
-        if (!payload) {
-            return NextResponse.json(
-                { error: 'Invalid token' },
-                { status: 401, headers: getSecurityHeaders() }
-            );
-        }
+        const payload = auth.payload;
 
         const body = await request.json();
         const result = qrPaymentSchema.safeParse(body);

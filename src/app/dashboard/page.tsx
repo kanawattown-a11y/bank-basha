@@ -176,23 +176,23 @@ export default function UserDashboard() {
             {/* Header */}
             <header className="navbar">
                 <div className="navbar-container">
-                    <Link href="/dashboard" className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
+                    <Link href="/dashboard" className="flex items-center gap-1 sm:gap-2">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center">
                             <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                         </div>
-                        <span className="text-xl font-bold text-gradient hidden sm:inline">{t('common.appName')}</span>
+                        <span className="text-lg sm:text-xl font-bold text-gradient hidden sm:inline">{t('common.appName')}</span>
                     </Link>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                         <Link href="/dashboard/notifications" className="btn-ghost btn-icon relative">
-                            <BellIcon className="w-6 h-6" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                            <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                            <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-2 h-2 bg-red-500 rounded-full" />
                         </Link>
                         <Link href="/dashboard/settings" className="btn-ghost btn-icon">
-                            <Cog6ToothIcon className="w-6 h-6" />
+                            <Cog6ToothIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
                         <button onClick={handleLogout} className="btn-ghost btn-icon text-red-500">
-                            <ArrowRightOnRectangleIcon className="w-6 h-6" />
+                            <ArrowRightOnRectangleIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </button>
                     </div>
                 </div>
@@ -252,7 +252,7 @@ export default function UserDashboard() {
                                 <div className="relative">
                                     {/* Header */}
                                     <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3">
                                             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                                                 <BuildingStorefrontIcon className="w-6 h-6 text-emerald-400" />
                                             </div>
@@ -286,22 +286,6 @@ export default function UserDashboard() {
                                             <span>←</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </Link>
-                    ) : (
-                        /* Merchant Request Banner (if user doesn't have merchant account) */
-                        <Link href="/user/become-merchant" className="card p-6 bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent border-primary-500/20 hover:border-primary-500/40 transition-all group">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-primary-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <BuildingStorefrontIcon className="w-8 h-8 text-primary-500" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-white font-semibold mb-1">💼 هل لديك بزنس؟</h3>
-                                    <p className="text-dark-400 text-sm">افتح حساب تاجر واستقبل المدفوعات عبر QR Code</p>
-                                </div>
-                                <div className="text-primary-500 group-hover:translate-x-[-4px] transition-transform">
-                                    ←
                                 </div>
                             </div>
                         </Link>

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { verifyAccessToken, getSecurityHeaders, validateAmount } from '@/lib/auth/security';
+import { getSecurityHeaders, validateAmount } from '@/lib/auth/security';
+import { verifyAuth, getAuthErrorMessage, hasRole } from '@/lib/auth/verify-session';
 import { processDeposit } from '@/lib/ledger/ledger';
 import { sendTransactionEmail } from '@/lib/email/email';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const depositSchema = z.object({
@@ -13,23 +13,25 @@ const depositSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('accessToken')?.value;
+        // Full session verification (token + DB session + user status)
+        const auth = await verifyAuth(request);
 
-        if (!token) {
+        if (!auth.success || !auth.payload) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { error: getAuthErrorMessage(auth.error || 'INVALID_TOKEN', 'ar') },
                 { status: 401, headers: getSecurityHeaders() }
             );
         }
 
-        const payload = verifyAccessToken(token);
-        if (!payload || payload.userType !== 'AGENT') {
+        // Check agent role
+        if (!hasRole(auth.user, ['AGENT'])) {
             return NextResponse.json(
                 { error: 'Unauthorized - Agent access required' },
                 { status: 403, headers: getSecurityHeaders() }
             );
         }
+
+        const payload = auth.payload;
 
         const body = await request.json();
         const result = depositSchema.safeParse(body);

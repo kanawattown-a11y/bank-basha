@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { verifyAccessToken, getSecurityHeaders, validateAmount, sanitizePhoneNumber } from '@/lib/auth/security';
+import { getSecurityHeaders, validateAmount, sanitizePhoneNumber } from '@/lib/auth/security';
+import { verifyAuth, getAuthErrorMessage } from '@/lib/auth/verify-session';
 import { generateOTP, hashOTP, getOTPExpiry } from '@/lib/otp/generator';
 import { sendPushNotification } from '@/lib/firebase/admin';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const initiateSchema = z.object({
@@ -14,23 +14,17 @@ const initiateSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('accessToken')?.value;
+        // Full session verification (token + DB session + user status)
+        const auth = await verifyAuth(request);
 
-        if (!token) {
+        if (!auth.success || !auth.user) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { error: getAuthErrorMessage(auth.error || 'INVALID_TOKEN', 'ar') },
                 { status: 401, headers: getSecurityHeaders() }
             );
         }
 
-        const payload = verifyAccessToken(token);
-        if (!payload) {
-            return NextResponse.json(
-                { error: 'Invalid token' },
-                { status: 401, headers: getSecurityHeaders() }
-            );
-        }
+        const userId = auth.user.id;
 
         const body = await request.json();
         const result = initiateSchema.safeParse(body);
@@ -73,7 +67,7 @@ export async function POST(request: NextRequest) {
 
         // Check balance
         const senderWallet = await prisma.wallet.findUnique({
-            where: { userId: payload.userId },
+            where: { userId: userId },
         });
 
         if (!senderWallet || senderWallet.balance < amount) {
@@ -86,7 +80,7 @@ export async function POST(request: NextRequest) {
         // Check transaction risk and limits
         const { checkTransactionRisk } = await import('@/lib/financial/risk-engine');
         const riskCheck = await checkTransactionRisk({
-            userId: payload.userId,
+            userId: userId,
             amount,
             type: 'TRANSFER',
             ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
@@ -110,7 +104,7 @@ export async function POST(request: NextRequest) {
         // Delete any existing unused OTPs for this user
         await prisma.transferOTP.deleteMany({
             where: {
-                userId: payload.userId,
+                userId: userId,
                 isUsed: false,
             },
         });
@@ -118,7 +112,7 @@ export async function POST(request: NextRequest) {
         // Create OTP record
         const otpRecord = await prisma.transferOTP.create({
             data: {
-                userId: payload.userId,
+                userId: userId,
                 otpHash,
                 amount,
                 recipientId: recipient.id,
@@ -129,7 +123,7 @@ export async function POST(request: NextRequest) {
 
         // Get sender info for push notification
         const sender = await prisma.user.findUnique({
-            where: { id: payload.userId },
+            where: { id: userId },
         });
 
         // Send OTP via Push Notification

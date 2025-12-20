@@ -95,7 +95,7 @@ export default function CentralBankPage() {
                 <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link href="/admin" className="text-dark-400 hover:text-white">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
                         <BuildingLibraryIcon className="w-8 h-8 text-primary-500" />
                         <h1 className="text-xl font-bold text-white">{t('admin.centralBank.title')}</h1>

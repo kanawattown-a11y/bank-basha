@@ -136,7 +136,7 @@ export default function RiskManagementPage() {
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <Link href="/admin" className="btn-ghost btn-icon">
-                        <ArrowLeftIcon className="w-6 h-6" />
+                        <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </Link>
                     <div>
                         <h1 className="text-3xl font-bold text-white">{t('admin.riskManagement.title')}</h1>

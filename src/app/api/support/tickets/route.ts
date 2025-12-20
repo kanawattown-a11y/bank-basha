@@ -6,8 +6,8 @@ import { z } from 'zod';
 
 // Validation schema
 const createTicketSchema = z.object({
-    subject: z.string().min(5, 'Subject must be at least 5 characters'),
-    description: z.string().min(20, 'Description must be at least 20 characters'),
+    subject: z.string().min(1, 'Subject is required'),
+    description: z.string().min(1, 'Description is required'),
     category: z.enum([
         'ACCOUNT_ISSUE',
         'PAYMENT_ISSUE',
@@ -20,7 +20,7 @@ const createTicketSchema = z.object({
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
     contactName: z.string().optional(),
     contactPhone: z.string().optional(),
-    contactEmail: z.string().email().optional(),
+    contactEmail: z.string().email().optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
     attachments: z.array(z.string()).optional(),
 });
 

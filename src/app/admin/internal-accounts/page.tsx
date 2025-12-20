@@ -151,7 +151,7 @@ export default function InternalAccountsPage() {
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <Link href="/admin" className="btn-ghost btn-icon">
-                        <ArrowLeftIcon className="w-6 h-6" />
+                        <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </Link>
                     <div>
                         <h1 className="text-3xl font-bold text-white">{t('admin.internalAccounts.title')}</h1>
@@ -233,7 +233,7 @@ export default function InternalAccountsPage() {
                                 {getAccountIcon(account.type)}
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-white">{account.nameAr || account.name}</h3>
+                                <h3 className="text-base sm:text-lg font-semibold text-white">{account.nameAr || account.name}</h3>
                                 <p className="text-xs text-dark-500 mb-3">{account.code}</p>
 
                                 <div className="space-y-2">
@@ -266,7 +266,7 @@ export default function InternalAccountsPage() {
 
             {/* Explanation */}
             <div className="card p-6 mt-8">
-                <h3 className="text-lg font-semibold text-white mb-4">{t('admin.internalAccounts.explanation.title')}</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-4">{t('admin.internalAccounts.explanation.title')}</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                     <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">

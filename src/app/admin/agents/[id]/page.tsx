@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import {
@@ -79,11 +79,7 @@ export default function AdminAgentDetailPage() {
     const [showImageModal, setShowImageModal] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'info' | 'transactions' | 'settlements'>('info');
 
-    useEffect(() => {
-        fetchAgent();
-    }, [agentId]);
-
-    const fetchAgent = async () => {
+    const fetchAgent = useCallback(async () => {
         try {
             const response = await fetch(`/api/admin/agents/${agentId}`);
             if (!response.ok) {
@@ -102,7 +98,11 @@ export default function AdminAgentDetailPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [agentId, router]);
+
+    useEffect(() => {
+        fetchAgent();
+    }, [fetchAgent]);
 
     const handleToggleStatus = async () => {
         if (!agent) return;
@@ -348,10 +348,12 @@ export default function AdminAgentDetailPage() {
                             {/* KYC Documents */}
                             <div className="card p-6">
                                 <h3 className="text-lg font-semibold text-white mb-4">{t('admin.agentDetails.docs.title')}</h3>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <div className="grid md:grid-cols-2 gap-4">
                                     {agent.idPhotoUrl && (
                                         <div>
                                             <p className="text-dark-400 text-sm mb-2">{t('admin.agentDetails.docs.idPhoto')}</p>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={agent.idPhotoUrl}
                                                 alt="ID"
@@ -363,6 +365,7 @@ export default function AdminAgentDetailPage() {
                                     {agent.selfiePhotoUrl && (
                                         <div>
                                             <p className="text-dark-400 text-sm mb-2">{t('admin.agentDetails.docs.selfie')}</p>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={agent.selfiePhotoUrl}
                                                 alt="Selfie"
@@ -479,6 +482,7 @@ export default function AdminAgentDetailPage() {
                     className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowImageModal(null)}
                 >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={showImageModal}
                         alt="Document"

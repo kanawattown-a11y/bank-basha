@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -30,11 +30,7 @@ export default function AdminAgentsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchAgents();
-    }, []);
-
-    const fetchAgents = async () => {
+    const fetchAgents = useCallback(async () => {
         try {
             const response = await fetch('/api/admin/agents');
             if (!response.ok) {
@@ -51,7 +47,11 @@ export default function AdminAgentsPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [router]);
+
+    useEffect(() => {
+        fetchAgents();
+    }, [fetchAgents]);
 
     const formatAmount = (amount: number) => {
         return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
@@ -69,9 +69,9 @@ export default function AdminAgentsPage() {
                 <div className="navbar-container">
                     <div className="flex items-center gap-3">
                         <Link href="/admin" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
-                        <h1 className="text-lg font-semibold text-white">{t('admin.agents.title')}</h1>
+                        <h1 className="text-base sm:text-lg font-semibold text-white">{t('admin.agents.title')}</h1>
                     </div>
                 </div>
             </header>

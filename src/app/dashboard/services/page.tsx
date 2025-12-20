@@ -191,11 +191,11 @@ export default function ServicesPage() {
         <div className="min-h-screen bg-dark-950">
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <Link href="/dashboard" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
-                        <h1 className="text-xl font-bold text-white">🛍️ الخدمات</h1>
+                        <h1 className="text-lg sm:text-xl font-bold text-white">🛍️ الخدمات</h1>
                     </div>
                 </div>
             </header>
@@ -253,7 +253,7 @@ export default function ServicesPage() {
                 <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50">
                     <div className="card p-6 w-full max-w-md mx-4 mb-0 sm:mb-4 rounded-b-none sm:rounded-b-2xl animate-slide-up">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-white">تأكيد الشراء</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-white">تأكيد الشراء</h2>
                             <button
                                 onClick={() => { setSelectedService(null); resetFormInputs(); }}
                                 className="btn-ghost btn-icon"
@@ -275,7 +275,7 @@ export default function ServicesPage() {
                             <>
                                 {/* Service Info */}
                                 <div className="bg-dark-800 rounded-xl p-4 mb-4">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3">
                                         {selectedService.imageUrl && (
                                             <img src={selectedService.imageUrl} className="w-12 h-12 rounded-lg object-cover" alt="" />
                                         )}

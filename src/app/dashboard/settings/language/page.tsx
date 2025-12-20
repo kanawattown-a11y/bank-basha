@@ -44,11 +44,11 @@ export default function LanguageSettingsPage() {
         <div className="min-h-screen bg-dark-950">
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <Link href="/dashboard/settings" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </Link>
-                        <h1 className="text-xl font-bold text-white">{t('settings.language')}</h1>
+                        <h1 className="text-lg sm:text-xl font-bold text-white">{t('settings.language')}</h1>
                     </div>
                 </div>
             </header>
@@ -65,7 +65,7 @@ export default function LanguageSettingsPage() {
                                     : 'hover:bg-dark-800'
                                     }`}
                             >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 sm:gap-3">
                                     <span className="text-2xl">{lang.flag}</span>
                                     <div className={`text-${isRTL ? 'right' : 'left'}`}>
                                         <p className="text-white font-medium">{lang.name}</p>

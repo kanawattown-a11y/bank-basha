@@ -4,8 +4,9 @@ import crypto from 'crypto';
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'default-secret-change-in-production';
 const REFRESH_TOKEN_SECRET: Secret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
+// 90 days for WebView mobile app - long session
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '90d';
+const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '90d';
 
 // Password hashing
 export async function hashPassword(password: string): Promise<string> {

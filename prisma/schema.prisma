@@ -87,6 +87,7 @@ model User {
   assignedTickets Ticket[]   @relation("AssignedTickets")
   ticketMessages  TicketMessage[] @relation("TicketMessageAuthor")
   ticketAttachments TicketAttachment[] @relation("TicketAttachmentUploader")
+  passwordResetRequests PasswordResetRequest[]
   
   @@index([phone])
   @@index([email])
@@ -125,6 +126,27 @@ model KYCDocument {
   
   @@index([userId])
   @@index([status])
+}
+
+model PasswordResetRequest {
+  id            String    @id @default(uuid())
+  userId        String
+  ticketNumber  String    @unique
+  token         String    @unique
+  status        String    @default("PENDING") // PENDING, APPROVED, USED, EXPIRED, REJECTED
+  message       String?
+  approvedBy    String?
+  approvedAt    DateTime?
+  usedAt        DateTime?
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+  @@index([ticketNumber])
+  @@map("password_reset_requests")
 }
 
 // ============================================
