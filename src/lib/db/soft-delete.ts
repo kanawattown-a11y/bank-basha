@@ -27,7 +27,6 @@ export async function softDelete(params: {
             itemId: id,
             itemData: JSON.stringify(record),
             deletedBy,
-            reason,
         },
     });
 
