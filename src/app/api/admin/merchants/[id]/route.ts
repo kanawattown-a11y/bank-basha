@@ -30,25 +30,55 @@ export async function GET(
 
         const merchantId = params.id;
 
-        // Try finding by userId first
-        const user = await prisma.user.findUnique({
+        // First try finding by merchantProfile.id (this is what the list API returns)
+        let merchantProfile = await prisma.merchantProfile.findUnique({
             where: { id: merchantId },
             include: {
-                merchantProfile: true,
-                wallet: true,
-                merchantRequests: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 1,
+                user: {
+                    include: {
+                        wallet: true,
+                        merchantRequests: {
+                            orderBy: { createdAt: 'desc' },
+                            take: 1,
+                        },
+                    },
                 },
             },
         });
 
-        if (!user || !user.merchantProfile) {
+        // If not found, try by userId
+        if (!merchantProfile) {
+            const user = await prisma.user.findUnique({
+                where: { id: merchantId },
+                include: {
+                    merchantProfile: {
+                        include: {
+                            user: {
+                                include: {
+                                    wallet: true,
+                                    merchantRequests: {
+                                        orderBy: { createdAt: 'desc' },
+                                        take: 1,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            if (user?.merchantProfile) {
+                merchantProfile = user.merchantProfile;
+            }
+        }
+
+        if (!merchantProfile || !merchantProfile.user) {
             return NextResponse.json(
                 { error: 'Merchant not found' },
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
+
+        const user = merchantProfile.user;
 
         // Get transactions
         const transactions = await prisma.transaction.findMany({
@@ -78,14 +108,14 @@ export async function GET(
                 balance: user.wallet?.balance || 0,
 
                 // Merchant Profile
-                businessName: user.merchantProfile.businessName,
-                businessNameAr: user.merchantProfile.businessNameAr,
-                merchantCode: user.merchantProfile.merchantCode,
-                qrCode: user.merchantProfile.qrCode,
-                businessType: user.merchantProfile.businessType,
-                businessAddress: user.merchantProfile.businessAddress,
-                totalSales: user.merchantProfile.totalSales,
-                totalTransactions: user.merchantProfile.totalTransactions,
+                businessName: merchantProfile.businessName,
+                businessNameAr: merchantProfile.businessNameAr,
+                merchantCode: merchantProfile.merchantCode,
+                qrCode: merchantProfile.qrCode,
+                businessType: merchantProfile.businessType,
+                businessAddress: merchantProfile.businessAddress,
+                totalSales: merchantProfile.totalSales,
+                totalTransactions: merchantProfile.totalTransactions,
 
                 // License from merchant request
                 licenseUrl: user.merchantRequests[0]?.licenseUrl || null,
@@ -94,8 +124,8 @@ export async function GET(
             },
             transactions: transactions.map(t => ({
                 ...t,
-                isIncoming: t.receiverId === merchantId,
-                counterparty: t.receiverId === merchantId
+                isIncoming: t.receiverId === user.id,
+                counterparty: t.receiverId === user.id
                     ? t.sender?.fullName || 'N/A'
                     : t.receiver?.fullName || 'N/A',
             })),

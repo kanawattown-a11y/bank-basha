@@ -36,8 +36,11 @@ interface ServiceRequest {
     name: string;
     nameAr: string | null;
     description: string;
+    descriptionAr: string | null;
     price: number;
     category: string;
+    categoryAr: string | null;
+    imageUrl: string | null;
     status: string;
     createdAt: string;
     seller: {
@@ -654,16 +657,35 @@ export default function AdminServicesPage() {
                     <div className="card p-6 w-full max-w-lg">
                         <h2 className="text-xl font-bold text-white mb-4">{t('admin.services.reviewService')}</h2>
 
-                        <div className="bg-dark-800 rounded-xl p-4 mb-6">
-                            <h3 className="text-white font-semibold mb-2">{selectedRequest.nameAr || selectedRequest.name}</h3>
-                            <p className="text-dark-400 text-sm mb-3">{selectedRequest.description}</p>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-dark-500">{t('services.price')}:</span>
-                                <span className="text-primary-500 font-bold">{selectedRequest.price} $</span>
-                            </div>
-                            <div className="flex justify-between text-sm mt-2">
-                                <span className="text-dark-500">{t('admin.services.providedBy')}</span>
-                                <span className="text-white">{selectedRequest.seller?.fullNameAr || selectedRequest.seller?.fullName}</span>
+                        <div className="bg-dark-800 rounded-xl overflow-hidden mb-6">
+                            {/* Service Image */}
+                            {selectedRequest.imageUrl && (
+                                <div className="h-40 overflow-hidden">
+                                    <img
+                                        src={selectedRequest.imageUrl}
+                                        alt={selectedRequest.nameAr || selectedRequest.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            )}
+                            <div className="p-4">
+                                <h3 className="text-white font-semibold mb-2">{selectedRequest.nameAr || selectedRequest.name}</h3>
+                                <p className="text-dark-400 text-sm mb-3">{selectedRequest.descriptionAr || selectedRequest.description}</p>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <span className="text-dark-500">السعر:</span>
+                                        <span className="text-primary-500 font-bold mr-1">{selectedRequest.price} $</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-dark-500">التصنيف:</span>
+                                        <span className="text-white mr-1">{selectedRequest.categoryAr || selectedRequest.category}</span>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <span className="text-dark-500">البائع:</span>
+                                        <span className="text-white mr-1">{selectedRequest.seller?.fullNameAr || selectedRequest.seller?.fullName}</span>
+                                        <span className="text-dark-500 text-xs">({selectedRequest.seller?.phone})</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

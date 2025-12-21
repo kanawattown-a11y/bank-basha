@@ -146,7 +146,7 @@ export default function MerchantDashboard() {
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1 border border-dark-600 flex items-center gap-1">
                             <span className="hidden sm:inline">{t('settings.profile')}</span>
-                            <span className="sm:hidden">⚙️</span>
+                            <img src="/Wallet.png" alt="Wallet" className="w-5 h-5 sm:hidden" />
                         </Link>
                         <span className="badge-primary">{data?.merchantCode}</span>
                         <button onClick={toggleLanguage} className="btn-ghost btn-icon text-primary-500" title={locale === 'ar' ? 'English' : 'العربية'}>

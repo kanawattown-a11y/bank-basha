@@ -81,48 +81,50 @@ export async function POST(request: NextRequest) {
         }
 
         // Use transaction to update both rates
-        await prisma.$transaction(async (tx) => {
-            // Deactivate old deposit rate
-            await tx.exchangeRate.updateMany({
-                where: { type: 'DEPOSIT', isActive: true },
-                data: { isActive: false },
-            });
+        try {
+            await prisma.$transaction(async (tx) => {
+                // First deactivate ALL old rates
+                await tx.exchangeRate.updateMany({
+                    where: { isActive: true },
+                    data: { isActive: false },
+                });
 
-            // Create new deposit rate
-            await tx.exchangeRate.create({
-                data: {
-                    type: 'DEPOSIT',
-                    rate: depositRate,
-                    isActive: true,
-                    updatedBy: payload.userId,
-                },
-            });
+                // Then create new deposit rate
+                await tx.exchangeRate.create({
+                    data: {
+                        type: 'DEPOSIT',
+                        rate: parseFloat(depositRate),
+                        isActive: true,
+                        updatedBy: payload.userId,
+                    },
+                });
 
-            // Deactivate old withdraw rate
-            await tx.exchangeRate.updateMany({
-                where: { type: 'WITHDRAW', isActive: true },
-                data: { isActive: false },
+                // Create new withdraw rate
+                await tx.exchangeRate.create({
+                    data: {
+                        type: 'WITHDRAW',
+                        rate: parseFloat(withdrawRate),
+                        isActive: true,
+                        updatedBy: payload.userId,
+                    },
+                });
             });
-
-            // Create new withdraw rate
-            await tx.exchangeRate.create({
-                data: {
-                    type: 'WITHDRAW',
-                    rate: withdrawRate,
-                    isActive: true,
-                    updatedBy: payload.userId,
-                },
-            });
-        });
+        } catch (dbError: any) {
+            console.error('Database error updating exchange rates:', dbError);
+            return NextResponse.json(
+                { error: `Database error: ${dbError.message || 'Unknown error'}` },
+                { status: 500, headers: getSecurityHeaders() }
+            );
+        }
 
         return NextResponse.json(
             { success: true, message: 'Exchange rates updated successfully' },
             { status: 200, headers: getSecurityHeaders() }
         );
-    } catch (error) {
+    } catch (error: any) {
         console.error('Update exchange rates error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: error.message || 'Internal server error' },
             { status: 500, headers: getSecurityHeaders() }
         );
     }

@@ -27,6 +27,9 @@ export default function TransferPage() {
     const [transferRequestId, setTransferRequestId] = useState('');
     const [otpExpiresIn, setOtpExpiresIn] = useState(300);
     const [remainingAttempts, setRemainingAttempts] = useState(3);
+    // Fee settings
+    const [feePercent, setFeePercent] = useState(0.5);
+    const [feeFixed, setFeeFixed] = useState(0);
 
     // Push notifications
     const { notification } = usePushNotifications();
@@ -34,6 +37,7 @@ export default function TransferPage() {
     useEffect(() => {
         setMounted(true);
         fetchBalance();
+        fetchFeeSettings();
     }, []);
 
     // Auto-fill OTP from push notification
@@ -64,6 +68,29 @@ export default function TransferPage() {
             console.error('Error:', error);
         }
     };
+
+    const fetchFeeSettings = async () => {
+        try {
+            const res = await fetch('/api/fees');
+            if (res.ok) {
+                const data = await res.json();
+                setFeePercent(data.transferFeePercent || 0.5);
+                setFeeFixed(data.transferFeeFixed || 0);
+            }
+        } catch (error) {
+            console.error('Error fetching fees:', error);
+        }
+    };
+
+    // Calculate fee based on amount
+    const calculateFee = (amt: number): number => {
+        if (amt <= 0) return 0;
+        const percentFee = (amt * feePercent) / 100;
+        return percentFee + feeFixed;
+    };
+
+    const fee = calculateFee(parseFloat(amount) || 0);
+    const totalAmount = (parseFloat(amount) || 0) + fee;
 
     const searchUser = async () => {
         if (!phone || phone.length < 9) {
@@ -256,11 +283,41 @@ export default function TransferPage() {
                                 />
                             </div>
 
+                            {/* Fee Breakdown - shows when amount is entered */}
+                            {parseFloat(amount) > 0 && (
+                                <div className="bg-dark-800/50 rounded-xl p-4 mb-6 space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-dark-400">المبلغ المُحوّل</span>
+                                        <span className="text-white font-semibold">${formatAmount(parseFloat(amount))}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-dark-400">
+                                            عمولة المنصة
+                                            <span className="text-dark-500 text-xs mr-1">
+                                                ({feePercent}%{feeFixed > 0 ? ` + ${formatAmount(feeFixed)}$` : ''})
+                                            </span>
+                                        </span>
+                                        <span className="text-yellow-400">${formatAmount(fee)}</span>
+                                    </div>
+                                    <div className="border-t border-dark-700 pt-2 mt-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-white font-semibold">الإجمالي المخصوم</span>
+                                            <span className="text-primary-500 font-bold text-lg">${formatAmount(totalAmount)}</span>
+                                        </div>
+                                    </div>
+                                    {totalAmount > balance && (
+                                        <p className="text-red-400 text-xs text-center mt-2">
+                                            ⚠️ الرصيد غير كافٍ
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
                             {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
 
                             <button
                                 onClick={requestOTP}
-                                disabled={loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > balance}
+                                disabled={loading || !amount || parseFloat(amount) <= 0 || totalAmount > balance}
                                 className="btn-primary w-full"
                             >
                                 {loading ? <div className="spinner w-5 h-5"></div> : 'طلب رمز التأكيد'}

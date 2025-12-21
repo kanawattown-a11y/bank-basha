@@ -157,17 +157,19 @@ export default function SettingsPage() {
 
                     {/* Business Account Section */}
                     {!hasMerchantAccount && (
-                        <Link href="/user/become-merchant" className="card p-4 sm:p-6 bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent border-primary-500/20 hover:border-primary-500/40 transition-all group">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-primary-500/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                                    <BuildingStorefrontIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary-500" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-white font-semibold text-sm sm:text-base mb-0.5 sm:mb-1">💼 هل لديك بزنس؟</h3>
-                                    <p className="text-dark-400 text-xs sm:text-sm truncate sm:whitespace-normal">افتح حساب تاجر واستقبل المدفوعات</p>
-                                </div>
-                                <div className="text-primary-500 group-hover:translate-x-[-4px] transition-transform flex-shrink-0">
-                                    ←
+                        <Link href="/user/become-merchant" className="block">
+                            <div className="card p-5 bg-gradient-to-br from-emerald-500/10 via-dark-800 to-dark-900 border border-emerald-500/30 hover:border-emerald-500/50 transition-all group">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                                        <BuildingStorefrontIcon className="w-7 h-7 text-emerald-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-white font-bold text-base mb-1">💼 {locale === 'ar' ? 'هل لديك بزنس؟' : 'Have a Business?'}</h3>
+                                        <p className="text-dark-400 text-sm">{locale === 'ar' ? 'افتح حساب تاجر واستقبل المدفوعات عبر QR' : 'Open a merchant account and receive payments via QR'}</p>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors">
+                                        <span className="text-emerald-400 text-lg">{locale === 'ar' ? '←' : '→'}</span>
+                                    </div>
                                 </div>
                             </div>
                         </Link>

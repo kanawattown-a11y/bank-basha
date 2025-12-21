@@ -81,21 +81,23 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
         new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
     const formatDate = (date: Date) =>
-        new Date(date).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
+        new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
     const getMonthName = (month: number) => {
-        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
         return months[month - 1];
     };
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            'DEPOSIT': 'إيداع',
-            'WITHDRAW': 'سحب',
-            'TRANSFER': 'تحويل',
-            'QR_PAYMENT': 'دفع QR',
-            'SERVICE_PURCHASE': 'شراء خدمة',
+            'DEPOSIT': 'Deposit',
+            'WITHDRAW': 'Withdrawal',
+            'TRANSFER': 'Transfer',
+            'QR_PAYMENT': 'QR Payment',
+            'SERVICE_PURCHASE': 'Service',
+            'CREDIT_GRANT': 'Credit',
+            'REFUND': 'Refund',
         };
         return labels[type] || type;
     };
@@ -117,7 +119,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     // Statement Title
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text('كشف حساب شهري / Monthly Statement', pageWidth / 2, 25, { align: 'center' });
+    doc.text('Monthly Account Statement', pageWidth / 2, 25, { align: 'center' });
 
     // Period
     doc.setFontSize(10);
@@ -142,32 +144,32 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(9);
-    doc.text(data.phone, margin + 5, y + 17);
+    doc.text(`Phone: ${data.phone}`, margin + 5, y + 17);
 
     if (data.businessName) {
-        doc.text(data.businessName, margin + 5, y + 24);
+        doc.text(`Business: ${data.businessName}`, margin + 5, y + 24);
     }
 
     if (data.merchantCode) {
         doc.setTextColor(254, 192, 15);
-        doc.text(`Merchant: ${data.merchantCode}`, margin + 5, y + 31);
+        doc.text(`Merchant Code: ${data.merchantCode}`, margin + 5, y + 31);
     } else if (data.agentCode) {
         doc.setTextColor(254, 192, 15);
-        doc.text(`Agent: ${data.agentCode}`, margin + 5, y + 31);
+        doc.text(`Agent Code: ${data.agentCode}`, margin + 5, y + 31);
     }
 
     // Right side - Balances
     const rightCol = pageWidth - margin - 60;
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(8);
-    doc.text('الرصيد الافتتاحي', rightCol, y + 8);
+    doc.text('Opening Balance', rightCol, y + 8);
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
     doc.text(`$${formatAmount(data.openingBalance)}`, rightCol, y + 15);
 
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(8);
-    doc.text('الرصيد الختامي', rightCol + 35, y + 8);
+    doc.text('Closing Balance', rightCol + 35, y + 8);
     doc.setTextColor(16, 185, 129); // Success green
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -181,10 +183,10 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     const boxWidth = (pageWidth - 2 * margin - 10) / 4;
 
     const summaryBoxes = [
-        { label: 'الوارد', value: data.totalIncoming, color: [16, 185, 129] },
-        { label: 'الصادر', value: data.totalOutgoing, color: [239, 68, 68] },
-        { label: 'الرسوم', value: data.totalFees, color: [156, 163, 175] },
-        { label: 'المعاملات', value: data.transactionCount, color: [59, 130, 246], isCount: true },
+        { label: 'Incoming', value: data.totalIncoming, color: [16, 185, 129] },
+        { label: 'Outgoing', value: data.totalOutgoing, color: [239, 68, 68] },
+        { label: 'Fees', value: data.totalFees, color: [156, 163, 175] },
+        { label: 'Transactions', value: data.transactionCount, color: [59, 130, 246], isCount: true },
     ];
 
     summaryBoxes.forEach((box, i) => {
@@ -214,7 +216,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('المعاملات / Transactions', margin, y);
+    doc.text('Transaction History', margin, y);
 
     y += 5;
 
@@ -230,7 +232,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     doc.autoTable({
         startY: y,
-        head: [['التاريخ', 'المرجع', 'النوع', 'الوصف', 'المبلغ', 'الرصيد']],
+        head: [['Date', 'Reference', 'Type', 'Description', 'Amount', 'Balance']],
         body: tableData,
         theme: 'plain',
         styles: {
@@ -253,8 +255,8 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
         columnStyles: {
             0: { cellWidth: 25 },
             1: { cellWidth: 28 },
-            2: { cellWidth: 20 },
-            3: { cellWidth: 50 },
+            2: { cellWidth: 22 },
+            3: { cellWidth: 48 },
             4: { cellWidth: 25, halign: 'right' },
             5: { cellWidth: 25, halign: 'right' },
         },

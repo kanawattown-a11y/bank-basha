@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { TicketIcon, UserIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { TicketIcon, UserIcon, ClockIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface Ticket {
     id: string;
@@ -92,14 +92,19 @@ export default function AdminSupportPage() {
     return (
         <div className="min-h-screen bg-dark-950 p-4 lg:p-8 lg:ms-64">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-white mb-2">
-                        {t('support.title')}
-                    </h1>
-                    <p className="text-dark-400">
-                        {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'}
-                    </p>
+                {/* Header with Back Button */}
+                <div className="flex items-center gap-4 mb-6">
+                    <Link href="/admin" className="btn-ghost btn-icon">
+                        <ArrowLeftIcon className="w-5 h-5 text-white" />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">
+                            🎫 {t('support.title')}
+                        </h1>
+                        <p className="text-dark-400 text-sm">
+                            {tickets.length} {locale === 'ar' ? 'تذكرة' : (tickets.length === 1 ? 'ticket' : 'tickets')}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -125,8 +130,8 @@ export default function AdminSupportPage() {
                             key={status}
                             onClick={() => setFilter(status)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${filter === status
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                 }`}
                         >
                             {status === 'ALL' ? t('common.all') : t(`support.statuses.${status}`)}

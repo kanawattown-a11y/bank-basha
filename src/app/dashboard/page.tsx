@@ -61,6 +61,7 @@ export default function UserDashboard() {
     const [mounted, setMounted] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [wallet, setWallet] = useState<WalletData | null>(null);
+    const [userName, setUserName] = useState<string>('');
     const [businessWallet, setBusinessWallet] = useState<WalletData | null>(null);
     const [merchantProfile, setMerchantProfile] = useState<MerchantProfile | null>(null);
     const [hasMerchantAccount, setHasMerchantAccount] = useState(false);
@@ -95,6 +96,7 @@ export default function UserDashboard() {
                 throw new Error('Failed to fetch wallet data');
             }
             const data = await response.json();
+            setUserName(data.user?.fullName || data.user?.fullNameAr || '');
             setWallet(data.wallet);
             setBusinessWallet(data.businessWallet);
             setMerchantProfile(data.merchantProfile);
@@ -206,7 +208,13 @@ export default function UserDashboard() {
                     <div className="card p-8 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-primary-500/10"></div>
                         <div className="relative">
-                            <p className="text-dark-400 mb-2">{t('wallet.balance')}</p>
+                            {/* Header with name and balance label */}
+                            <div className="flex items-center justify-between mb-2">
+                                <p className="text-dark-400">{t('wallet.balance')}</p>
+                                <div className="text-end">
+                                    <p className="text-primary-500 font-semibold text-lg">{userName}</p>
+                                </div>
+                            </div>
                             <div className="flex items-baseline gap-2 mb-6">
                                 <span className="balance-display">{formatAmount(wallet?.balance || 0)}</span>
                                 <span className="text-2xl text-dark-400">{t('common.currencySymbol')}</span>

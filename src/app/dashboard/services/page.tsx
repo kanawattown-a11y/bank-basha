@@ -224,19 +224,50 @@ export default function ServicesPage() {
                                                 <button
                                                     key={service.id}
                                                     onClick={() => handleSelectService(service)}
-                                                    className="card p-5 text-right hover:border-primary-500/50 transition-all group"
+                                                    className="card p-0 overflow-hidden text-right hover:border-primary-500/50 transition-all group"
                                                 >
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <h3 className="text-white font-semibold group-hover:text-primary-400 transition-colors">
-                                                            {service.nameAr || service.name}
-                                                        </h3>
-                                                        <div className="text-primary-500 font-bold">
-                                                            {formatPrice(service.price)} $
+                                                    {/* Service Image or Gradient */}
+                                                    {service.imageUrl ? (
+                                                        <div className="relative h-28 bg-dark-800 overflow-hidden">
+                                                            <img
+                                                                src={service.imageUrl}
+                                                                alt={service.nameAr || service.name}
+                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                            />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-dark-900/90 to-transparent" />
+                                                            <div className="absolute bottom-2 right-3 left-3">
+                                                                <h3 className="text-white font-bold drop-shadow-lg">
+                                                                    {service.nameAr || service.name}
+                                                                </h3>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-20 bg-gradient-to-br from-primary-500/20 via-dark-800 to-dark-900 flex items-center justify-center">
+                                                            <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center">
+                                                                <Icon className="w-5 h-5 text-primary-400" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Content */}
+                                                    <div className="p-4">
+                                                        {!service.imageUrl && (
+                                                            <h3 className="text-white font-semibold group-hover:text-primary-400 transition-colors mb-1">
+                                                                {service.nameAr || service.name}
+                                                            </h3>
+                                                        )}
+                                                        <p className="text-dark-400 text-sm line-clamp-2 mb-2">
+                                                            {service.descriptionAr || service.description}
+                                                        </p>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-primary-500 font-bold">
+                                                                {formatPrice(service.price)} $
+                                                            </span>
+                                                            <span className="text-xs text-dark-500 bg-dark-800 px-2 py-1 rounded">
+                                                                {service.isFlexiblePrice ? 'سعر مرن' : 'سعر ثابت'}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <p className="text-dark-400 text-sm line-clamp-2">
-                                                        {service.descriptionAr || service.description}
-                                                    </p>
                                                 </button>
                                             ))}
                                         </div>

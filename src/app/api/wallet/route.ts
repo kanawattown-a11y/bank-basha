@@ -108,6 +108,11 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(
             {
+                user: {
+                    fullName: user.fullName,
+                    fullNameAr: user.fullNameAr,
+                    phone: user.phone,
+                },
                 wallet: {
                     balance: wallet.balance,
                     frozenBalance: wallet.frozenBalance,
