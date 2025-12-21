@@ -1,6 +1,6 @@
 'use client';
 
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslations } from 'next-intl';
 
 interface Props {
@@ -24,10 +24,10 @@ export default function MerchantQRCode({
         <div className="flex flex-col items-center bg-white p-6 rounded-3xl shadow-2xl border border-dark-800/10">
             {/* Main QR Container */}
             <div className="p-4 bg-white rounded-2xl relative">
-                <QRCodeSVG
+                <QRCodeCanvas
                     value={value}
                     size={size}
-                    level="H" // High error correction
+                    level="H"
                     bgColor="#FFFFFF"
                     fgColor="#0F0F0F"
                     marginSize={1}

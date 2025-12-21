@@ -82,6 +82,7 @@ export default function SettingsPage() {
             items: [
                 { icon: LanguageIcon, label: t('settings.language'), value: locale === 'ar' ? 'العربية' : 'English', href: '/dashboard/settings/language' },
                 { icon: BellIcon, label: t('settings.notifications'), href: '/dashboard/settings/notifications' },
+                { icon: UserIcon, label: `📄 ${locale === 'ar' ? 'كشف الحساب' : 'Statement'}`, value: 'PDF', href: '/dashboard/settings/statements' },
             ],
         },
         {

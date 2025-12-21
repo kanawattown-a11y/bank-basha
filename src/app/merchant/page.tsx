@@ -104,7 +104,7 @@ export default function MerchantDashboard() {
         try {
             const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(element, {
-                scale: 3, // High quality
+                scale: 3,
                 backgroundColor: '#0a0a0f',
                 useCORS: true,
                 logging: false,

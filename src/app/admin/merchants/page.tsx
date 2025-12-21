@@ -104,7 +104,11 @@ export default function AdminMerchantsPage() {
                     ) : (
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredMerchants.map((merchant) => (
-                                <div key={merchant.id} className="card p-5">
+                                <Link
+                                    key={merchant.id}
+                                    href={`/admin/merchants/${merchant.id}`}
+                                    className="card p-5 hover:border-primary-500/50 transition-colors"
+                                >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -137,7 +141,7 @@ export default function AdminMerchantsPage() {
                                             {merchant.isActive ? t('common.active') : t('common.inactive')}
                                         </span>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}

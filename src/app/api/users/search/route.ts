@@ -24,15 +24,38 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const sanitizedPhone = sanitizePhoneNumber(phone);
+        // Clean phone number for search - remove non-digits and handle different formats
+        let searchPhone = phone.replace(/\D/g, '');
+
+        // Try multiple search patterns for flexibility
+        // 1. Exact match with the cleaned number
+        // 2. Match with + prefix
+        // 3. Match containing the last 9 digits (for Syrian numbers)
+        const searchPatterns = [
+            `+${searchPhone}`,
+            searchPhone,
+        ];
+
+        // For Syrian numbers, also search with +963 prefix
+        if (searchPhone.startsWith('0') && searchPhone.length === 10) {
+            searchPatterns.push(`+963${searchPhone.substring(1)}`);
+        }
+        if (searchPhone.length === 9 && searchPhone.startsWith('9')) {
+            searchPatterns.push(`+963${searchPhone}`);
+        }
+        if (searchPhone.startsWith('963')) {
+            searchPatterns.push(`+${searchPhone}`);
+        }
 
         const user = await prisma.user.findFirst({
             where: {
-                phone: {
-                    contains: sanitizedPhone,
-                },
-                status: 'ACTIVE',
-                userType: { not: 'ADMIN' }, // Don't return admins
+                OR: searchPatterns.map(pattern => ({
+                    phone: {
+                        contains: pattern,
+                    },
+                })),
+                isActive: true,
+                userType: { not: 'ADMIN' },
             },
             select: {
                 id: true,

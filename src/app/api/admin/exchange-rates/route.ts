@@ -24,10 +24,17 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const rates = await prisma.exchangeRate.findMany({
-            where: { isActive: true },
-            orderBy: { type: 'asc' },
-        });
+        let rates: any[] = [];
+        try {
+            rates = await prisma.exchangeRate.findMany({
+                where: { isActive: true },
+                orderBy: { type: 'asc' },
+            });
+        } catch (dbError) {
+            console.error('Database error fetching exchange rates:', dbError);
+            // Return empty rates if table doesn't exist
+            rates = [];
+        }
 
         return NextResponse.json(
             { rates },
