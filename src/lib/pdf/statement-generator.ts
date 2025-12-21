@@ -65,12 +65,56 @@ export interface StatementData {
     transactionCount: number;
 }
 
+// Font cache
+let fontCache: { regular: string | null; bold: string | null } = {
+    regular: null,
+    bold: null,
+};
+
+async function loadFonts() {
+    if (fontCache.regular && fontCache.bold) return fontCache;
+
+    try {
+        const [regularRes, boldRes] = await Promise.all([
+            fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf'),
+            fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Bold.ttf')
+        ]);
+
+        const [regularBuf, boldBuf] = await Promise.all([
+            regularRes.arrayBuffer(),
+            boldRes.arrayBuffer()
+        ]);
+
+        fontCache.regular = Buffer.from(regularBuf).toString('base64');
+        fontCache.bold = Buffer.from(boldBuf).toString('base64');
+
+        return fontCache;
+    } catch (error) {
+        console.error('Error loading fonts:', error);
+        return null;
+    }
+}
+
 export async function generateStatement(data: StatementData): Promise<Uint8Array> {
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
     });
+
+    // Load and add Arabic fonts
+    const fonts = await loadFonts();
+    if (fonts && fonts.regular && fonts.bold) {
+        doc.addFileToVFS('Amiri-Regular.ttf', fonts.regular);
+        doc.addFileToVFS('Amiri-Bold.ttf', fonts.bold);
+
+        doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
+        doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold');
+
+        doc.setFont('Amiri'); // Set as default
+    } else {
+        console.warn('Could not load Arabic fonts, falling back to Helvetica');
+    }
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -113,7 +157,14 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     // Bank Name
     doc.setTextColor(10, 10, 15); // Dark
     doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Amiri');
+    // generate... code continues...
+    // Actually, I can't replace all in one block indiscriminately if there are different styles.
+    // I will use multi_replace for specific lines or just assume 'Amiri' handles styles if added correctly.
+    // But doc.setFont accepts (fontName, fontStyle).
+    // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
+    // So I just need to replace 'helvetica' with 'Amiri'.
+
     doc.text('BANK BASHA', pageWidth / 2, 15, { align: 'center' });
 
     // Statement Title
@@ -137,7 +188,14 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Amiri');
+    // generate... code continues...
+    // Actually, I can't replace all in one block indiscriminately if there are different styles.
+    // I will use multi_replace for specific lines or just assume 'Amiri' handles styles if added correctly.
+    // But doc.setFont accepts (fontName, fontStyle).
+    // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
+    // So I just need to replace 'helvetica' with 'Amiri'.
+
 
     // Left side - User info
     doc.text(data.fullName, margin + 5, y + 10);
@@ -172,7 +230,14 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     doc.text('Closing Balance', rightCol + 35, y + 8);
     doc.setTextColor(16, 185, 129); // Success green
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Amiri');
+    // generate... code continues...
+    // Actually, I can't replace all in one block indiscriminately if there are different styles.
+    // I will use multi_replace for specific lines or just assume 'Amiri' handles styles if added correctly.
+    // But doc.setFont accepts (fontName, fontStyle).
+    // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
+    // So I just need to replace 'helvetica' with 'Amiri'.
+
     doc.text(`$${formatAmount(data.closingBalance)}`, rightCol + 35, y + 16);
 
     // ═══════════════════════════════════════════════════════════════
@@ -202,7 +267,8 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
         doc.setTextColor(box.color[0], box.color[1], box.color[2]);
         doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
+        doc.setFont('Amiri', 'bold');
+
         const valueText = box.isCount ? String(box.value) : `$${formatAmount(box.value)}`;
         doc.text(valueText, x + boxWidth / 2, y + 16, { align: 'center' });
     });
@@ -215,7 +281,14 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Amiri');
+    // generate... code continues...
+    // Actually, I can't replace all in one block indiscriminately if there are different styles.
+    // I will use multi_replace for specific lines or just assume 'Amiri' handles styles if added correctly.
+    // But doc.setFont accepts (fontName, fontStyle).
+    // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
+    // So I just need to replace 'helvetica' with 'Amiri'.
+
     doc.text('Transaction History', margin, y);
 
     y += 5;

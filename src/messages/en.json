@@ -201,7 +201,8 @@
             "payment": "Payment",
             "settlement": "Settlement",
             "service_purchase": "Service Purchase",
-            "commission": "Commission"
+            "commission": "Commission",
+            "qrPayment": "QR Payment"
         },
         "status": {
             "pending": "Pending",
@@ -297,36 +298,39 @@
         "contactPhone": "Phone Number",
         "contactEmail": "Email (optional)",
         "categories": {
-            "ACCOUNT_ISSUE": "Account Issue",
-            "PAYMENT_ISSUE": "Payment Issue",
-            "TECHNICAL_ISSUE": "Technical Issue",
-            "KYC_VERIFICATION": "KYC Verification",
-            "SUSPENSION_APPEAL": "Suspension Appeal",
-            "FEATURE_REQUEST": "Feature Request",
-            "OTHER": "Other"
-        },
-        "statuses": {
-            "OPEN": "Open",
-            "IN_PROGRESS": "In Progress",
-            "WAITING_USER": "Waiting for You",
-            "WAITING_ADMIN": "Waiting for Support",
-            "RESOLVED": "Resolved",
-            "CLOSED": "Closed"
-        },
-        "priorities": {
-            "LOW": "Low",
-            "MEDIUM": "Medium",
-            "HIGH": "High",
-            "URGENT": "Urgent"
+            "ACCOUNT_ISSUE": "Account Issue"
         },
         "messages": {
-            "noTickets": "No tickets found",
-            "ticketCreated": "Ticket created successfully",
-            "messageSent": "Message sent",
-            "ticketClosed": "Ticket closed",
-            "uploadSuccess": "File uploaded successfully",
-            "uploadError": "Failed to upload file"
-        }
+            "messages": "Messages"
+        },
+        "PAYMENT_ISSUE": "Payment Issue",
+        "TECHNICAL_ISSUE": "Technical Issue",
+        "KYC_VERIFICATION": "KYC Verification",
+        "SUSPENSION_APPEAL": "Suspension Appeal",
+        "FEATURE_REQUEST": "Feature Request",
+        "OTHER": "Other"
+    },
+    "statuses": {
+        "OPEN": "Open",
+        "IN_PROGRESS": "In Progress",
+        "WAITING_USER": "Waiting for You",
+        "WAITING_ADMIN": "Waiting for Support",
+        "RESOLVED": "Resolved",
+        "CLOSED": "Closed"
+    },
+    "priorities": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High",
+        "URGENT": "Urgent"
+    },
+    "messages": {
+        "noTickets": "No tickets found",
+        "ticketCreated": "Ticket created successfully",
+        "messageSent": "Message sent",
+        "ticketClosed": "Ticket closed",
+        "uploadSuccess": "File uploaded successfully",
+        "uploadError": "Failed to upload file"
     },
     "agent": {
         "dashboard": {

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db/prisma';
 import { getSecurityHeaders } from '@/lib/auth/security';
 
 // GET - Get active exchange rates (public)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
     try {
         const rates = await prisma.exchangeRate.findMany({

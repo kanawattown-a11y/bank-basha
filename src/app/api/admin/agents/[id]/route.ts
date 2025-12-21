@@ -27,23 +27,35 @@ export async function GET(
             );
         }
 
-        const agentId = params.id;
+        const agentProfileId = params.id;
 
-        // Get agent with full details
-        const agent = await prisma.user.findUnique({
-            where: { id: agentId, userType: 'AGENT' },
-            include: {
-                wallet: true,
-                agentProfile: true,
-            },
+        // Try to find by AgentProfile ID first
+        let agentProfile = await prisma.agentProfile.findUnique({
+            where: { id: agentProfileId },
+            include: { user: { include: { wallet: true } } }
         });
 
-        if (!agent || !agent.agentProfile) {
+        // Fallback: Check if it's a User ID (for backward compatibility or direct links)
+        if (!agentProfile) {
+            const userAgent = await prisma.user.findUnique({
+                where: { id: agentProfileId, userType: 'AGENT' },
+                include: { agentProfile: true, wallet: true }
+            });
+
+            if (userAgent && userAgent.agentProfile) {
+                agentProfile = { ...userAgent.agentProfile, user: userAgent } as any;
+            }
+        }
+
+        if (!agentProfile || !agentProfile.user) {
             return NextResponse.json(
                 { error: 'Agent not found' },
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
+
+        const agent = agentProfile.user;
+        const agentId = agent.id; // User ID for transaction queries
 
         // Get agent transactions
         const transactions = await prisma.transaction.findMany({
@@ -91,7 +103,7 @@ export async function GET(
                     kycRejectionReason: agent.kycRejectionReason,
                     createdAt: agent.createdAt,
                     wallet: agent.wallet,
-                    agentProfile: agent.agentProfile,
+                    agentProfile: agentProfile,
                 },
                 transactions: transactions.map(t => ({
                     ...t,

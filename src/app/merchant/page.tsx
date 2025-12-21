@@ -166,7 +166,7 @@ export default function MerchantDashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="stat-card">
                             <BanknotesIcon className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-                            <div className="stat-value text-gradient">{formatAmount(data?.balance || 0)}</div>
+                            <div className="stat-value text-gradient" suppressHydrationWarning>{formatAmount(data?.balance || 0)}</div>
                             <div className="stat-label">{t('wallet.balance')}</div>
                         </div>
                         <div className="stat-card">
@@ -265,7 +265,7 @@ export default function MerchantDashboard() {
                                             </div>
                                             <div>
                                                 <p className="text-white font-medium">{tx.senderName || t('common.name')}</p>
-                                                <p className="text-dark-400 text-sm">{formatDate(tx.createdAt)}</p>
+                                                <p className="text-dark-400 text-sm" suppressHydrationWarning>{formatDate(tx.createdAt)}</p>
                                             </div>
                                         </div>
                                         <div className="text-end">
