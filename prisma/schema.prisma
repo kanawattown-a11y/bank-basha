@@ -832,6 +832,10 @@ model Service {
   maxPrice        Float?            // Maximum price (if flexible)
   currency        String    @default("USD")
   
+  // Fee Overrides (if null, use system defaults)
+  feePercent      Float?
+  feeFixed        Float?
+  
   // Display
   iconUrl         String?
   imageUrl        String?

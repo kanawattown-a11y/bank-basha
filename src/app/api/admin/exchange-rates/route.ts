@@ -80,34 +80,60 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Use transaction to update both rates
+        // Use transaction with direct SQL-like approach to avoid constraint issues
         try {
             await prisma.$transaction(async (tx) => {
-                // First deactivate ALL old rates
-                await tx.exchangeRate.updateMany({
-                    where: { isActive: true },
-                    data: { isActive: false },
+                // Find existing active deposit rate
+                const existingDeposit = await tx.exchangeRate.findFirst({
+                    where: { type: 'DEPOSIT', isActive: true }
                 });
 
-                // Then create new deposit rate
-                await tx.exchangeRate.create({
-                    data: {
-                        type: 'DEPOSIT',
-                        rate: parseFloat(depositRate),
-                        isActive: true,
-                        updatedBy: payload.userId,
-                    },
+                // Find existing active withdraw rate  
+                const existingWithdraw = await tx.exchangeRate.findFirst({
+                    where: { type: 'WITHDRAW', isActive: true }
                 });
 
-                // Create new withdraw rate
-                await tx.exchangeRate.create({
-                    data: {
-                        type: 'WITHDRAW',
-                        rate: parseFloat(withdrawRate),
-                        isActive: true,
-                        updatedBy: payload.userId,
-                    },
-                });
+                // Update existing or create new deposit rate
+                if (existingDeposit) {
+                    await tx.exchangeRate.update({
+                        where: { id: existingDeposit.id },
+                        data: {
+                            rate: parseFloat(depositRate),
+                            updatedBy: payload.userId,
+                            updatedAt: new Date()
+                        }
+                    });
+                } else {
+                    await tx.exchangeRate.create({
+                        data: {
+                            type: 'DEPOSIT',
+                            rate: parseFloat(depositRate),
+                            isActive: true,
+                            updatedBy: payload.userId,
+                        }
+                    });
+                }
+
+                // Update existing or create new withdraw rate
+                if (existingWithdraw) {
+                    await tx.exchangeRate.update({
+                        where: { id: existingWithdraw.id },
+                        data: {
+                            rate: parseFloat(withdrawRate),
+                            updatedBy: payload.userId,
+                            updatedAt: new Date()
+                        }
+                    });
+                } else {
+                    await tx.exchangeRate.create({
+                        data: {
+                            type: 'WITHDRAW',
+                            rate: parseFloat(withdrawRate),
+                            isActive: true,
+                            updatedBy: payload.userId,
+                        }
+                    });
+                }
             });
         } catch (dbError: any) {
             console.error('Database error updating exchange rates:', dbError);

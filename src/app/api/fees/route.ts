@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getSecurityHeaders } from '@/lib/auth/security';
 
+export const dynamic = 'force-dynamic';
+
 // GET - Get fee settings (public for calculation preview)
 export async function GET() {
     try {

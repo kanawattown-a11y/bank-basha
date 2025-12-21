@@ -1075,32 +1075,5 @@
         "minutesAgo": "minutes ago",
         "hoursAgo": "hours ago",
         "daysAgo": "days ago"
-    },
-    "support": {
-        "title": "Support",
-        "newTicket": "New Ticket",
-        "myTickets": "My Tickets",
-        "subject": "Subject",
-        "category": "Category",
-        "priority": "Priority",
-        "low": "Low",
-        "medium": "Medium",
-        "high": "High",
-        "urgent": "Urgent",
-        "open": "Open",
-        "inProgress": "In Progress",
-        "resolved": "Resolved",
-        "closed": "Closed",
-        "sendMessage": "Send",
-        "typeMessage": "Type your message...",
-        "attachFile": "Attach File",
-        "messages": {
-            "messages": "Messages",
-            "noTickets": "No support tickets",
-            "uploadError": "Error uploading file",
-            "sent": "Sent",
-            "ticketCreated": "Ticket created successfully",
-            "ticketClosed": "Ticket closed"
-        }
     }
 }

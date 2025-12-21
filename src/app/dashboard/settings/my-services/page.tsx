@@ -52,6 +52,7 @@ export default function MyServicesPage() {
         minPrice: 1,
         maxPrice: 1000,
         imageUrl: '',
+        providerLocation: '', // موقع مزود الخدمة
         // Required fields from buyer
         requirePhone: true,
         requireEmail: false,
@@ -122,6 +123,7 @@ export default function MyServicesPage() {
             minPrice: 1,
             maxPrice: 1000,
             imageUrl: '',
+            providerLocation: '',
             requirePhone: true,
             requireEmail: false,
             requireUsername: false,
@@ -188,6 +190,20 @@ export default function MyServicesPage() {
 
             <main className="pt-24 pb-8 px-4">
                 <div className="max-w-2xl mx-auto">
+                    {/* Orders Link Card */}
+                    <Link href="/dashboard/settings/my-services/orders" className="card p-4 mb-4 flex items-center justify-between bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/20 hover:border-yellow-500/50 transition-colors">
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl">📦</span>
+                            <div>
+                                <h3 className="text-white font-semibold">الطلبات الواردة</h3>
+                                <p className="text-dark-400 text-xs">عرض ومعالجة طلبات المشترين</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg">←</span>
+                        </div>
+                    </Link>
+
                     {/* Info Card */}
                     <div className="card p-4 mb-6 bg-primary-500/5 border-primary-500/20">
                         <p className="text-dark-300 text-sm">
@@ -270,6 +286,19 @@ export default function MyServicesPage() {
                                     required
                                     placeholder="اشرح ماذا تقدم هذه الخدمة..."
                                 />
+                            </div>
+
+                            {/* Provider Location */}
+                            <div>
+                                <label className="block text-dark-300 text-sm mb-2">📍 موقع مزود الخدمة (اختياري)</label>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    value={formData.providerLocation}
+                                    onChange={(e) => setFormData({ ...formData, providerLocation: e.target.value })}
+                                    placeholder="مثال: شارع الوكالات - طرابلس"
+                                />
+                                <p className="text-dark-500 text-xs mt-1">اكتب موقع محلك أو مكان تقديم الخدمة</p>
                             </div>
 
                             {/* Image Upload Field */}

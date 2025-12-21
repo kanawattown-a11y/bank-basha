@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyAccessToken, getSecurityHeaders, generateReferenceNumber } from '@/lib/auth/security';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
+import { getSignedUrlFromFullUrl } from '@/lib/storage/s3';
 
 // GET - List active and approved services (for users)
 export async function GET() {
@@ -41,8 +42,34 @@ export async function GET() {
             },
         });
 
+        // Generate presigned URLs for S3 images (valid for 24 hours) and extract providerLocation
+        const servicesWithSignedUrls = await Promise.all(
+            services.map(async (service) => {
+                // Extract providerLocation from metadata
+                let providerLocation = null;
+                try {
+                    if (service.metadata) {
+                        const meta = typeof service.metadata === 'string'
+                            ? JSON.parse(service.metadata)
+                            : service.metadata;
+                        providerLocation = meta.providerLocation || null;
+                    }
+                } catch { }
+
+                let imageUrl = service.imageUrl;
+                if (service.imageUrl && service.imageUrl.includes('.s3.')) {
+                    try {
+                        const signedUrl = await getSignedUrlFromFullUrl(service.imageUrl, 86400);
+                        imageUrl = signedUrl || service.imageUrl;
+                    } catch { }
+                }
+
+                return { ...service, imageUrl, providerLocation };
+            })
+        );
+
         // Group by category
-        const categories = services.reduce((acc, service) => {
+        const categories = servicesWithSignedUrls.reduce((acc, service) => {
             const cat = service.category;
             if (!acc[cat]) {
                 acc[cat] = {
@@ -53,10 +80,10 @@ export async function GET() {
             }
             acc[cat].services.push(service);
             return acc;
-        }, {} as Record<string, { name: string; nameAr: string; services: typeof services }>);
+        }, {} as Record<string, { name: string; nameAr: string; services: typeof servicesWithSignedUrls }>);
 
         return NextResponse.json(
-            { services, categories: Object.values(categories) },
+            { services: servicesWithSignedUrls, categories: Object.values(categories) },
             { status: 200, headers: getSecurityHeaders() }
         );
     } catch (error) {

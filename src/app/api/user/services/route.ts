@@ -12,6 +12,7 @@ const serviceSchema = z.object({
     category: z.string(),
     price: z.number().min(0),
     imageUrl: z.string().optional(),
+    providerLocation: z.string().optional(), // موقع مزود الخدمة
     // Flexible pricing
     isFlexiblePrice: z.boolean().optional(),
     minPrice: z.number().optional(),
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
                 maxPrice: validatedData.maxPrice ?? null,
                 imageUrl: validatedData.imageUrl || null,
                 requiredFields,
+                metadata: JSON.stringify({ providerLocation: validatedData.providerLocation || null }),
                 status: 'PENDING',
                 isActive: false, // Not active until approved
             },

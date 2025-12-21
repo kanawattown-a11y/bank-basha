@@ -1075,32 +1075,5 @@
         "minutesAgo": "دقائق مضت",
         "hoursAgo": "ساعات مضت",
         "daysAgo": "أيام مضت"
-    },
-    "support": {
-        "title": "الدعم الفني",
-        "newTicket": "تذكرة جديدة",
-        "myTickets": "تذاكري",
-        "subject": "الموضوع",
-        "category": "التصنيف",
-        "priority": "الأولوية",
-        "low": "منخفضة",
-        "medium": "متوسطة",
-        "high": "عالية",
-        "urgent": "عاجلة",
-        "open": "مفتوحة",
-        "inProgress": "قيد المعالجة",
-        "resolved": "تم الحل",
-        "closed": "مغلقة",
-        "sendMessage": "إرسال",
-        "typeMessage": "اكتب رسالتك...",
-        "attachFile": "إرفاق ملف",
-        "messages": {
-            "messages": "الرسائل",
-            "noTickets": "لا توجد تذاكر دعم",
-            "uploadError": "خطأ في رفع الملف",
-            "sent": "تم الإرسال",
-            "ticketCreated": "تم إنشاء التذكرة بنجاح",
-            "ticketClosed": "تم إغلاق التذكرة"
-        }
     }
 }
