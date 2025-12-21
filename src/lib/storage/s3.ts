@@ -109,7 +109,10 @@ export async function uploadToS3(
  */
 export async function getS3SignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
     try {
-        const command = new PutObjectCommand({
+        // Import GetObjectCommand dynamically to avoid unused import warning
+        const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+
+        const command = new GetObjectCommand({
             Bucket: BUCKET_NAME,
             Key: key,
         });
@@ -120,6 +123,19 @@ export async function getS3SignedUrl(key: string, expiresIn: number = 3600): Pro
         console.error('Error generating signed URL:', error);
         throw error;
     }
+}
+
+/**
+ * Generate signed URL from a full S3 URL
+ * @param s3Url Full S3 URL
+ * @param expiresIn Expiration time in seconds (default: 1 hour)
+ */
+export async function getSignedUrlFromFullUrl(s3Url: string, expiresIn: number = 3600): Promise<string | null> {
+    const key = extractS3Key(s3Url);
+    if (!key) {
+        return null;
+    }
+    return await getS3SignedUrl(key, expiresIn);
 }
 
 /**

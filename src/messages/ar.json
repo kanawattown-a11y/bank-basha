@@ -1035,7 +1035,10 @@
     "errors": {
         "required": "هذا الحقل مطلوب",
         "invalidPhone": "رقم هاتف غير صالح",
+        "invalidSyrianPhone": "رقم هاتف سوري غير صالح",
         "invalidEmail": "بريد إلكتروني غير صالح",
+        "phoneAlreadyRegistered": "رقم الهاتف مسجل مسبقاً",
+        "emailAlreadyRegistered": "البريد الإلكتروني مسجل مسبقاً",
         "passwordMismatch": "كلمات المرور غير متطابقة",
         "passwordWeak": "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
         "insufficientBalance": "رصيد غير كافي",

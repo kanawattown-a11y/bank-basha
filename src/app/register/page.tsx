@@ -15,6 +15,7 @@ import {
     ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import FileUpload from '@/components/FileUpload';
+import CameraCapture from '@/components/CameraCapture';
 
 export default function RegisterPage() {
     const t = useTranslations();
@@ -180,76 +181,76 @@ export default function RegisterPage() {
                         <div className="space-y-5">
                             <div>
                                 <label htmlFor="fullName" className="label">الاسم الكامل *</label>
-                                <div className="input-group">
+                                <div className="relative">
+                                    <UserIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
                                     <input
                                         id="fullName"
                                         type="text"
-                                        className="input"
+                                        className="input pr-12"
                                         placeholder="أحمد محمد"
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                         required
                                     />
-                                    <UserIcon className="input-group-icon w-5 h-5" />
                                 </div>
                             </div>
 
                             <div>
                                 <label htmlFor="phone" className="label">رقم الهاتف *</label>
-                                <div className="input-group">
+                                <div className="relative">
+                                    <PhoneIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
                                     <input
                                         id="phone"
                                         type="tel"
-                                        className="input"
+                                        className="input pr-12 text-left"
                                         placeholder="+963 9XX XXX XXX"
                                         dir="ltr"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         required
                                     />
-                                    <PhoneIcon className="input-group-icon w-5 h-5" />
                                 </div>
                             </div>
 
                             <div>
                                 <label htmlFor="email" className="label">البريد الإلكتروني *</label>
-                                <div className="input-group">
+                                <div className="relative">
+                                    <EnvelopeIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
                                     <input
                                         id="email"
                                         type="email"
-                                        className="input"
+                                        className="input pr-12 text-left"
                                         placeholder="email@example.com"
                                         dir="ltr"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         required
                                     />
-                                    <EnvelopeIcon className="input-group-icon w-5 h-5" />
                                 </div>
                             </div>
 
                             <div>
                                 <label htmlFor="dateOfBirth" className="label">تاريخ الميلاد *</label>
-                                <div className="input-group">
+                                <div className="relative">
+                                    <CalendarIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
                                     <input
                                         id="dateOfBirth"
                                         type="date"
-                                        className="input"
+                                        className="input pr-12"
                                         value={formData.dateOfBirth}
                                         onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                                         required
                                     />
-                                    <CalendarIcon className="input-group-icon w-5 h-5" />
                                 </div>
                             </div>
 
                             <div>
                                 <label htmlFor="password" className="label">كلمة المرور *</label>
-                                <div className="input-group">
+                                <div className="relative">
                                     <input
                                         id="password"
                                         type={showPassword ? 'text' : 'password'}
-                                        className="input"
+                                        className="input pl-12"
                                         placeholder="••••••••"
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -258,7 +259,7 @@ export default function RegisterPage() {
                                     />
                                     <button
                                         type="button"
-                                        className="input-group-icon"
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-500 hover:text-dark-300"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
                                         {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
@@ -285,7 +286,7 @@ export default function RegisterPage() {
 
                             <div>
                                 <label htmlFor="confirmPassword" className="label">تأكيد كلمة المرور *</label>
-                                <div className="input-group">
+                                <div className="relative">
                                     <input
                                         id="confirmPassword"
                                         type="password"
@@ -340,9 +341,9 @@ export default function RegisterPage() {
                                 error={error && !files.idPhoto ? 'مطلوب' : undefined}
                             />
 
-                            <FileUpload
+                            <CameraCapture
                                 label="صورة سيلفي (صورة شخصية) *"
-                                onFileSelect={(file) => setFiles({ ...files, selfie: file })}
+                                onCapture={(file) => setFiles({ ...files, selfie: file })}
                                 error={error && !files.selfie ? 'مطلوب' : undefined}
                             />
 

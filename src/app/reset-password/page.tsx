@@ -171,16 +171,16 @@ export default function ResetPasswordPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* New Password */}
                         <div>
-                            <label className="block text-sm font-medium text-dark-300 mb-2">
+                            <label className="block text-xs sm:text-sm font-medium text-dark-300 mb-2">
                                 كلمة المرور الجديدة *
                             </label>
                             <div className="relative">
-                                <LockClosedIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
+                                <LockClosedIcon className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-dark-500" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="input-field pr-12"
+                                    className="input pr-10 sm:pr-12 pl-10 sm:pl-12 text-sm"
                                     placeholder="••••••••"
                                     required
                                     minLength={6}
@@ -188,34 +188,34 @@ export default function ResetPasswordPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-500 hover:text-dark-300"
+                                    className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-dark-500 hover:text-dark-300"
                                 >
-                                    {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                                    {showPassword ? <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5" /> : <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
                                 </button>
                             </div>
                         </div>
 
                         {/* Confirm Password */}
                         <div>
-                            <label className="block text-sm font-medium text-dark-300 mb-2">
+                            <label className="block text-xs sm:text-sm font-medium text-dark-300 mb-2">
                                 تأكيد كلمة المرور *
                             </label>
                             <div className="relative">
-                                <LockClosedIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
+                                <LockClosedIcon className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-dark-500" />
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={formData.confirmPassword}
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    className="input-field pr-12"
+                                    className="input pr-10 sm:pr-12 pl-10 sm:pl-12 text-sm"
                                     placeholder="••••••••"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-500 hover:text-dark-300"
+                                    className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-dark-500 hover:text-dark-300"
                                 >
-                                    {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                                    {showConfirmPassword ? <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5" /> : <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
                                 </button>
                             </div>
                         </div>

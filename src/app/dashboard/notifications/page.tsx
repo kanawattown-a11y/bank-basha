@@ -129,29 +129,29 @@ export default function NotificationsPage() {
                             <p className="text-dark-400">لا توجد إشعارات</p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                             {notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`card p-4 transition-all ${!notification.isRead ? 'border-primary-500/30 bg-primary-500/5' : ''
+                                    className={`card p-3 sm:p-4 transition-all ${!notification.isRead ? 'border-primary-500/30 bg-primary-500/5' : ''
                                         }`}
                                     onClick={() => !notification.isRead && markAsRead(notification.id)}
                                 >
-                                    <div className="flex items-start gap-3">
-                                        <span className="text-2xl">{getTypeIcon(notification.type)}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <p className="text-white font-semibold text-sm truncate">
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                        <span className="text-xl sm:text-2xl flex-shrink-0">{getTypeIcon(notification.type)}</span>
+                                        <div className="flex-1 min-w-0 overflow-hidden">
+                                            <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
+                                                <p className="text-white font-semibold text-xs sm:text-sm truncate">
                                                     {notification.titleAr || notification.title}
                                                 </p>
                                                 {!notification.isRead && (
                                                     <span className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>
                                                 )}
                                             </div>
-                                            <p className="text-dark-400 text-sm line-clamp-2">
+                                            <p className="text-dark-400 text-xs sm:text-sm line-clamp-2 break-words">
                                                 {notification.messageAr || notification.message}
                                             </p>
-                                            <p className="text-dark-500 text-xs mt-2">
+                                            <p className="text-dark-500 text-[10px] sm:text-xs mt-1 sm:mt-2">
                                                 {formatDate(notification.createdAt)}
                                             </p>
                                         </div>
@@ -160,7 +160,7 @@ export default function NotificationsPage() {
                                                 e.stopPropagation();
                                                 deleteNotification(notification.id);
                                             }}
-                                            className="btn-ghost btn-icon text-dark-500 hover:text-red-400"
+                                            className="btn-ghost p-1.5 sm:p-2 text-dark-500 hover:text-red-400 flex-shrink-0"
                                         >
                                             <TrashIcon className="w-4 h-4" />
                                         </button>

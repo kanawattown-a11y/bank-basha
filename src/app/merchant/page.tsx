@@ -13,6 +13,8 @@ import {
     CheckCircleIcon,
     ArrowDownTrayIcon,
     GlobeAltIcon,
+    ArrowsRightLeftIcon,
+    PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 import MerchantQRCode from '@/components/MerchantQRCode';
 
@@ -154,6 +156,20 @@ export default function MerchantDashboard() {
                             <div className="stat-value">{data?.todayTransactions || 0}</div>
                             <div className="stat-label">{t('agent.dashboard.todayTransactions')}</div>
                         </div>
+                    </div>
+
+                    {/* Transfer Actions */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <Link href="/merchant/internal-transfer" className="card p-6 text-center hover:bg-dark-800/50 transition-colors">
+                            <ArrowsRightLeftIcon className="w-10 h-10 text-blue-500 mx-auto mb-3" />
+                            <h3 className="text-white font-semibold mb-1">تحويل بين حساباتي</h3>
+                            <p className="text-dark-400 text-xs">البزنس ↔ الشخصي</p>
+                        </Link>
+                        <Link href="/merchant/transfer" className="card p-6 text-center hover:bg-dark-800/50 transition-colors">
+                            <PaperAirplaneIcon className="w-10 h-10 text-green-500 mx-auto mb-3" />
+                            <h3 className="text-white font-semibold mb-1">تحويل لمستخدم</h3>
+                            <p className="text-dark-400 text-xs">إرسال من البزنس</p>
+                        </Link>
                     </div>
 
                     {/* QR Code Section */}

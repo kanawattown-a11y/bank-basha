@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useTranslations, useLocale } from 'next-intl';
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
+import SecureImage from '@/components/SecureImage';
 
 interface UserDetail {
     id: string;
@@ -363,22 +364,20 @@ export default function AdminUserDetailPage() {
                             {user.idPhotoUrl && (
                                 <div>
                                     <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.kyc.idPhoto')}</p>
-                                    <img
+                                    <SecureImage
                                         src={user.idPhotoUrl}
                                         alt="ID"
-                                        className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                        onClick={() => setShowImageModal(user.idPhotoUrl!)}
+                                        className="w-full h-48 object-cover rounded-lg"
                                     />
                                 </div>
                             )}
                             {user.selfiePhotoUrl && (
                                 <div>
                                     <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.kyc.selfie')}</p>
-                                    <img
+                                    <SecureImage
                                         src={user.selfiePhotoUrl}
                                         alt="Selfie"
-                                        className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                        onClick={() => setShowImageModal(user.selfiePhotoUrl!)}
+                                        className="w-full h-48 object-cover rounded-lg"
                                     />
                                 </div>
                             )}

@@ -34,6 +34,7 @@ interface WalletData {
 interface MerchantProfile {
     businessName: string;
     businessNameAr: string;
+    merchantCode: string;
     qrCode: string;
 }
 
@@ -242,7 +243,7 @@ export default function UserDashboard() {
                     </div>
 
                     {/* Business Account Card (if user has merchant account) */}
-                    {hasMerchantAccount && businessWallet && merchantProfile ? (
+                    {hasMerchantAccount && businessWallet && merchantProfile && (
                         <Link href="/merchant" className="block group">
                             <div className="card p-6 relative overflow-hidden border-2 border-emerald-500/30 hover:border-emerald-500/60 transition-all">
                                 {/* Background gradient */}
@@ -258,12 +259,10 @@ export default function UserDashboard() {
                                             </div>
                                             <div>
                                                 <p className="text-emerald-400 font-bold text-sm">💼 حساب البزنس</p>
-                                                <p className="text-dark-400 text-xs">{merchantProfile.businessNameAr || merchantProfile.businessName}</p>
+                                                <p className="text-white font-semibold">{merchantProfile.businessNameAr || merchantProfile.businessName}</p>
                                             </div>
                                         </div>
-                                        <div className="text-emerald-400/60 text-xs border border-emerald-500/30 px-2 py-1 rounded-lg">
-                                            حساب تجاري
-                                        </div>
+                                        <span className="badge-primary text-xs">{merchantProfile.merchantCode}</span>
                                     </div>
 
                                     {/* Balance */}
@@ -286,22 +285,6 @@ export default function UserDashboard() {
                                             <span>←</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </Link>
-                    ) : (
-                        /* Merchant Request Banner (if user doesn't have merchant account) */
-                        <Link href="/user/become-merchant" className="card p-6 bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent border-primary-500/20 hover:border-primary-500/40 transition-all group">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-primary-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <BuildingStorefrontIcon className="w-8 h-8 text-primary-500" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-white font-semibold mb-1">💼 هل لديك بزنس؟</h3>
-                                    <p className="text-dark-400 text-sm">افتح حساب تاجر واستقبل المدفوعات عبر QR Code</p>
-                                </div>
-                                <div className="text-primary-500 group-hover:translate-x-[-4px] transition-transform">
-                                    ←
                                 </div>
                             </div>
                         </Link>

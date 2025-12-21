@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { ArrowLeftIcon, PaperAirplaneIcon, PaperClipIcon } from '@heroicons/react/24/outline';
+import AttachmentImage from '@/components/AttachmentImage';
 
 interface Message {
     id: string;
@@ -110,23 +111,23 @@ export default function TicketDetailPage() {
     return (
         <div className="min-h-screen bg-dark-950 flex flex-col">
             {/* Header */}
-            <div className="bg-dark-900 border-b border-dark-800 pt-20 px-4 pb-4">
+            <div className="bg-dark-900 border-b border-dark-800 pt-20 px-3 sm:px-4 pb-3 sm:pb-4">
                 <div className="max-w-4xl mx-auto">
-                    <div className="flex items-center gap-4 mb-3">
-                        <button onClick={() => router.back()} className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-6 h-6" />
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <button onClick={() => router.back()} className="btn-ghost btn-icon flex-shrink-0">
+                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </button>
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-lg font-bold text-white truncate">
+                            <h1 className="text-sm sm:text-lg font-bold text-white truncate">
                                 {ticket.subject}
                             </h1>
-                            <p className="text-sm text-dark-400">
-                                {t('support.ticketNumber')}{ticket.ticketNumber}
+                            <p className="text-xs sm:text-sm text-dark-400">
+                                #{ticket.ticketNumber}
                             </p>
                         </div>
-                        <span className={`px-3 py-1 rounded-lg text-xs font-medium ${ticket.status === 'CLOSED' ? 'bg-gray-500/20 text-gray-400' :
-                                ticket.status === 'RESOLVED' ? 'bg-green-500/20 text-green-400' :
-                                    'bg-blue-500/20 text-blue-400'
+                        <span className={`px-2 sm:px-3 py-1 rounded-lg text-[10px] sm:text-xs font-medium flex-shrink-0 ${ticket.status === 'CLOSED' ? 'bg-gray-500/20 text-gray-400' :
+                            ticket.status === 'RESOLVED' ? 'bg-green-500/20 text-green-400' :
+                                'bg-blue-500/20 text-blue-400'
                             }`}>
                             {t(`support.statuses.${ticket.status}`)}
                         </span>
@@ -135,36 +136,35 @@ export default function TicketDetailPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-6">
-                <div className="max-w-4xl mx-auto space-y-4">
+            <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6">
+                <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
                     {ticket.messages.map((msg) => (
                         <div
                             key={msg.id}
                             className={`flex ${msg.isAdmin ? 'justify-start' : 'justify-end'}`}
                         >
-                            <div className={`max-w-[80%] sm:max-w-[70%] ${msg.isAdmin ? 'bg-dark-800' : 'bg-primary-500'} rounded-2xl px-4 py-3`}>
+                            <div className={`max-w-[90%] sm:max-w-[75%] ${msg.isAdmin ? 'bg-dark-800' : 'bg-primary-500'} rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3`}>
                                 {msg.isAdmin && (
-                                    <p className="text-xs text-dark-400 mb-1">
-                                        {t('support.title')} {msg.user?.fullName && `• ${msg.user.fullName}`}
+                                    <p className="text-[10px] sm:text-xs text-dark-400 mb-1">
+                                        الدعم الفني {msg.user?.fullName && `• ${msg.user.fullName}`}
                                     </p>
                                 )}
-                                <p className="text-white text-sm whitespace-pre-wrap break-words">
+                                <p className="text-white text-xs sm:text-sm whitespace-pre-wrap break-words">
                                     {msg.message}
                                 </p>
                                 {msg.attachments && msg.attachments.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <div className={`grid ${msg.attachments.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2 mt-2`}>
                                         {msg.attachments.map((att, idx) => (
-                                            <img
+                                            <AttachmentImage
                                                 key={idx}
                                                 src={att.fileUrl}
-                                                alt={att.fileName}
-                                                className="w-full h-24 object-cover rounded-lg cursor-pointer"
-                                                onClick={() => window.open(att.fileUrl, '_blank')}
+                                                alt={att.fileName || 'مرفق'}
+                                                className="w-full h-20 sm:h-28 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                                             />
                                         ))}
                                     </div>
                                 )}
-                                <p className="text-xs text-dark-400 mt-1">
+                                <p className="text-[10px] sm:text-xs text-dark-400 mt-1">
                                     {new Date(msg.createdAt).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', {
                                         hour: '2-digit',
                                         minute: '2-digit',
@@ -179,22 +179,22 @@ export default function TicketDetailPage() {
 
             {/* Input */}
             {ticket.status !== 'CLOSED' && (
-                <div className="bg-dark-900 border-t border-dark-800 p-4">
+                <div className="bg-dark-900 border-t border-dark-800 p-3 sm:p-4">
                     <div className="max-w-4xl mx-auto">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                             <input
                                 type="text"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                placeholder={t('support.reply')}
-                                className="input flex-1"
+                                placeholder="اكتب ردك هنا..."
+                                className="input flex-1 min-w-0 text-sm"
                                 disabled={isSending}
                             />
                             <button
                                 onClick={handleSendMessage}
                                 disabled={!message.trim() || isSending}
-                                className="btn-primary"
+                                className="btn-primary flex-shrink-0 p-3"
                             >
                                 <PaperAirplaneIcon className="w-5 h-5" />
                             </button>

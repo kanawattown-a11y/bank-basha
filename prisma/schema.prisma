@@ -149,6 +149,21 @@ model PasswordResetRequest {
   @@map("password_reset_requests")
 }
 
+// Exchange Rate Management for Syrian Pound
+model ExchangeRate {
+  id            String    @id @default(uuid())
+  type          String    // DEPOSIT, WITHDRAW
+  rate          Float     // سعر الليرة السورية مقابل 1 دولار
+  isActive      Boolean   @default(true)
+  updatedBy     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([type, isActive])
+  @@index([type])
+  @@map("exchange_rates")
+}
+
 // ============================================
 // WALLET & ACCOUNTS
 // ============================================

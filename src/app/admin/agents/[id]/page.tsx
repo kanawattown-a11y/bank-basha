@@ -14,6 +14,7 @@ import {
     LanguageIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslations, useLocale } from 'next-intl';
+import SecureImage from '@/components/SecureImage';
 
 interface AgentDetail {
     id: string;
@@ -348,29 +349,24 @@ export default function AdminAgentDetailPage() {
                             {/* KYC Documents */}
                             <div className="card p-6">
                                 <h3 className="text-lg font-semibold text-white mb-4">{t('admin.agentDetails.docs.title')}</h3>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <div className="grid md:grid-cols-2 gap-4">
                                     {agent.idPhotoUrl && (
                                         <div>
                                             <p className="text-dark-400 text-sm mb-2">{t('admin.agentDetails.docs.idPhoto')}</p>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
+                                            <SecureImage
                                                 src={agent.idPhotoUrl}
                                                 alt="ID"
-                                                className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                                onClick={() => setShowImageModal(agent.idPhotoUrl!)}
+                                                className="w-full h-48 object-cover rounded-lg"
                                             />
                                         </div>
                                     )}
                                     {agent.selfiePhotoUrl && (
                                         <div>
                                             <p className="text-dark-400 text-sm mb-2">{t('admin.agentDetails.docs.selfie')}</p>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
+                                            <SecureImage
                                                 src={agent.selfiePhotoUrl}
                                                 alt="Selfie"
-                                                className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                                onClick={() => setShowImageModal(agent.selfiePhotoUrl!)}
+                                                className="w-full h-48 object-cover rounded-lg"
                                             />
                                         </div>
                                     )}

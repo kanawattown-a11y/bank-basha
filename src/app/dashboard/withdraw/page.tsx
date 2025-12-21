@@ -8,6 +8,7 @@ import {
     ArrowLeftIcon,
     ArrowUpIcon,
     MapPinIcon,
+    CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 
 interface Agent {
@@ -23,6 +24,7 @@ export default function WithdrawPage() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [balance, setBalance] = useState(0);
+    const [exchangeRate, setExchangeRate] = useState<number | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -30,9 +32,10 @@ export default function WithdrawPage() {
 
     const fetchData = async () => {
         try {
-            const [agentsRes, walletRes] = await Promise.all([
+            const [agentsRes, walletRes, ratesRes] = await Promise.all([
                 fetch('/api/agents/nearby'),
                 fetch('/api/wallet'),
+                fetch('/api/exchange-rates'),
             ]);
 
             if (agentsRes.ok) {
@@ -44,6 +47,13 @@ export default function WithdrawPage() {
                 const data = await walletRes.json();
                 setBalance(data.wallet?.balance || 0);
             }
+
+            if (ratesRes.ok) {
+                const data = await ratesRes.json();
+                if (data.withdraw?.rate) {
+                    setExchangeRate(data.withdraw.rate);
+                }
+            }
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -53,6 +63,10 @@ export default function WithdrawPage() {
 
     const formatAmount = (amount: number) => {
         return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    };
+
+    const formatNumber = (num: number) => {
+        return new Intl.NumberFormat('ar-SY').format(num);
     };
 
     return (
@@ -72,7 +86,7 @@ export default function WithdrawPage() {
             <main className="pt-24 pb-8 px-4">
                 <div className="max-w-md mx-auto">
                     {/* Balance Card */}
-                    <div className="card p-6 mb-6">
+                    <div className="card p-6 mb-4">
                         <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                             <ArrowUpIcon className="w-8 h-8 text-red-500" />
                         </div>
@@ -85,6 +99,29 @@ export default function WithdrawPage() {
                             <p className="text-2xl font-bold text-gradient">{formatAmount(balance)} $</p>
                         </div>
                     </div>
+
+                    {/* Exchange Rate */}
+                    {exchangeRate && (
+                        <div className="card p-4 mb-6 border-red-500/30 bg-gradient-to-r from-red-500/10 to-orange-500/10">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                                        <CurrencyDollarIcon className="w-5 h-5 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-dark-400 text-xs">سعر السحب</p>
+                                        <p className="text-white font-semibold">1 دولار =</p>
+                                    </div>
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-2xl font-bold text-red-400">
+                                        {formatNumber(exchangeRate)}
+                                    </p>
+                                    <p className="text-dark-400 text-xs">ليرة سورية</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Steps */}
                     <div className="card p-6 mb-6">

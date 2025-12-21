@@ -109,8 +109,8 @@ export default function ForgotPasswordPage() {
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="input-field pr-12 text-right"
-                                    placeholder="05xxxxxxxx"
+                                    className="input pr-12 text-right"
+                                    placeholder="09xxxxxxxx"
                                     required
                                     dir="ltr"
                                 />
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
                             <textarea
                                 value={formData.message}
                                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                className="input-field h-24 resize-none"
+                                className="input h-24 resize-none"
                                 placeholder="أي معلومات إضافية تساعدنا في التحقق من هويتك"
                             />
                         </div>
