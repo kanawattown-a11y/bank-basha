@@ -20,6 +20,7 @@ import {
 import { useTranslations, useLocale } from 'next-intl';
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
 import SecureImage from '@/components/SecureImage';
+import ImageLightbox from '@/components/ImageLightbox';
 
 interface UserDetail {
     id: string;
@@ -32,6 +33,7 @@ interface UserDetail {
     isActive: boolean;
     hasMerchantAccount: boolean;
     idPhotoUrl: string | null;
+    idPhotoBackUrl: string | null;
     selfiePhotoUrl: string | null;
     kycSubmittedAt: string | null;
     createdAt: string;
@@ -73,6 +75,8 @@ export default function AdminUserDetailPage() {
     const [kycRejectionReason, setKycRejectionReason] = useState('');
     const [newRole, setNewRole] = useState('');
     const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     useEffect(() => {
         fetchUser();
@@ -360,28 +364,69 @@ export default function AdminUserDetailPage() {
                             </p>
                         )}
 
-                        <div className="grid md:grid-cols-2 gap-4 mb-6">
+                        <div className="grid md:grid-cols-3 gap-4 mb-6">
                             {user.idPhotoUrl && (
-                                <div>
-                                    <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.kyc.idPhoto')}</p>
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+                                >
+                                    <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.kyc.idPhoto')} (أمامي)</p>
                                     <SecureImage
                                         src={user.idPhotoUrl}
-                                        alt="ID"
-                                        className="w-full h-48 object-cover rounded-lg"
+                                        alt="ID Front"
+                                        className="w-full h-40 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                                    />
+                                </div>
+                            )}
+                            {user.idPhotoBackUrl && (
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={() => {
+                                        const idx = user.idPhotoUrl ? 1 : 0;
+                                        setLightboxIndex(idx);
+                                        setLightboxOpen(true);
+                                    }}
+                                >
+                                    <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.kyc.idPhoto')} (خلفي)</p>
+                                    <SecureImage
+                                        src={user.idPhotoBackUrl}
+                                        alt="ID Back"
+                                        className="w-full h-40 object-cover rounded-lg hover:opacity-80 transition-opacity"
                                     />
                                 </div>
                             )}
                             {user.selfiePhotoUrl && (
-                                <div>
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={() => {
+                                        let idx = 0;
+                                        if (user.idPhotoUrl) idx++;
+                                        if (user.idPhotoBackUrl) idx++;
+                                        setLightboxIndex(idx);
+                                        setLightboxOpen(true);
+                                    }}
+                                >
                                     <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.kyc.selfie')}</p>
                                     <SecureImage
                                         src={user.selfiePhotoUrl}
                                         alt="Selfie"
-                                        className="w-full h-48 object-cover rounded-lg"
+                                        className="w-full h-40 object-cover rounded-lg hover:opacity-80 transition-opacity"
                                     />
                                 </div>
                             )}
                         </div>
+
+                        {/* Lightbox for KYC photos */}
+                        <ImageLightbox
+                            images={[
+                                ...(user.idPhotoUrl ? [{ src: user.idPhotoUrl, alt: 'صورة الهوية (أمامي)' }] : []),
+                                ...(user.idPhotoBackUrl ? [{ src: user.idPhotoBackUrl, alt: 'صورة الهوية (خلفي)' }] : []),
+                                ...(user.selfiePhotoUrl ? [{ src: user.selfiePhotoUrl, alt: 'صورة السيلفي' }] : []),
+                            ]}
+                            initialIndex={lightboxIndex}
+                            isOpen={lightboxOpen}
+                            onClose={() => setLightboxOpen(false)}
+                        />
 
                         {/* KYC Actions */}
                         {user.kycStatus === 'PENDING' && (

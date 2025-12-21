@@ -34,10 +34,12 @@ export default function RegisterPage() {
         terms: false,
     });
     const [files, setFiles] = useState<{
-        idPhoto: File | null;
+        idPhotoFront: File | null;
+        idPhotoBack: File | null;
         selfie: File | null;
     }>({
-        idPhoto: null,
+        idPhotoFront: null,
+        idPhotoBack: null,
         selfie: null,
     });
 
@@ -85,8 +87,8 @@ export default function RegisterPage() {
         }
 
         if (step === 2) {
-            if (!files.idPhoto || !files.selfie) {
-                setError(t('errors.required'));
+            if (!files.idPhotoFront || !files.idPhotoBack || !files.selfie) {
+                setError('الرجاء رفع جميع الصور المطلوبة');
                 return;
             }
         }
@@ -111,8 +113,9 @@ export default function RegisterPage() {
             data.append('dateOfBirth', formData.dateOfBirth);
             data.append('password', formData.password);
 
-            if (files.idPhoto) data.append('idPhoto', files.idPhoto);
-            if (files.selfie) data.append('selfie', files.selfie);
+            if (files.idPhotoFront) data.append('idPhotoFront', files.idPhotoFront);
+            if (files.idPhotoBack) data.append('idPhotoBack', files.idPhotoBack);
+            if (files.selfie) data.append('selfiePhoto', files.selfie);
 
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
@@ -328,7 +331,8 @@ export default function RegisterPage() {
                             <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
                                 <p className="font-medium mb-1">📋 متطلبات التحقق</p>
                                 <ul className="list-disc list-inside space-y-1 text-xs">
-                                    <li>صورة واضحة لبطاقة الهوية أو جواز السفر</li>
+                                    <li>صورة واضحة للوجه الأمامي للهوية</li>
+                                    <li>صورة واضحة للوجه الخلفي للهوية</li>
                                     <li>صورة سيلفي حديثة (صورة شخصية)</li>
                                     <li>الصور يجب أن تكون بصيغة JPG أو PNG</li>
                                     <li>حجم الصورة لا يتجاوز 5MB</li>
@@ -336,9 +340,15 @@ export default function RegisterPage() {
                             </div>
 
                             <FileUpload
-                                label="صورة الهوية / جواز السفر *"
-                                onFileSelect={(file) => setFiles({ ...files, idPhoto: file })}
-                                error={error && !files.idPhoto ? 'مطلوب' : undefined}
+                                label="صورة الهوية - الوجه الأمامي *"
+                                onFileSelect={(file) => setFiles({ ...files, idPhotoFront: file })}
+                                error={error && !files.idPhotoFront ? 'مطلوب' : undefined}
+                            />
+
+                            <FileUpload
+                                label="صورة الهوية - الوجه الخلفي *"
+                                onFileSelect={(file) => setFiles({ ...files, idPhotoBack: file })}
+                                error={error && !files.idPhotoBack ? 'مطلوب' : undefined}
                             />
 
                             <CameraCapture

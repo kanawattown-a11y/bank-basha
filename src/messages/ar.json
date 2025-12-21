@@ -605,6 +605,23 @@
             "loadFailed": "فشل تحميل الإعدادات",
             "saveFailed": "فشل حفظ الإعدادات"
         },
+        "passwordRequests": {
+            "title": "طلبات استعادة كلمة المرور",
+            "empty": "لا توجد طلبات",
+            "markAsUsed": "تم الاستخدام",
+            "status": {
+                "pending": "معلق",
+                "used": "مستخدم",
+                "expired": "منتهي"
+            }
+        },
+        "exchangeRates": {
+            "title": "أسعار الصرف",
+            "depositRate": "سعر الإيداع",
+            "withdrawRate": "سعر السحب",
+            "save": "حفظ الأسعار",
+            "lastUpdate": "آخر تحديث"
+        },
         "ledger": {
             "title": "دفتر الأستاذ",
             "subtitle": "نظام القيد المزدوج - Double Entry Ledger",

@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     className="input pr-12 text-right"
-                                    placeholder="09xxxxxxxx"
+                                    placeholder="+9639xxxxxxxx"
                                     required
                                     dir="ltr"
                                 />

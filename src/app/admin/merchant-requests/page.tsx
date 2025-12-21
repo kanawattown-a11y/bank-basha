@@ -11,9 +11,12 @@ import {
     EyeIcon,
     DocumentIcon,
     LanguageIcon,
+    PhotoIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import AttachmentImage from '@/components/AttachmentImage';
+import ImageLightbox from '@/components/ImageLightbox';
 
 interface MerchantRequest {
     id: string;
@@ -59,6 +62,9 @@ export default function MerchantRequestsPage() {
     const [selectedRequest, setSelectedRequest] = useState<MerchantRequest | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
     const [mounted, setMounted] = useState(false);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxImages, setLightboxImages] = useState<{ src: string; alt: string }[]>([]);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     useEffect(() => {
         setMounted(true);
@@ -295,18 +301,46 @@ export default function MerchantRequestsPage() {
 
                             {(selectedRequest.licenseUrl || selectedRequest.idPhotoUrl) && (
                                 <div>
-                                    <label className="text-dark-500 text-sm">{t('admin.merchantRequests.details.documents')}</label>
-                                    <div className="flex gap-4 mt-2">
+                                    <label className="text-dark-500 text-sm mb-2 block">{t('admin.merchantRequests.details.documents')}</label>
+                                    <div className="grid grid-cols-2 gap-4 mt-2">
                                         {selectedRequest.licenseUrl && (
-                                            <div className="flex items-center gap-2 text-primary-500">
-                                                <DocumentIcon className="w-5 h-5" />
-                                                <span>{t('admin.merchantRequests.details.license')}</span>
+                                            <div
+                                                className="cursor-pointer"
+                                                onClick={() => {
+                                                    const images = [];
+                                                    if (selectedRequest.licenseUrl) images.push({ src: selectedRequest.licenseUrl, alt: t('admin.merchantRequests.details.license') });
+                                                    if (selectedRequest.idPhotoUrl) images.push({ src: selectedRequest.idPhotoUrl, alt: t('admin.merchantRequests.details.idPhoto') });
+                                                    setLightboxImages(images);
+                                                    setLightboxIndex(0);
+                                                    setLightboxOpen(true);
+                                                }}
+                                            >
+                                                <p className="text-dark-400 text-xs mb-1">{t('admin.merchantRequests.details.license')}</p>
+                                                <AttachmentImage
+                                                    src={selectedRequest.licenseUrl}
+                                                    alt={t('admin.merchantRequests.details.license')}
+                                                    className="w-full h-32 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                                                />
                                             </div>
                                         )}
                                         {selectedRequest.idPhotoUrl && (
-                                            <div className="flex items-center gap-2 text-primary-500">
-                                                <DocumentIcon className="w-5 h-5" />
-                                                <span>{t('admin.merchantRequests.details.idPhoto')}</span>
+                                            <div
+                                                className="cursor-pointer"
+                                                onClick={() => {
+                                                    const images = [];
+                                                    if (selectedRequest.licenseUrl) images.push({ src: selectedRequest.licenseUrl, alt: t('admin.merchantRequests.details.license') });
+                                                    if (selectedRequest.idPhotoUrl) images.push({ src: selectedRequest.idPhotoUrl, alt: t('admin.merchantRequests.details.idPhoto') });
+                                                    setLightboxImages(images);
+                                                    setLightboxIndex(selectedRequest.licenseUrl ? 1 : 0);
+                                                    setLightboxOpen(true);
+                                                }}
+                                            >
+                                                <p className="text-dark-400 text-xs mb-1">{t('admin.merchantRequests.details.idPhoto')}</p>
+                                                <AttachmentImage
+                                                    src={selectedRequest.idPhotoUrl}
+                                                    alt={t('admin.merchantRequests.details.idPhoto')}
+                                                    className="w-full h-32 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -354,6 +388,13 @@ export default function MerchantRequestsPage() {
                     </div>
                 </div>
             )}
+            {/* Image Lightbox */}
+            <ImageLightbox
+                images={lightboxImages}
+                initialIndex={lightboxIndex}
+                isOpen={lightboxOpen}
+                onClose={() => setLightboxOpen(false)}
+            />
         </div>
     );
 }

@@ -39,8 +39,9 @@ export default function InternalTransferPage() {
             const res = await fetch('/api/wallet');
             if (res.ok) {
                 const data = await res.json();
+                console.log('Wallet data:', data); // Debug log
                 setWallets({
-                    personal: data.balance || 0,
+                    personal: data.wallet?.balance || 0,
                     business: data.businessWallet?.balance || 0,
                 });
             } else if (res.status === 401 || res.status === 403) {
@@ -189,8 +190,8 @@ export default function InternalTransferPage() {
                             <button
                                 onClick={() => setDirection('to_personal')}
                                 className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all ${direction === 'to_personal'
-                                        ? 'bg-primary-500 text-white'
-                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                     }`}
                             >
                                 البزنس → الشخصي
@@ -198,8 +199,8 @@ export default function InternalTransferPage() {
                             <button
                                 onClick={() => setDirection('to_business')}
                                 className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all ${direction === 'to_business'
-                                        ? 'bg-primary-500 text-white'
-                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                     }`}
                             >
                                 الشخصي → البزنس

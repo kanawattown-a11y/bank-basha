@@ -35,6 +35,14 @@ export async function GET(
                 wallet: {
                     select: { balance: true },
                 },
+                kycDocuments: {
+                    select: {
+                        documentType: true,
+                        documentUrl: true,
+                        status: true,
+                    },
+                    orderBy: { createdAt: 'desc' },
+                },
             },
         });
 
@@ -76,6 +84,10 @@ export async function GET(
             },
         });
 
+        // Extract ID back photo from KYC documents if available
+        const idBackDocument = user.kycDocuments?.find(doc => doc.documentType === 'ID_BACK');
+        const idBackPhotoUrl = idBackDocument?.documentUrl || null;
+
         return NextResponse.json(
             {
                 user: {
@@ -89,6 +101,7 @@ export async function GET(
                     isActive: user.isActive,
                     hasMerchantAccount: user.hasMerchantAccount,
                     idPhotoUrl: user.idPhotoUrl,
+                    idPhotoBackUrl: idBackPhotoUrl,
                     selfiePhotoUrl: user.selfiePhotoUrl,
                     kycSubmittedAt: user.kycSubmittedAt,
                     kycReviewedAt: user.kycReviewedAt,

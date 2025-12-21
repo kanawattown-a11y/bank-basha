@@ -10,9 +10,11 @@ export default function KYCPage() {
     const [submitting, setSubmitting] = useState(false);
     const [kycStatus, setKycStatus] = useState<string>('NOT_SUBMITTED');
     const [rejectionReason, setRejectionReason] = useState<string>('');
-    const [idPhoto, setIdPhoto] = useState<File | null>(null);
+    const [idPhotoFront, setIdPhotoFront] = useState<File | null>(null);
+    const [idPhotoBack, setIdPhotoBack] = useState<File | null>(null);
     const [selfiePhoto, setSelfiePhoto] = useState<File | null>(null);
-    const [idPreview, setIdPreview] = useState<string>('');
+    const [idPreviewFront, setIdPreviewFront] = useState<string>('');
+    const [idPreviewBack, setIdPreviewBack] = useState<string>('');
     const [selfiePreview, setSelfiePreview] = useState<string>('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -36,12 +38,15 @@ export default function KYCPage() {
         setLoading(false);
     };
 
-    const handleFileChange = (file: File | null, type: 'id' | 'selfie') => {
+    const handleFileChange = (file: File | null, type: 'id-front' | 'id-back' | 'selfie') => {
         if (!file) return;
 
-        if (type === 'id') {
-            setIdPhoto(file);
-            setIdPreview(URL.createObjectURL(file));
+        if (type === 'id-front') {
+            setIdPhotoFront(file);
+            setIdPreviewFront(URL.createObjectURL(file));
+        } else if (type === 'id-back') {
+            setIdPhotoBack(file);
+            setIdPreviewBack(URL.createObjectURL(file));
         } else {
             setSelfiePhoto(file);
             setSelfiePreview(URL.createObjectURL(file));
@@ -49,8 +54,8 @@ export default function KYCPage() {
     };
 
     const handleSubmit = async () => {
-        if (!idPhoto || !selfiePhoto) {
-            setError('الرجاء رفع جميع الصور المطلوبة');
+        if (!idPhotoFront || !idPhotoBack || !selfiePhoto) {
+            setError('الرجاء رفع جميع الصور المطلوبة (صورة الهوية الأمامية والخلفية + السيلفي)');
             return;
         }
 
@@ -59,7 +64,8 @@ export default function KYCPage() {
 
         try {
             const formData = new FormData();
-            formData.append('idPhoto', idPhoto);
+            formData.append('idPhotoFront', idPhotoFront);
+            formData.append('idPhotoBack', idPhotoBack);
             formData.append('selfiePhoto', selfiePhoto);
 
             const res = await fetch('/api/user/kyc/submit', {
@@ -143,34 +149,70 @@ export default function KYCPage() {
                         <div className="card p-6">
                             <h2 className="text-white font-semibold mb-4">رفع المستندات</h2>
 
-                            {/* ID Photo */}
+                            {/* ID Photo Front */}
                             <div className="mb-4">
-                                <label className="block text-dark-300 text-sm mb-2">صورة الهوية</label>
+                                <label className="block text-dark-300 text-sm mb-2">
+                                    صورة الهوية - الوجه الأمامي
+                                    <span className="text-primary-500 mr-1">*</span>
+                                </label>
                                 <div
                                     className="border-2 border-dashed border-dark-600 rounded-xl p-4 text-center cursor-pointer hover:border-primary-500/50 transition-colors"
-                                    onClick={() => document.getElementById('id-input')?.click()}
+                                    onClick={() => document.getElementById('id-front-input')?.click()}
                                 >
-                                    {idPreview ? (
-                                        <img src={idPreview} alt="ID" className="w-full h-32 object-cover rounded-lg" />
+                                    {idPreviewFront ? (
+                                        <img src={idPreviewFront} alt="ID Front" className="w-full h-32 object-cover rounded-lg" />
                                     ) : (
                                         <>
                                             <DocumentIcon className="w-10 h-10 text-dark-500 mx-auto mb-2" />
-                                            <p className="text-dark-400 text-sm">اضغط لرفع صورة الهوية</p>
+                                            <p className="text-dark-400 text-sm">اضغط لرفع الوجه الأمامي</p>
+                                            <p className="text-dark-500 text-xs mt-1">الهوية الشخصية أو جواز السفر</p>
                                         </>
                                     )}
                                 </div>
                                 <input
-                                    id="id-input"
+                                    id="id-front-input"
                                     type="file"
                                     accept="image/*"
                                     className="hidden"
-                                    onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'id')}
+                                    onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'id-front')}
+                                />
+                            </div>
+
+                            {/* ID Photo Back */}
+                            <div className="mb-4">
+                                <label className="block text-dark-300 text-sm mb-2">
+                                    صورة الهوية - الوجه الخلفي
+                                    <span className="text-primary-500 mr-1">*</span>
+                                </label>
+                                <div
+                                    className="border-2 border-dashed border-dark-600 rounded-xl p-4 text-center cursor-pointer hover:border-primary-500/50 transition-colors"
+                                    onClick={() => document.getElementById('id-back-input')?.click()}
+                                >
+                                    {idPreviewBack ? (
+                                        <img src={idPreviewBack} alt="ID Back" className="w-full h-32 object-cover rounded-lg" />
+                                    ) : (
+                                        <>
+                                            <DocumentIcon className="w-10 h-10 text-dark-500 mx-auto mb-2" />
+                                            <p className="text-dark-400 text-sm">اضغط لرفع الوجه الخلفي</p>
+                                            <p className="text-dark-500 text-xs mt-1">الخلف يحتوي على معلومات إضافية</p>
+                                        </>
+                                    )}
+                                </div>
+                                <input
+                                    id="id-back-input"
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'id-back')}
                                 />
                             </div>
 
                             {/* Selfie Photo */}
                             <div className="mb-6">
-                                <label className="block text-dark-300 text-sm mb-2">صورة سيلفي مع الهوية</label>
+                                <label className="block text-dark-300 text-sm mb-2">
+                                    صورة سيلفي مع الهوية
+                                    <span className="text-primary-500 mr-1">*</span>
+                                </label>
                                 <div
                                     className="border-2 border-dashed border-dark-600 rounded-xl p-4 text-center cursor-pointer hover:border-primary-500/50 transition-colors"
                                     onClick={() => document.getElementById('selfie-input')?.click()}
@@ -181,6 +223,7 @@ export default function KYCPage() {
                                         <>
                                             <CameraIcon className="w-10 h-10 text-dark-500 mx-auto mb-2" />
                                             <p className="text-dark-400 text-sm">اضغط لرفع صورة سيلفي</p>
+                                            <p className="text-dark-500 text-xs mt-1">وجهك + الهوية بيدك</p>
                                         </>
                                     )}
                                 </div>
@@ -197,11 +240,15 @@ export default function KYCPage() {
 
                             <button
                                 onClick={handleSubmit}
-                                disabled={submitting || !idPhoto || !selfiePhoto}
+                                disabled={submitting || !idPhotoFront || !idPhotoBack || !selfiePhoto}
                                 className="btn-primary w-full"
                             >
                                 {submitting ? <div className="spinner w-5 h-5"></div> : 'إرسال للمراجعة'}
                             </button>
+
+                            <p className="text-dark-500 text-xs text-center mt-4">
+                                المستندات مطلوبة للتحقق من هويتك وحماية حسابك
+                            </p>
                         </div>
                     )}
 

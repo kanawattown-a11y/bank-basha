@@ -43,9 +43,17 @@ export async function POST(request: NextRequest) {
 
         const { fullName, phone, email, password, dateOfBirth } = validation.data;
 
-        // Files
-        const idPhoto = formData.get('idPhoto') as File | null;
-        const selfie = formData.get('selfie') as File | null;
+        // Files - support new and old field names
+        const idPhotoFront = formData.get('idPhotoFront') as File | null;
+        const idPhotoBack = formData.get('idPhotoBack') as File | null;
+        const selfie = formData.get('selfiePhoto') as File | null;
+
+        // Backwards compatibility for old field names
+        const legacyIdPhoto = formData.get('idPhoto') as File | null;
+        const legacySelfie = formData.get('selfie') as File | null;
+
+        const frontPhoto = idPhotoFront || legacyIdPhoto;
+        const selfiePhoto = selfie || legacySelfie;
 
         // Sanitize and validate phone
         const sanitizedPhone = sanitizePhoneNumber(phone);
@@ -91,19 +99,31 @@ export async function POST(request: NextRequest) {
         let idPhotoUrl = null;
         let selfiePhotoUrl = null;
 
-        if (idPhoto) {
-            const uploadResult = await uploadToS3(idPhoto, 'kyc/id', userId);
+        if (frontPhoto) {
+            const uploadResult = await uploadToS3(frontPhoto, 'kyc/id-front', userId);
             if (!uploadResult.success) {
                 return NextResponse.json(
-                    { error: 'Failed to upload ID photo: ' + uploadResult.error },
+                    { error: 'Failed to upload ID front photo: ' + uploadResult.error },
                     { status: 500, headers: getSecurityHeaders() }
                 );
             }
             idPhotoUrl = uploadResult.url;
         }
 
-        if (selfie) {
-            const uploadResult = await uploadToS3(selfie, 'kyc/selfie', userId);
+        // Upload back ID if provided
+        if (idPhotoBack) {
+            const uploadResult = await uploadToS3(idPhotoBack, 'kyc/id-back', userId);
+            if (!uploadResult.success) {
+                return NextResponse.json(
+                    { error: 'Failed to upload ID back photo: ' + uploadResult.error },
+                    { status: 500, headers: getSecurityHeaders() }
+                );
+            }
+            // Store in KYC documents later
+        }
+
+        if (selfiePhoto) {
+            const uploadResult = await uploadToS3(selfiePhoto, 'kyc/selfie', userId);
             if (!uploadResult.success) {
                 return NextResponse.json(
                     { error: 'Failed to upload selfie: ' + uploadResult.error },

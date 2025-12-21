@@ -106,7 +106,11 @@ export default function AdminAgentsPage() {
                     ) : (
                         <div className="grid md:grid-cols-2 gap-4">
                             {filteredAgents.map((agent) => (
-                                <div key={agent.id} className="card p-5">
+                                <div
+                                    key={agent.id}
+                                    className="card p-5 cursor-pointer hover:border-primary-500/50 transition-all"
+                                    onClick={() => router.push(`/admin/agents/${agent.id}`)}
+                                >
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
                                             <p className="text-white font-semibold text-lg">{agent.businessName}</p>
@@ -137,10 +141,11 @@ export default function AdminAgentsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-4 border-t border-dark-700">
+                                    <div className="mt-4 pt-4 border-t border-dark-700 flex justify-between items-center">
                                         <span className={`badge ${agent.isActive ? 'badge-success' : 'badge-error'}`}>
                                             {agent.isActive ? t('common.active') : t('common.inactive')}
                                         </span>
+                                        <span className="text-primary-500 text-sm">عرض التفاصيل ←</span>
                                     </div>
                                 </div>
                             ))}

@@ -605,6 +605,23 @@
             "loadFailed": "Failed to load settings",
             "saveFailed": "Failed to save settings"
         },
+        "passwordRequests": {
+            "title": "Password Reset Requests",
+            "empty": "No requests",
+            "markAsUsed": "Mark as Used",
+            "status": {
+                "pending": "Pending",
+                "used": "Used",
+                "expired": "Expired"
+            }
+        },
+        "exchangeRates": {
+            "title": "Exchange Rates",
+            "depositRate": "Deposit Rate",
+            "withdrawRate": "Withdrawal Rate",
+            "save": "Save Rates",
+            "lastUpdate": "Last Update"
+        },
         "ledger": {
             "title": "General Ledger",
             "subtitle": "Double Entry Ledger System",

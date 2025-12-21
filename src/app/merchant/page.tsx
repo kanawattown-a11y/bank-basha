@@ -97,6 +97,29 @@ export default function MerchantDashboard() {
         window.location.reload();
     };
 
+    const downloadQRCode = async () => {
+        const element = document.getElementById('merchant-qr-container');
+        if (!element) return;
+
+        try {
+            const html2canvas = (await import('html2canvas')).default;
+            const canvas = await html2canvas(element, {
+                scale: 3, // High quality
+                backgroundColor: '#0a0a0f',
+                useCORS: true,
+                logging: false,
+            });
+
+            const link = document.createElement('a');
+            link.download = `QR-${data?.merchantCode || 'merchant'}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('حدث خطأ أثناء التحميل');
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-dark-950 flex items-center justify-center" suppressHydrationWarning>
@@ -201,9 +224,7 @@ export default function MerchantDashboard() {
 
                                 <div className="mt-8 flex justify-center gap-3 w-full max-w-xs">
                                     <button
-                                        onClick={() => {
-                                            alert(`${t('merchant.qr.download')}\n\n${t('common.name')}: ${data?.merchantCode}`);
-                                        }}
+                                        onClick={downloadQRCode}
                                         className="btn-primary w-full py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2"
                                     >
                                         <ArrowDownTrayIcon className="w-6 h-6" />

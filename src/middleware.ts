@@ -69,6 +69,11 @@ export function middleware(request: NextRequest) {
             }
         }
 
+        // AGENT users cannot access /dashboard or /merchant - redirect them to /agent
+        if ((pathname.startsWith('/dashboard') || pathname.startsWith('/merchant')) && userType === 'AGENT') {
+            return NextResponse.redirect(new URL('/agent', request.url));
+        }
+
         // /merchant and /dashboard are accessible by USER (merchant check happens in page)
     }
 

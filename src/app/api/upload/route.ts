@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
         if (!allowedTypes.includes(file.type)) {
             return NextResponse.json(
                 { error: 'نوع الملف غير مدعوم. استخدم JPG أو PNG أو WebP' },

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeftIcon, BellIcon, CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, BellIcon, CheckIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 interface Notification {
     id: string;
@@ -71,10 +71,12 @@ export default function NotificationsPage() {
         const date = new Date(dateStr);
         const now = new Date();
         const diff = now.getTime() - date.getTime();
+        const minutes = Math.floor(diff / (1000 * 60));
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(hours / 24);
 
-        if (hours < 1) return 'الآن';
+        if (minutes < 1) return 'الآن';
+        if (minutes < 60) return `منذ ${minutes} دقيقة`;
         if (hours < 24) return `منذ ${hours} ساعة`;
         if (days < 7) return `منذ ${days} يوم`;
         return date.toLocaleDateString('ar-EG');
@@ -85,7 +87,20 @@ export default function NotificationsPage() {
             case 'TRANSACTION': return '💰';
             case 'SECURITY': return '🔒';
             case 'PROMOTION': return '🎁';
+            case 'KYC': return '📋';
+            case 'SUPPORT': return '💬';
             default: return '📢';
+        }
+    };
+
+    const getTypeColor = (type: string) => {
+        switch (type) {
+            case 'TRANSACTION': return 'bg-green-500/20';
+            case 'SECURITY': return 'bg-red-500/20';
+            case 'PROMOTION': return 'bg-purple-500/20';
+            case 'KYC': return 'bg-blue-500/20';
+            case 'SUPPORT': return 'bg-yellow-500/20';
+            default: return 'bg-primary-500/20';
         }
     };
 
@@ -101,69 +116,97 @@ export default function NotificationsPage() {
 
     return (
         <div className="min-h-screen bg-dark-950">
+            {/* Header */}
             <header className="navbar">
                 <div className="navbar-container">
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2">
                         <Link href="/dashboard" className="btn-ghost btn-icon">
-                            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                            <ArrowLeftIcon className="w-5 h-5" />
                         </Link>
-                        <h1 className="text-lg sm:text-xl font-bold text-white">🔔 الإشعارات</h1>
-                        {unreadCount > 0 && (
-                            <span className="badge badge-primary">{unreadCount}</span>
-                        )}
+                        <div className="flex items-center gap-2">
+                            <BellIcon className="w-5 h-5 text-primary-500" />
+                            <h1 className="text-lg font-bold text-white">الإشعارات</h1>
+                            {unreadCount > 0 && (
+                                <span className="bg-primary-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {unreadCount > 0 && (
-                        <button onClick={markAllAsRead} className="btn-ghost text-sm">
-                            <CheckIcon className="w-4 h-4" />
-                            قراءة الكل
+                        <button
+                            onClick={markAllAsRead}
+                            className="text-primary-500 text-sm flex items-center gap-1"
+                        >
+                            <CheckCircleIcon className="w-4 h-4" />
+                            <span className="hidden sm:inline">قراءة الكل</span>
                         </button>
                     )}
                 </div>
             </header>
 
-            <main className="pt-24 pb-8 px-4">
-                <div className="max-w-md mx-auto">
+            {/* Main Content */}
+            <main className="pt-20 pb-24 px-3 sm:px-4">
+                <div className="max-w-lg mx-auto">
                     {notifications.length === 0 ? (
-                        <div className="card p-8 text-center">
-                            <BellIcon className="w-16 h-16 text-dark-600 mx-auto mb-4" />
-                            <p className="text-dark-400">لا توجد إشعارات</p>
+                        <div className="card p-8 text-center mt-8">
+                            <div className="w-20 h-20 rounded-full bg-dark-800 flex items-center justify-center mx-auto mb-4">
+                                <BellIcon className="w-10 h-10 text-dark-600" />
+                            </div>
+                            <p className="text-dark-400 text-lg mb-2">لا توجد إشعارات</p>
+                            <p className="text-dark-500 text-sm">ستظهر هنا عند وصول إشعارات جديدة</p>
                         </div>
                     ) : (
-                        <div className="space-y-2 sm:space-y-3">
+                        <div className="space-y-2">
                             {notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`card p-3 sm:p-4 transition-all ${!notification.isRead ? 'border-primary-500/30 bg-primary-500/5' : ''
+                                    className={`bg-dark-900/80 rounded-xl p-3 border transition-all ${!notification.isRead
+                                            ? 'border-primary-500/40 bg-primary-500/5'
+                                            : 'border-dark-800'
                                         }`}
                                     onClick={() => !notification.isRead && markAsRead(notification.id)}
                                 >
-                                    <div className="flex items-start gap-2 sm:gap-3">
-                                        <span className="text-xl sm:text-2xl flex-shrink-0">{getTypeIcon(notification.type)}</span>
-                                        <div className="flex-1 min-w-0 overflow-hidden">
-                                            <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
-                                                <p className="text-white font-semibold text-xs sm:text-sm truncate">
+                                    {/* Header Row */}
+                                    <div className="flex items-start gap-3">
+                                        {/* Icon */}
+                                        <div className={`w-10 h-10 rounded-xl ${getTypeColor(notification.type)} flex items-center justify-center flex-shrink-0`}>
+                                            <span className="text-lg">{getTypeIcon(notification.type)}</span>
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            {/* Title with unread indicator */}
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-white font-semibold text-sm leading-tight">
                                                     {notification.titleAr || notification.title}
-                                                </p>
+                                                </h3>
                                                 {!notification.isRead && (
                                                     <span className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>
                                                 )}
                                             </div>
-                                            <p className="text-dark-400 text-xs sm:text-sm line-clamp-2 break-words">
+
+                                            {/* Message - Full text visible */}
+                                            <p className="text-dark-300 text-sm leading-relaxed mb-2">
                                                 {notification.messageAr || notification.message}
                                             </p>
-                                            <p className="text-dark-500 text-[10px] sm:text-xs mt-1 sm:mt-2">
-                                                {formatDate(notification.createdAt)}
-                                            </p>
+
+                                            {/* Footer: Time and Delete */}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-dark-500 text-xs">
+                                                    {formatDate(notification.createdAt)}
+                                                </span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteNotification(notification.id);
+                                                    }}
+                                                    className="text-dark-500 hover:text-red-400 p-1 -m-1 transition-colors"
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteNotification(notification.id);
-                                            }}
-                                            className="btn-ghost p-1.5 sm:p-2 text-dark-500 hover:text-red-400 flex-shrink-0"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
                                     </div>
                                 </div>
                             ))}

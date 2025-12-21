@@ -49,26 +49,47 @@ export async function POST(request: NextRequest) {
 
         // Parse form data
         const formData = await request.formData();
-        const idPhoto = formData.get('idPhoto') as File | null;
-        const selfie = formData.get('selfie') as File | null;
+        const idPhotoFront = formData.get('idPhotoFront') as File | null;
+        const idPhotoBack = formData.get('idPhotoBack') as File | null;
+        const selfie = formData.get('selfiePhoto') as File | null;
 
-        if (!idPhoto || !selfie) {
+        // Also support the old field names for backwards compatibility
+        const legacyIdPhoto = formData.get('idPhoto') as File | null;
+        const legacySelfie = formData.get('selfie') as File | null;
+
+        const frontPhoto = idPhotoFront || legacyIdPhoto;
+        const backPhoto = idPhotoBack;
+        const selfiePhoto = selfie || legacySelfie;
+
+        if (!frontPhoto || !selfiePhoto) {
             return NextResponse.json(
-                { error: 'Both ID photo and selfie are required' },
+                { error: 'ID photo (front) and selfie are required' },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
 
-        // Upload to S3
-        const idUpload = await uploadToS3(idPhoto, 'kyc/id', userId);
-        if (!idUpload.success || !idUpload.url) {
+        // Upload front ID to S3
+        const frontUpload = await uploadToS3(frontPhoto, 'kyc/id-front', userId);
+        if (!frontUpload.success || !frontUpload.url) {
             return NextResponse.json(
-                { error: 'Failed to upload ID photo: ' + idUpload.error },
+                { error: 'Failed to upload ID front photo: ' + frontUpload.error },
                 { status: 500, headers: getSecurityHeaders() }
             );
         }
 
-        const selfieUpload = await uploadToS3(selfie, 'kyc/selfie', userId);
+        // Upload back ID to S3 (optional but recommended)
+        let backUpload: { success: boolean; url?: string; error?: string } = { success: true };
+        if (backPhoto) {
+            backUpload = await uploadToS3(backPhoto, 'kyc/id-back', userId);
+            if (!backUpload.success || !backUpload.url) {
+                return NextResponse.json(
+                    { error: 'Failed to upload ID back photo: ' + backUpload.error },
+                    { status: 500, headers: getSecurityHeaders() }
+                );
+            }
+        }
+
+        const selfieUpload = await uploadToS3(selfiePhoto, 'kyc/selfie', userId);
         if (!selfieUpload.success || !selfieUpload.url) {
             return NextResponse.json(
                 { error: 'Failed to upload selfie: ' + selfieUpload.error },
@@ -85,27 +106,39 @@ export async function POST(request: NextRequest) {
                     kycStatus: 'PENDING',
                     kycSubmittedAt: new Date(),
                     kycRejectionReason: null,
-                    idPhotoUrl: idUpload.url!, // Non-null assertion asserted by check above
+                    idPhotoUrl: frontUpload.url!,
                     selfiePhotoUrl: selfieUpload.url!,
                 },
             });
 
             // Add to Document History
+            const documents = [
+                {
+                    userId: userId,
+                    documentType: 'ID_FRONT',
+                    documentUrl: frontUpload.url!,
+                    status: 'PENDING',
+                },
+                {
+                    userId: userId,
+                    documentType: 'SELFIE',
+                    documentUrl: selfieUpload.url!,
+                    status: 'PENDING',
+                },
+            ];
+
+            // Add back photo if provided
+            if (backUpload.url) {
+                documents.push({
+                    userId: userId,
+                    documentType: 'ID_BACK',
+                    documentUrl: backUpload.url,
+                    status: 'PENDING',
+                });
+            }
+
             await tx.kYCDocument.createMany({
-                data: [
-                    {
-                        userId: userId,
-                        documentType: 'ID_FRONT',
-                        documentUrl: idUpload.url!, // Non-null assertion
-                        status: 'PENDING',
-                    },
-                    {
-                        userId: userId,
-                        documentType: 'SELFIE',
-                        documentUrl: selfieUpload.url!, // Non-null assertion
-                        status: 'PENDING',
-                    },
-                ],
+                data: documents,
             });
         });
 
