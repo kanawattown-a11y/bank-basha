@@ -300,8 +300,28 @@
         "categories": {
             "ACCOUNT_ISSUE": "مشكلة في الحساب"
         },
+        "statuses": {
+            "OPEN": "مفتوحة",
+            "IN_PROGRESS": "قيد المعالجة",
+            "WAITING_USER": "بانتظار ردك",
+            "WAITING_ADMIN": "بانتظار الدعم",
+            "RESOLVED": "تم الحل",
+            "CLOSED": "مغلقة"
+        },
+        "priorities": {
+            "LOW": "منخفضة",
+            "MEDIUM": "متوسطة",
+            "HIGH": "عالية",
+            "URGENT": "عاجلة"
+        },
         "messages": {
-            "messages": "الرسائل"
+            "messages": "الرسائل",
+            "noTickets": "لا توجد تذاكر",
+            "ticketCreated": "تم إنشاء التذكرة بنجاح",
+            "messageSent": "تم إرسال الرسالة",
+            "ticketClosed": "تم إغلاق التذكرة",
+            "uploadSuccess": "تم رفع الملف بنجاح",
+            "uploadError": "فشل رفع الملف"
         },
         "PAYMENT_ISSUE": "مشكلة في الدفع",
         "TECHNICAL_ISSUE": "مشكلة تقنية",
@@ -309,28 +329,6 @@
         "SUSPENSION_APPEAL": "استئناف التعليق",
         "FEATURE_REQUEST": "طلب ميزة",
         "OTHER": "أخرى"
-    },
-    "statuses": {
-        "OPEN": "مفتوحة",
-        "IN_PROGRESS": "قيد المعالجة",
-        "WAITING_USER": "بانتظار ردك",
-        "WAITING_ADMIN": "بانتظار الدعم",
-        "RESOLVED": "تم الحل",
-        "CLOSED": "مغلقة"
-    },
-    "priorities": {
-        "LOW": "منخفضة",
-        "MEDIUM": "متوسطة",
-        "HIGH": "عالية",
-        "URGENT": "عاجلة"
-    },
-    "messages": {
-        "noTickets": "لا توجد تذاكر",
-        "ticketCreated": "تم إنشاء التذكرة بنجاح",
-        "messageSent": "تم إرسال الرسالة",
-        "ticketClosed": "تم إغلاق التذكرة",
-        "uploadSuccess": "تم رفع الملف بنجاح",
-        "uploadError": "فشل رفع الملف"
     },
     "agent": {
         "dashboard": {
@@ -1079,5 +1077,41 @@
         "minutesAgo": "دقائق مضت",
         "hoursAgo": "ساعات مضت",
         "daysAgo": "أيام مضت"
+    },
+    "pdf": {
+        "title": "كشف حساب شهري",
+        "period": "{month} {year}",
+        "openingBalance": "الرصيد الافتتاحي",
+        "closingBalance": "الرصيد الختامي",
+        "incoming": "وارد",
+        "outgoing": "صادر",
+        "fees": "رسوم",
+        "transactions": "المعاملات",
+        "transactionHistory": "سجل المعاملات",
+        "generated": "تاريخ الإصدار",
+        "page": "صفحة",
+        "bankName": "بنك باشا",
+        "bankSlogan": "شريكك المالي الرقمي",
+        "phone": "الهاتف",
+        "business": "النشاط التجاري",
+        "merchantCode": "كود التاجر",
+        "agentCode": "كود الوكيل",
+        "table": {
+            "date": "التاريخ",
+            "reference": "المرجع",
+            "type": "النوع",
+            "description": "الوصف",
+            "amount": "المبلغ",
+            "balance": "الرصيد"
+        },
+        "types": {
+            "DEPOSIT": "إيداع",
+            "WITHDRAW": "سحب",
+            "TRANSFER": "تحويل",
+            "QR_PAYMENT": "دفع QR",
+            "SERVICE_PURCHASE": "شراء خدمة",
+            "CREDIT_GRANT": "منح رصيد",
+            "REFUND": "استرداد"
+        }
     }
 }

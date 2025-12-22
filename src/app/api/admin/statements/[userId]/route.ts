@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyAccessToken, getSecurityHeaders } from '@/lib/auth/security';
 import { generateStatement, getStatementFilename, StatementData } from '@/lib/pdf/statement-generator';
 import { cookies } from 'next/headers';
+import arMessages from '@/messages/ar.json';
+import enMessages from '@/messages/en.json';
 
 // Admin can generate statement for any user
 export async function GET(
@@ -170,6 +172,8 @@ export async function GET(
             totalOutgoing,
             totalFees,
             transactionCount: transactions.length,
+
+            labels: (cookieStore.get('NEXT_LOCALE')?.value === 'en' ? enMessages : arMessages).pdf,
         };
 
         // Generate PDF

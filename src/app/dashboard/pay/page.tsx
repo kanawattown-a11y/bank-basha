@@ -50,7 +50,7 @@ export default function PayPage() {
             const data = await res.json();
             if (res.ok && data.merchant) {
                 setMerchant(data.merchant);
-                setFormData(prev => ({ ...prev, merchantCode }));
+                setFormData(prev => ({ ...prev, merchantCode: data.merchant.merchantCode }));
                 setStep('amount');
             } else {
                 setError('لم يتم العثور على التاجر');

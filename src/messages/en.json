@@ -300,8 +300,28 @@
         "categories": {
             "ACCOUNT_ISSUE": "Account Issue"
         },
+        "statuses": {
+            "OPEN": "Open",
+            "IN_PROGRESS": "In Progress",
+            "WAITING_USER": "Waiting for You",
+            "WAITING_ADMIN": "Waiting for Support",
+            "RESOLVED": "Resolved",
+            "CLOSED": "Closed"
+        },
+        "priorities": {
+            "LOW": "Low",
+            "MEDIUM": "Medium",
+            "HIGH": "High",
+            "URGENT": "Urgent"
+        },
         "messages": {
-            "messages": "Messages"
+            "messages": "Messages",
+            "noTickets": "No tickets found",
+            "ticketCreated": "Ticket created successfully",
+            "messageSent": "Message sent",
+            "ticketClosed": "Ticket closed",
+            "uploadSuccess": "File uploaded successfully",
+            "uploadError": "Failed to upload file"
         },
         "PAYMENT_ISSUE": "Payment Issue",
         "TECHNICAL_ISSUE": "Technical Issue",
@@ -309,28 +329,6 @@
         "SUSPENSION_APPEAL": "Suspension Appeal",
         "FEATURE_REQUEST": "Feature Request",
         "OTHER": "Other"
-    },
-    "statuses": {
-        "OPEN": "Open",
-        "IN_PROGRESS": "In Progress",
-        "WAITING_USER": "Waiting for You",
-        "WAITING_ADMIN": "Waiting for Support",
-        "RESOLVED": "Resolved",
-        "CLOSED": "Closed"
-    },
-    "priorities": {
-        "LOW": "Low",
-        "MEDIUM": "Medium",
-        "HIGH": "High",
-        "URGENT": "Urgent"
-    },
-    "messages": {
-        "noTickets": "No tickets found",
-        "ticketCreated": "Ticket created successfully",
-        "messageSent": "Message sent",
-        "ticketClosed": "Ticket closed",
-        "uploadSuccess": "File uploaded successfully",
-        "uploadError": "Failed to upload file"
     },
     "agent": {
         "dashboard": {
@@ -1079,5 +1077,41 @@
         "minutesAgo": "minutes ago",
         "hoursAgo": "hours ago",
         "daysAgo": "days ago"
+    },
+    "pdf": {
+        "title": "Monthly Account Statement",
+        "period": "{month} {year}",
+        "openingBalance": "Opening Balance",
+        "closingBalance": "Closing Balance",
+        "incoming": "Incoming",
+        "outgoing": "Outgoing",
+        "fees": "Fees",
+        "transactions": "Transactions",
+        "transactionHistory": "Transaction History",
+        "generated": "Generated",
+        "page": "Page",
+        "bankName": "BANK BASHA",
+        "bankSlogan": "Your Digital Financial Partner",
+        "phone": "Phone",
+        "business": "Business",
+        "merchantCode": "Merchant Code",
+        "agentCode": "Agent Code",
+        "table": {
+            "date": "Date",
+            "reference": "Reference",
+            "type": "Type",
+            "description": "Description",
+            "amount": "Amount",
+            "balance": "Balance"
+        },
+        "types": {
+            "DEPOSIT": "Deposit",
+            "WITHDRAW": "Withdrawal",
+            "TRANSFER": "Transfer",
+            "QR_PAYMENT": "QR Payment",
+            "SERVICE_PURCHASE": "Service Purchase",
+            "CREDIT_GRANT": "Credit Grant",
+            "REFUND": "Refund"
+        }
     }
 }

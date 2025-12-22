@@ -63,6 +63,36 @@ export interface StatementData {
     totalOutgoing: number;
     totalFees: number;
     transactionCount: number;
+
+    // Localization
+    labels: {
+        title: string;
+        period: string;
+        openingBalance: string;
+        closingBalance: string;
+        incoming: string;
+        outgoing: string;
+        fees: string;
+        transactions: string;
+        transactionHistory: string;
+        generated: string;
+        page: string;
+        bankName: string;
+        bankSlogan: string;
+        phone: string;
+        business: string;
+        merchantCode: string;
+        agentCode: string;
+        table: {
+            date: string;
+            reference: string;
+            type: string;
+            description: string;
+            amount: string;
+            balance: string;
+        };
+        types: Record<string, string>;
+    };
 }
 
 // Font cache
@@ -74,23 +104,45 @@ let fontCache: { regular: string | null; bold: string | null } = {
 async function loadFonts() {
     if (fontCache.regular && fontCache.bold) return fontCache;
 
+    console.log('Starting font load...');
     try {
-        const [regularRes, boldRes] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf'),
-            fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Bold.ttf')
-        ]);
+        // Try obtaining the font from multiple reliable CDNs
+        const urls = [
+            'https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf',
+            'https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Regular.ttf'
+        ];
+
+        const urlsBold = [
+            'https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Bold.ttf',
+            'https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Bold.ttf'
+        ];
+
+        // Helper to try fetch
+        const fetchFont = async (urlList: string[]) => {
+            for (const url of urlList) {
+                try {
+                    console.log(`Fetching font from ${url}`);
+                    const res = await fetch(url);
+                    if (res.ok) return await res.arrayBuffer();
+                } catch (e) {
+                    console.warn(`Failed to fetch font from ${url}`, e);
+                }
+            }
+            throw new Error('Could not fetch font from any source');
+        };
 
         const [regularBuf, boldBuf] = await Promise.all([
-            regularRes.arrayBuffer(),
-            boldRes.arrayBuffer()
+            fetchFont(urls),
+            fetchFont(urlsBold)
         ]);
 
+        console.log('Fonts fetched successfully');
         fontCache.regular = Buffer.from(regularBuf).toString('base64');
         fontCache.bold = Buffer.from(boldBuf).toString('base64');
 
         return fontCache;
     } catch (error) {
-        console.error('Error loading fonts:', error);
+        console.error('CRITICAL: Error loading fonts:', error);
         return null;
     }
 }
@@ -134,16 +186,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     };
 
     const getTypeLabel = (type: string) => {
-        const labels: Record<string, string> = {
-            'DEPOSIT': 'Deposit',
-            'WITHDRAW': 'Withdrawal',
-            'TRANSFER': 'Transfer',
-            'QR_PAYMENT': 'QR Payment',
-            'SERVICE_PURCHASE': 'Service',
-            'CREDIT_GRANT': 'Credit',
-            'REFUND': 'Refund',
-        };
-        return labels[type] || type;
+        return data.labels.types[type] || type;
     };
 
     // ═══════════════════════════════════════════════════════════════
@@ -165,12 +208,12 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
     // So I just need to replace 'helvetica' with 'Amiri'.
 
-    doc.text('BANK BASHA', pageWidth / 2, 15, { align: 'center' });
+    doc.text(data.labels.bankName, pageWidth / 2, 15, { align: 'center' });
 
     // Statement Title
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text('Monthly Account Statement', pageWidth / 2, 25, { align: 'center' });
+    doc.text(data.labels.title, pageWidth / 2, 25, { align: 'center' });
 
     // Period
     doc.setFontSize(10);
@@ -202,32 +245,32 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(9);
-    doc.text(`Phone: ${data.phone}`, margin + 5, y + 17);
+    doc.text(`${data.labels.phone}: ${data.phone}`, margin + 5, y + 17);
 
     if (data.businessName) {
-        doc.text(`Business: ${data.businessName}`, margin + 5, y + 24);
+        doc.text(`${data.labels.business}: ${data.businessName}`, margin + 5, y + 24);
     }
 
     if (data.merchantCode) {
         doc.setTextColor(254, 192, 15);
-        doc.text(`Merchant Code: ${data.merchantCode}`, margin + 5, y + 31);
+        doc.text(`${data.labels.merchantCode}: ${data.merchantCode}`, margin + 5, y + 31);
     } else if (data.agentCode) {
         doc.setTextColor(254, 192, 15);
-        doc.text(`Agent Code: ${data.agentCode}`, margin + 5, y + 31);
+        doc.text(`${data.labels.agentCode}: ${data.agentCode}`, margin + 5, y + 31);
     }
 
     // Right side - Balances
     const rightCol = pageWidth - margin - 60;
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(8);
-    doc.text('Opening Balance', rightCol, y + 8);
+    doc.text(data.labels.openingBalance, rightCol, y + 8);
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
     doc.text(`$${formatAmount(data.openingBalance)}`, rightCol, y + 15);
 
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(8);
-    doc.text('Closing Balance', rightCol + 35, y + 8);
+    doc.text(data.labels.closingBalance, rightCol + 35, y + 8);
     doc.setTextColor(16, 185, 129); // Success green
     doc.setFontSize(12);
     doc.setFont('Amiri');
@@ -248,10 +291,10 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     const boxWidth = (pageWidth - 2 * margin - 10) / 4;
 
     const summaryBoxes = [
-        { label: 'Incoming', value: data.totalIncoming, color: [16, 185, 129] },
-        { label: 'Outgoing', value: data.totalOutgoing, color: [239, 68, 68] },
-        { label: 'Fees', value: data.totalFees, color: [156, 163, 175] },
-        { label: 'Transactions', value: data.transactionCount, color: [59, 130, 246], isCount: true },
+        { label: data.labels.incoming, value: data.totalIncoming, color: [16, 185, 129] },
+        { label: data.labels.outgoing, value: data.totalOutgoing, color: [239, 68, 68] },
+        { label: data.labels.fees, value: data.totalFees, color: [156, 163, 175] },
+        { label: data.labels.transactions, value: data.transactionCount, color: [59, 130, 246], isCount: true },
     ];
 
     summaryBoxes.forEach((box, i) => {
@@ -289,7 +332,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
     // So I just need to replace 'helvetica' with 'Amiri'.
 
-    doc.text('Transaction History', margin, y);
+    doc.text(data.labels.transactionHistory, margin, y);
 
     y += 5;
 
@@ -298,14 +341,21 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
         formatDate(tx.date),
         tx.referenceNumber,
         getTypeLabel(tx.type),
-        tx.description.substring(0, 25) + (tx.description.length > 25 ? '...' : ''),
+        tx.description || '',
         tx.isIncoming ? `+$${formatAmount(tx.amount)}` : `-$${formatAmount(tx.amount)}`,
         `$${formatAmount(tx.balance)}`,
     ]);
 
     doc.autoTable({
         startY: y,
-        head: [['Date', 'Reference', 'Type', 'Description', 'Amount', 'Balance']],
+        head: [[
+            data.labels.table.date,
+            data.labels.table.reference,
+            data.labels.table.type,
+            data.labels.table.description,
+            data.labels.table.amount,
+            data.labels.table.balance
+        ]],
         body: tableData,
         theme: 'plain',
         styles: {
@@ -327,9 +377,9 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
         },
         columnStyles: {
             0: { cellWidth: 25 },
-            1: { cellWidth: 28 },
-            2: { cellWidth: 22 },
-            3: { cellWidth: 48 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 'auto' }, // Allow description to take remaining space
             4: { cellWidth: 25, halign: 'right' },
             5: { cellWidth: 25, halign: 'right' },
         },
@@ -363,13 +413,13 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     // Generated date
     const now = new Date();
-    doc.text(`Generated: ${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US')}`, margin, footerY);
+    doc.text(`${data.labels.generated}: ${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US')}`, margin, footerY);
 
     // Bank info
-    doc.text('Bank Basha - Your Digital Financial Partner', pageWidth / 2, footerY, { align: 'center' });
+    doc.text(`${data.labels.bankSlogan}`, pageWidth / 2, footerY, { align: 'center' });
 
     // Page number
-    doc.text(`Page 1 of 1`, pageWidth - margin, footerY, { align: 'right' });
+    doc.text(`${data.labels.page} 1 of 1`, pageWidth - margin, footerY, { align: 'right' });
 
     // ═══════════════════════════════════════════════════════════════
     // WATERMARK
@@ -379,7 +429,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     doc.setFontSize(60);
     doc.setFont('helvetica', 'bold');
     doc.setGState(new (doc as any).GState({ opacity: 0.03 }));
-    doc.text('BANK BASHA', pageWidth / 2, pageHeight / 2, {
+    doc.text(data.labels.bankName, pageWidth / 2, pageHeight / 2, {
         align: 'center',
         angle: 45
     });
