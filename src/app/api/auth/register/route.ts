@@ -10,6 +10,11 @@ import { uploadToS3 } from '@/lib/storage/s3';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
+// Route Segment Config - Allow large file uploads
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow up to 60 seconds for file upload
+
 // Zod schema for validation
 const registerSchema = z.object({
     fullName: z.string().min(3, 'Full name is required'),
@@ -232,8 +237,22 @@ export async function POST(request: NextRequest) {
         );
     } catch (error) {
         console.error('Registration error:', error);
+
+        // More detailed error response for debugging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorStack = error instanceof Error ? error.stack : '';
+
+        console.error('Error details:', {
+            message: errorMessage,
+            stack: errorStack,
+            name: error instanceof Error ? error.name : 'Unknown',
+        });
+
         return NextResponse.json(
-            { error: 'Internal server error' },
+            {
+                error: 'حدث خطأ أثناء التسجيل. الرجاء المحاولة مرة أخرى.',
+                details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            },
             { status: 500, headers: getSecurityHeaders() }
         );
     }

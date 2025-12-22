@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "459313444690",
+    "project_id": "bank-basha",
+    "storage_bucket": "bank-basha.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459313444690:android:e8b2dd96ff9317aa3dec8b",
+        "android_client_info": {
+          "package_name": "com.bankbasha.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_zOfWQkB9Mgo7JqTRqFOUHCA98Saz1Mc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

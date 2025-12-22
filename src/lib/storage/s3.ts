@@ -14,7 +14,7 @@ const s3Client = new S3Client({
 });
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'bank-basha-documents';
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+// No file size limit - accept any size
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
 
 export interface UploadResult {
@@ -25,16 +25,14 @@ export interface UploadResult {
 }
 
 /**
- * Validate file before upload
+ * Validate file before upload - only checks file type, no size limit
  */
 export function validateFile(file: File): { valid: boolean; error?: string } {
     if (!file) {
         return { valid: false, error: 'No file provided' };
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-        return { valid: false, error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` };
-    }
+    // No size limit - accept any size
 
     if (!ALLOWED_TYPES.includes(file.type)) {
         return { valid: false, error: 'Invalid file type. Only JPG, PNG, and WebP are allowed' };
