@@ -122,7 +122,17 @@ export default function RegisterPage() {
                 body: data,
             });
 
-            const result = await response.json();
+            let result;
+            const contentType = response.headers.get("content-type");
+
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                result = await response.json();
+            } else {
+                // If response is not JSON (likely HTML error page like 413 or 500)
+                const text = await response.text();
+                console.error('Registration Server Error:', text);
+                throw new Error('حدث خطأ في الاتصال بالخادم. الرجاء المحاولة مرة أخرى أو التأكد من حجم الصور.');
+            }
 
             if (!response.ok) {
                 throw new Error(result.error || 'فشل التسجيل');
