@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
                 referenceNumber: tx.referenceNumber,
                 date: tx.createdAt,
                 type: tx.type,
-                description: tx.descriptionAr || tx.description || '',
+                description: tx.description || tx.descriptionAr || '',
                 amount: tx.amount,
                 fee: tx.fee || 0,
                 isIncoming,

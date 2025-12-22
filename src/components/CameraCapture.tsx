@@ -74,15 +74,8 @@ export default function CameraCapture({
 
             streamRef.current = mediaStream;
 
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-                // Explicitly try to play
-                try {
-                    await videoRef.current.play();
-                } catch (e) {
-                    console.error('Play error:', e);
-                }
-            }
+            // Note: We don't assign to videoRef here because it might not be mounted yet due to isLoading.
+            // transform useEffect will handle it.
         } catch (err: any) {
             console.error('Camera error:', err);
             let errorMessage = 'لا يمكن الوصول للكاميرا';
@@ -101,6 +94,15 @@ export default function CameraCapture({
             setIsLoading(false);
         }
     }, [stopAllTracks]);
+
+    // Effect to attach stream to video when it becomes available/mounted
+    useEffect(() => {
+        if (!isLoading && isOpen && streamRef.current && videoRef.current) {
+            const video = videoRef.current;
+            video.srcObject = streamRef.current;
+            video.play().catch(e => console.error('Play error:', e));
+        }
+    }, [isLoading, isOpen]);
 
     const openCamera = async () => {
         setIsOpen(true);
