@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
 
         // 3. Upload files to S3
         let idPhotoUrl = null;
+        let idPhotoBackUrl = null;
         let selfiePhotoUrl = null;
 
         if (frontPhoto) {
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
                 );
             }
             // Store in KYC documents later
+            idPhotoBackUrl = uploadResult.url;
         }
 
         if (selfiePhoto) {
@@ -148,11 +150,45 @@ export async function POST(request: NextRequest) {
                     status: 'PENDING',
                     isActive: false, // User is inactive until admin approval
                     kycStatus: idPhotoUrl && selfiePhotoUrl ? 'PENDING' : 'NOT_SUBMITTED',
-                    idPhotoUrl,     // S3 URL
-                    selfiePhotoUrl, // S3 URL
+                    idPhotoUrl,     // S3 URL - Keeping for backward compatibility
+                    selfiePhotoUrl, // S3 URL - Keeping for backward compatibility
                     kycSubmittedAt: idPhotoUrl && selfiePhotoUrl ? new Date() : null,
                 },
             });
+
+            // Create KYC Documents
+            if (idPhotoUrl) {
+                await tx.kYCDocument.create({
+                    data: {
+                        userId: newUser.id,
+                        documentType: 'ID_FRONT',
+                        documentUrl: idPhotoUrl,
+                        status: 'PENDING',
+                    }
+                });
+            }
+
+            if (idPhotoBackUrl) {
+                await tx.kYCDocument.create({
+                    data: {
+                        userId: newUser.id,
+                        documentType: 'ID_BACK',
+                        documentUrl: idPhotoBackUrl,
+                        status: 'PENDING',
+                    }
+                });
+            }
+
+            if (selfiePhotoUrl) {
+                await tx.kYCDocument.create({
+                    data: {
+                        userId: newUser.id,
+                        documentType: 'SELFIE',
+                        documentUrl: selfiePhotoUrl,
+                        status: 'PENDING',
+                    }
+                });
+            }
 
             // Create wallet (inactive until KYC approval)
             await tx.wallet.create({

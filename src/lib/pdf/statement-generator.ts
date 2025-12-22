@@ -365,9 +365,8 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
             cellPadding: 3,
             lineColor: [42, 42, 58],
             lineWidth: 0.1,
-            // Use Helvetica for body as well to handle English text cleanly
-            // If data is Arabic, it might still break, but user requested "English Only"
-            font: 'helvetica',
+            // Use Amiri to support both Arabic and English text correctly
+            font: 'Amiri',
         },
         headStyles: {
             fillColor: [42, 42, 58],
