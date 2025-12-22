@@ -44,45 +44,21 @@ export default function CameraCapture({
         setIsLoading(true);
         setIsCameraReady(false);
 
-        // First, stop any existing stream to prevent "Failed to allocate videosource"
+        // First, stop any existing stream
         stopAllTracks();
 
-        // Small delay to ensure previous stream is fully released
-        await new Promise(resolve => setTimeout(resolve, 100));
-
         try {
-            // Check if we're on HTTPS or localhost (required for camera)
-            if (typeof window !== 'undefined' &&
-                window.location.protocol !== 'https:' &&
-                !window.location.hostname.includes('localhost') &&
-                window.location.hostname !== '127.0.0.1') {
-                throw new Error('الكاميرا تتطلب اتصال آمن (HTTPS). الموقع الحالي غير آمن.');
-            }
-
             // Check if getUserMedia is available
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('الكاميرا غير مدعومة في هذا المتصفح. جرب استخدام Chrome أو Safari.');
-            }
-
-            // Check permission status if API is available
-            if (navigator.permissions && navigator.permissions.query) {
-                try {
-                    const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-                    if (permissionStatus.state === 'denied') {
-                        throw new Error('تم رفض إذن الكاميرا سابقاً. يرجى إعادة تعيين الصلاحيات من إعدادات المتصفح ثم إعادة تحميل الصفحة.');
-                    }
-                } catch (e) {
-                    // Permission API not available, continue anyway
-                    console.log('Permission API not available');
-                }
+                throw new Error('الكاميرا غير مدعومة في هذا المتصفح.');
             }
 
             // Try to get camera with the requested facing mode
             const constraints: MediaStreamConstraints = {
                 video: {
                     facingMode: mode,
-                    width: { ideal: 640, max: 1280 },
-                    height: { ideal: 480, max: 720 }
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
                 },
                 audio: false
             };
@@ -92,7 +68,6 @@ export default function CameraCapture({
             try {
                 mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (e) {
-                // If specific facing mode fails, try with just video: true
                 console.log('Specific constraints failed, trying basic video...');
                 mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             }
@@ -101,54 +76,21 @@ export default function CameraCapture({
 
             if (videoRef.current) {
                 videoRef.current.srcObject = mediaStream;
-
-                // Wait for video to be ready
-                await new Promise<void>((resolve, reject) => {
-                    if (!videoRef.current) {
-                        reject(new Error('Video element not found'));
-                        return;
-                    }
-
-                    const video = videoRef.current;
-
-                    const handleCanPlay = () => {
-                        video.removeEventListener('canplay', handleCanPlay);
-                        video.removeEventListener('error', handleError);
-                        resolve();
-                    };
-
-                    const handleError = (e: Event) => {
-                        video.removeEventListener('canplay', handleCanPlay);
-                        video.removeEventListener('error', handleError);
-                        reject(new Error('Video playback error'));
-                    };
-
-                    video.addEventListener('canplay', handleCanPlay);
-                    video.addEventListener('error', handleError);
-
-                    // Timeout after 5 seconds
-                    setTimeout(() => {
-                        video.removeEventListener('canplay', handleCanPlay);
-                        video.removeEventListener('error', handleError);
-                        resolve(); // Resolve anyway as video might still work
-                    }, 5000);
-                });
-
-                setIsCameraReady(true);
+                // Explicitly try to play
+                try {
+                    await videoRef.current.play();
+                } catch (e) {
+                    console.error('Play error:', e);
+                }
             }
         } catch (err: any) {
             console.error('Camera error:', err);
-
             let errorMessage = 'لا يمكن الوصول للكاميرا';
 
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                errorMessage = 'تم رفض إذن الكاميرا. يرجى السماح بالوصول للكاميرا من إعدادات المتصفح.';
-            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                errorMessage = 'لم يتم العثور على كاميرا في هذا الجهاز.';
-            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                errorMessage = 'الكاميرا قيد الاستخدام من تطبيق آخر. أغلق أي تطبيقات أخرى تستخدم الكاميرا.';
-            } else if (err.name === 'OverconstrainedError') {
-                errorMessage = 'إعدادات الكاميرا غير مدعومة.';
+                errorMessage = 'تم رفض إذن الكاميرا. يرجى التحقق من الإعدادات.';
+            } else if (err.name === 'NotFoundError') {
+                errorMessage = 'لم يتم العثور على كاميرا.';
             } else if (err.message) {
                 errorMessage = err.message;
             }
@@ -284,6 +226,7 @@ export default function CameraCapture({
                                 autoPlay
                                 playsInline
                                 muted
+                                onCanPlay={() => setIsCameraReady(true)}
                                 className={`w-full h-64 sm:h-80 object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
                             />
                             <canvas ref={canvasRef} className="hidden" />

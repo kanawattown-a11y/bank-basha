@@ -527,6 +527,27 @@
             "filter": "Filter",
             "export": "Export"
         },
+        "monitor": {
+            "title": "System Monitor",
+            "autoRefresh": "Auto Refresh",
+            "stopped": "Stopped",
+            "stats": {
+                "today": "Today's Users",
+                "totalVolume": "Total Volume",
+                "pending": "Pending",
+                "alerts": "Risk Alerts"
+            },
+            "liveTransactions": "Live Transactions",
+            "noRecentTransactions": "No recent transactions",
+            "activeUsers": "Active Users",
+            "online": "Online Now",
+            "noActiveUsers": "No active users",
+            "userTypes": {
+                "agent": "Agent",
+                "business": "Business",
+                "user": "User"
+            }
+        },
         "merchants": {
             "title": "Merchant Management",
             "requestsTitle": "Merchant Requests",
@@ -912,27 +933,6 @@
                 "backupEnabled": "Enable Daily Backup",
                 "backupHour": "Backup Hour (0-23)",
                 "backupRetention": "Retention Period (Days)"
-            }
-        },
-        "monitor": {
-            "title": "Live Monitor",
-            "autoRefresh": "Auto Refresh",
-            "stopped": "Stopped",
-            "stats": {
-                "today": "Today's Transactions",
-                "totalVolume": "Total Volume",
-                "pending": "Pending",
-                "alerts": "Alerts"
-            },
-            "liveTransactions": "Live Transactions",
-            "noRecentTransactions": "No recent transactions",
-            "activeUsers": "Active Users Now",
-            "online": "Online",
-            "noActiveUsers": "No active users currently",
-            "userTypes": {
-                "agent": "Agent",
-                "business": "Business",
-                "user": "User"
             }
         }
     },

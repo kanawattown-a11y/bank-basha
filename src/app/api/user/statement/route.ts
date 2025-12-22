@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
             totalFees,
             transactionCount: transactions.length,
 
-            labels: (cookieStore.get('NEXT_LOCALE')?.value === 'en' ? enMessages : arMessages).pdf,
+            labels: enMessages.pdf,
         };
 
         // Generate PDF
