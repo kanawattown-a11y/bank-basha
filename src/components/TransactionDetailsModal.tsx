@@ -121,46 +121,41 @@ export default function TransactionDetailsModal({
                 }
             });
 
-            // For Android App: Use Share API (works better for generated images)
-            if (isAndroidApp && navigator.share) {
-                canvas.toBlob(async (blob) => {
-                    if (blob) {
-                        const file = new File([blob], `receipt-${transaction.referenceNumber}.png`, { type: 'image/png' });
-                        // Check if file sharing is supported
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            try {
-                                await navigator.share({
-                                    files: [file],
-                                    title: t('transaction.receipt.title'),
-                                });
-                            } catch (shareError) {
-                                // Fallback if share fails: save to data URL
-                                const image = canvas.toDataURL('image/png', 1.0);
-                                const link = document.createElement('a');
-                                link.href = image;
-                                link.download = `receipt-${transaction.referenceNumber}.png`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                            }
-                        } else {
-                            // canShare not available or not supported for files
-                            const image = canvas.toDataURL('image/png', 1.0);
-                            const link = document.createElement('a');
-                            link.href = image;
-                            link.download = `receipt-${transaction.referenceNumber}.png`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }
+            // Get image as base64
+            const imageData = canvas.toDataURL('image/png', 1.0);
+            const filename = `receipt-${transaction.referenceNumber}.png`;
+
+            // For Android App: Use server API to trigger native download (same as PDF)
+            if (isAndroidApp) {
+                try {
+                    // Send to server and get download URL
+                    const response = await fetch('/api/download-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageData, filename }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Navigate to download URL - triggers native DownloadManager
+                        window.location.href = data.downloadUrl;
+                    } else {
+                        throw new Error('Download failed');
                     }
-                }, 'image/png', 1.0);
+                } catch (err) {
+                    // Final fallback: try direct anchor click
+                    const link = document.createElement('a');
+                    link.href = imageData;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
             } else {
                 // For Web Browser: Standard download
-                const image = canvas.toDataURL('image/png', 1.0);
                 const link = document.createElement('a');
-                link.href = image;
-                link.download = `receipt-${transaction.referenceNumber}.png`;
+                link.href = imageData;
+                link.download = filename;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);

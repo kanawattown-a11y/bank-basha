@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
         // Notify admins
         const admins = await prisma.user.findMany({
             where: { userType: 'ADMIN' },
-            select: { id: true },
+            select: { id: true, fcmToken: true },
         });
 
         const notesText = notes ? `\nNote: ${notes}` : '';
@@ -168,6 +168,19 @@ export async function POST(request: NextRequest) {
                 messageAr: `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} تسوية بقيمة ${amountDue} $${notesTextAr}`,
             })),
         });
+
+        // Send push notifications to admins
+        const { sendPushNotification } = await import('@/lib/firebase/admin');
+        for (const admin of admins) {
+            if (admin.fcmToken) {
+                sendPushNotification(
+                    admin.fcmToken,
+                    '💰 طلب تسوية جديد',
+                    `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} تسوية بقيمة ${amountDue} $`,
+                    { type: 'SETTLEMENT_REQUEST', url: '/admin/settlements' }
+                ).catch(err => console.error('Push notification error:', err));
+            }
+        }
 
         return NextResponse.json(
             { success: true, settlement },

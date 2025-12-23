@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         // Notify admins
         const admins = await prisma.user.findMany({
             where: { userType: 'ADMIN' },
-            select: { id: true },
+            select: { id: true, fcmToken: true },
         });
 
         if (admins.length > 0) {
@@ -159,6 +159,19 @@ export async function POST(request: NextRequest) {
                     messageAr: 'تم استلام طلب توثيق KYC جديد للمراجعة',
                 })),
             });
+
+            // Send push notifications to admins
+            const { sendPushNotification } = await import('@/lib/firebase/admin');
+            for (const admin of admins) {
+                if (admin.fcmToken) {
+                    sendPushNotification(
+                        admin.fcmToken,
+                        '📋 طلب توثيق جديد',
+                        'تم استلام طلب KYC جديد للمراجعة',
+                        { type: 'KYC_REQUEST', url: '/admin/kyc' }
+                    ).catch(err => console.error('Push notification error:', err));
+                }
+            }
         }
 
         return NextResponse.json(

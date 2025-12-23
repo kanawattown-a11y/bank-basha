@@ -112,40 +112,36 @@ export default function MerchantDashboard() {
             });
 
             const filename = `QR-${data?.merchantCode || 'merchant'}.png`;
+            const imageData = canvas.toDataURL('image/png', 1.0);
 
-            // For Android App: Use Share API (works better for generated images)
-            if (isAndroidApp && navigator.share) {
-                canvas.toBlob(async (blob) => {
-                    if (blob) {
-                        const file = new File([blob], filename, { type: 'image/png' });
-                        // Check if file sharing is supported
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            try {
-                                await navigator.share({
-                                    files: [file],
-                                    title: 'QR Code',
-                                });
-                            } catch (shareError) {
-                                // Fallback if share fails
-                                const link = document.createElement('a');
-                                link.download = filename;
-                                link.href = canvas.toDataURL('image/png', 1.0);
-                                link.click();
-                            }
-                        } else {
-                            // canShare not available or not supported for files
-                            const link = document.createElement('a');
-                            link.download = filename;
-                            link.href = canvas.toDataURL('image/png', 1.0);
-                            link.click();
-                        }
+            // For Android App: Use server API to trigger native download (same as PDF)
+            if (isAndroidApp) {
+                try {
+                    const response = await fetch('/api/download-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageData, filename }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Navigate to download URL - triggers native DownloadManager
+                        window.location.href = data.downloadUrl;
+                    } else {
+                        throw new Error('Download failed');
                     }
-                }, 'image/png', 1.0);
+                } catch (err) {
+                    // Fallback
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = imageData;
+                    link.click();
+                }
             } else {
                 // For Web Browser: Standard download
                 const link = document.createElement('a');
                 link.download = filename;
-                link.href = canvas.toDataURL('image/png', 1.0);
+                link.href = imageData;
                 link.click();
             }
         } catch (error) {
