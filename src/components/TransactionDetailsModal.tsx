@@ -92,6 +92,7 @@ export default function TransactionDetailsModal({
 
         try {
             const isRtl = document.dir === 'rtl' || document.documentElement.dir === 'rtl' || document.body.dir === 'rtl';
+            const isAndroidApp = navigator.userAgent.includes('BankBashaApp');
 
             const canvas = await html2canvas(receiptRef.current, {
                 backgroundColor: '#1E1E1E', // Match dark theme background
@@ -120,14 +121,50 @@ export default function TransactionDetailsModal({
                 }
             });
 
-            // Convert and download
-            const image = canvas.toDataURL('image/png', 1.0);
-            const link = document.createElement('a');
-            link.href = image;
-            link.download = `receipt-${transaction.referenceNumber}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // For Android App: Use Share API (works better for generated images)
+            if (isAndroidApp && navigator.share) {
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        const file = new File([blob], `receipt-${transaction.referenceNumber}.png`, { type: 'image/png' });
+                        // Check if file sharing is supported
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: t('transaction.receipt.title'),
+                                });
+                            } catch (shareError) {
+                                // Fallback if share fails: save to data URL
+                                const image = canvas.toDataURL('image/png', 1.0);
+                                const link = document.createElement('a');
+                                link.href = image;
+                                link.download = `receipt-${transaction.referenceNumber}.png`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }
+                        } else {
+                            // canShare not available or not supported for files
+                            const image = canvas.toDataURL('image/png', 1.0);
+                            const link = document.createElement('a');
+                            link.href = image;
+                            link.download = `receipt-${transaction.referenceNumber}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    }
+                }, 'image/png', 1.0);
+            } else {
+                // For Web Browser: Standard download
+                const image = canvas.toDataURL('image/png', 1.0);
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = `receipt-${transaction.referenceNumber}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         } catch (error) {
             console.error('Receipt download failed:', error);
             alert(t('transaction.receipt.error'));

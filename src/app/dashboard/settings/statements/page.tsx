@@ -36,21 +36,33 @@ export default function StatementsPage() {
     const downloadStatement = async () => {
         setIsDownloading(true);
         try {
-            const response = await fetch(`/api/user/statement?month=${selectedMonth}&year=${selectedYear}`);
+            const downloadUrl = `/api/user/statement?month=${selectedMonth}&year=${selectedYear}`;
 
-            if (!response.ok) {
-                throw new Error('Failed to generate statement');
+            // Check if running in Android WebView app
+            const isAndroidApp = navigator.userAgent.includes('BankBashaApp');
+
+            if (isAndroidApp) {
+                // For Android App: Open URL directly to trigger native DownloadManager
+                // The server will return the PDF with proper Content-Disposition header
+                window.location.href = downloadUrl;
+            } else {
+                // For Web Browser: Use blob download
+                const response = await fetch(downloadUrl);
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate statement');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `BankBasha_Statement_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
             }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `BankBasha_Statement_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
         } catch (error) {
             console.error('Download error:', error);
             alert(locale === 'ar' ? 'حدث خطأ أثناء التحميل' : 'Error downloading statement');

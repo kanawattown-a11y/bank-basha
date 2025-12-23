@@ -102,6 +102,7 @@ export default function MerchantDashboard() {
         if (!element) return;
 
         try {
+            const isAndroidApp = navigator.userAgent.includes('BankBashaApp');
             const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(element, {
                 scale: 3,
@@ -110,10 +111,43 @@ export default function MerchantDashboard() {
                 logging: false,
             });
 
-            const link = document.createElement('a');
-            link.download = `QR-${data?.merchantCode || 'merchant'}.png`;
-            link.href = canvas.toDataURL('image/png', 1.0);
-            link.click();
+            const filename = `QR-${data?.merchantCode || 'merchant'}.png`;
+
+            // For Android App: Use Share API (works better for generated images)
+            if (isAndroidApp && navigator.share) {
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        const file = new File([blob], filename, { type: 'image/png' });
+                        // Check if file sharing is supported
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: 'QR Code',
+                                });
+                            } catch (shareError) {
+                                // Fallback if share fails
+                                const link = document.createElement('a');
+                                link.download = filename;
+                                link.href = canvas.toDataURL('image/png', 1.0);
+                                link.click();
+                            }
+                        } else {
+                            // canShare not available or not supported for files
+                            const link = document.createElement('a');
+                            link.download = filename;
+                            link.href = canvas.toDataURL('image/png', 1.0);
+                            link.click();
+                        }
+                    }
+                }, 'image/png', 1.0);
+            } else {
+                // For Web Browser: Standard download
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+            }
         } catch (error) {
             console.error('Download error:', error);
             alert('حدث خطأ أثناء التحميل');

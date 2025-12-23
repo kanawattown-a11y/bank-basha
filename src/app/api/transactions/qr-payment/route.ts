@@ -43,10 +43,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Find merchant
+        // Find merchant with their business wallet
         const merchantProfile = await prisma.merchantProfile.findUnique({
             where: { merchantCode },
-            include: { user: true },
+            include: {
+                user: {
+                    include: {
+                        wallet: true,
+                        businessWallet: true,
+                    }
+                }
+            },
         });
 
         if (!merchantProfile || !merchantProfile.isActive) {
@@ -90,11 +97,23 @@ export async function POST(request: NextRequest) {
                 data: { balance: { decrement: amount + totalFee } },
             });
 
-            // Add to merchant (full amount - merchant gets 100%)
-            await tx.wallet.update({
-                where: { userId: merchantProfile.userId },
-                data: { balance: { increment: amount } },
-            });
+            // Add to merchant's business wallet if available, otherwise personal wallet
+            const merchantUser = merchantProfile.user;
+            if (merchantUser.businessWallet) {
+                // Credit business wallet (for merchants with business account)
+                await tx.wallet.update({
+                    where: { id: merchantUser.businessWallet.id },
+                    data: { balance: { increment: amount } },
+                });
+            } else if (merchantUser.wallet) {
+                // Fallback to personal wallet
+                await tx.wallet.update({
+                    where: { id: merchantUser.wallet.id },
+                    data: { balance: { increment: amount } },
+                });
+            } else {
+                throw new Error('Merchant has no wallet configured');
+            }
 
             // Update merchant stats
             await tx.merchantProfile.update({
