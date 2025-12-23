@@ -1,6 +1,6 @@
 # Bank Basha - Dependencies
 node_modules/
-adnroid/
+android/
 # Next.js
 .next/
 out/
