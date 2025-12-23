@@ -151,6 +151,17 @@ export async function POST(request: NextRequest) {
                     },
                 });
 
+                // Update the linked Transaction status
+                if (order.transactionId) {
+                    await tx.transaction.update({
+                        where: { id: order.transactionId },
+                        data: {
+                            status: 'COMPLETED',
+                            completedAt: new Date(),
+                        },
+                    });
+                }
+
                 // Add to seller wallet
                 const sellerWallet = await tx.wallet.findUnique({
                     where: { userId: payload.userId },
@@ -203,6 +214,17 @@ export async function POST(request: NextRequest) {
                         sellerResponse: response || 'تم الإلغاء',
                     },
                 });
+
+                // Update the linked Transaction status
+                if (order.transactionId) {
+                    await tx.transaction.update({
+                        where: { id: order.transactionId },
+                        data: {
+                            status: 'CANCELLED',
+                            completedAt: new Date(),
+                        },
+                    });
+                }
 
                 // Refund buyer wallet
                 const buyerWallet = await tx.wallet.findUnique({

@@ -82,6 +82,17 @@ export async function POST(
                 },
             });
 
+            // Update the linked Transaction status as well
+            if (order.transactionId) {
+                await tx.transaction.update({
+                    where: { id: order.transactionId },
+                    data: {
+                        status: 'COMPLETED',
+                        completedAt: new Date(),
+                    },
+                });
+            }
+
             // Transfer amount to merchant wallet
             await tx.wallet.update({
                 where: { userId: payload.userId },
