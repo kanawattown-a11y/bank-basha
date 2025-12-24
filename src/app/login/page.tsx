@@ -150,10 +150,10 @@ export default function LoginPage() {
                                 <input
                                     id="phone"
                                     type="tel"
-                                    className={`input pr-12 pl-10 transition-all ${!formData.phone ? '' :
-                                            phoneValidation.isValid
-                                                ? 'border-green-500 focus:border-green-500'
-                                                : 'border-red-500 focus:border-red-500'
+                                    className={`input pr-12 transition-all ${!formData.phone ? '' :
+                                        phoneValidation.isValid
+                                            ? 'border-green-500 focus:border-green-500'
+                                            : 'border-red-500 focus:border-red-500'
                                         }`}
                                     placeholder="09XX XXX XXX"
                                     dir="ltr"
@@ -162,15 +162,14 @@ export default function LoginPage() {
                                     required
                                 />
                                 <PhoneIcon className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${!formData.phone ? 'text-dark-500' :
-                                        phoneValidation.isValid ? 'text-green-500' : 'text-red-500'
+                                    phoneValidation.isValid ? 'text-green-500' : 'text-red-500'
                                     }`} />
-                                {formData.phone && (
-                                    <span className={`absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold ${phoneValidation.isValid ? 'text-green-500' : 'text-red-400'
-                                        }`}>
-                                        {phoneValidation.message}
-                                    </span>
-                                )}
                             </div>
+                            {formData.phone && phoneValidation.message && (
+                                <p className={`mt-1 text-xs ${phoneValidation.isValid ? 'text-green-500' : 'text-red-400'}`}>
+                                    {phoneValidation.message}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password */}

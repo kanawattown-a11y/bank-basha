@@ -88,8 +88,29 @@ class MainActivity : AppCompatActivity() {
         // Create Notification Channel for Android 8.0+
         createNotificationChannel()
 
+        // Request Notification Permission for Android 13+ (IMPORTANT: Request early and separately)
+        requestNotificationPermission()
+
         // Get FCM token and inject into WebView after page loads
         getFcmTokenAndRegister()
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) 
+                != PackageManager.PERMISSION_GRANTED) {
+                // Request notification permission with its own request code
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                )
+            }
+        }
+    }
+
+    companion object {
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     }
 
     private fun getFcmTokenAndRegister() {

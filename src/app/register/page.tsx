@@ -268,7 +268,7 @@ export default function RegisterPage() {
                                     <input
                                         id="phone"
                                         type="tel"
-                                        className={`input pr-12 pl-4 text-left transition-all ${!formData.phone ? '' :
+                                        className={`input pr-12 text-left transition-all ${!formData.phone ? '' :
                                             phoneValidation.isValid
                                                 ? 'border-green-500 focus:border-green-500 focus:ring-green-500/20'
                                                 : 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
@@ -279,13 +279,12 @@ export default function RegisterPage() {
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         required
                                     />
-                                    {formData.phone && (
-                                        <span className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-xs font-medium ${phoneValidation.isValid ? 'text-green-500' : 'text-red-400'
-                                            }`}>
-                                            {phoneValidation.message}
-                                        </span>
-                                    )}
                                 </div>
+                                {formData.phone && phoneValidation.message && (
+                                    <p className={`mt-1 text-xs ${phoneValidation.isValid ? 'text-green-500' : 'text-red-400'}`}>
+                                        {phoneValidation.message}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
