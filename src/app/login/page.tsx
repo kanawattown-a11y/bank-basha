@@ -20,6 +20,32 @@ export default function LoginPage() {
         rememberMe: false,
     });
 
+    // Syrian phone number validation (+963)
+    const validateSyrianPhone = (phone: string): { isValid: boolean; message: string } => {
+        const cleaned = phone.replace(/[\s\-]/g, '');
+        if (!cleaned) return { isValid: false, message: '' };
+
+        const fullFormat = /^\+?963[0-9]{9}$/;
+        const localFormat = /^0?9[0-9]{8}$/;
+
+        if (fullFormat.test(cleaned) || localFormat.test(cleaned)) {
+            return { isValid: true, message: '✓' };
+        }
+
+        if (cleaned.startsWith('+963') || cleaned.startsWith('963')) {
+            const digits = cleaned.replace(/^\+?963/, '');
+            if (digits.length < 9) return { isValid: false, message: `${9 - digits.length}` };
+        }
+        if (cleaned.startsWith('09') || cleaned.startsWith('9')) {
+            const digits = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
+            if (digits.length < 9) return { isValid: false, message: `${9 - digits.length}` };
+        }
+
+        return { isValid: false, message: '!' };
+    };
+
+    const phoneValidation = validateSyrianPhone(formData.phone);
+
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -119,19 +145,31 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Phone */}
                         <div>
-                            <label htmlFor="phone" className="label">{t('auth.login.phone')}</label>
-                            <div className="input-group">
+                            <label htmlFor="phone" className="label">{t('auth.login.phone')} <span className="text-dark-500 text-xs">(+963)</span></label>
+                            <div className="relative">
                                 <input
                                     id="phone"
                                     type="tel"
-                                    className="input"
+                                    className={`input pr-12 pl-10 transition-all ${!formData.phone ? '' :
+                                            phoneValidation.isValid
+                                                ? 'border-green-500 focus:border-green-500'
+                                                : 'border-red-500 focus:border-red-500'
+                                        }`}
                                     placeholder="09XX XXX XXX"
                                     dir="ltr"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     required
                                 />
-                                <PhoneIcon className="input-group-icon w-5 h-5" />
+                                <PhoneIcon className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${!formData.phone ? 'text-dark-500' :
+                                        phoneValidation.isValid ? 'text-green-500' : 'text-red-500'
+                                    }`} />
+                                {formData.phone && (
+                                    <span className={`absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold ${phoneValidation.isValid ? 'text-green-500' : 'text-red-400'
+                                        }`}>
+                                        {phoneValidation.message}
+                                    </span>
+                                )}
                             </div>
                         </div>
 

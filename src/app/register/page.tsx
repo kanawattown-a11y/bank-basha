@@ -62,6 +62,53 @@ export default function RegisterPage() {
         return { strength, ...levels[Math.min(strength, 4)] };
     };
 
+    // Syrian phone number validation (+963)
+    const validateSyrianPhone = (phone: string): { isValid: boolean; message: string } => {
+        // Remove all spaces and dashes
+        const cleaned = phone.replace(/[\s\-]/g, '');
+
+        // Check if empty
+        if (!cleaned) {
+            return { isValid: false, message: '' };
+        }
+
+        // Valid formats: +963XXXXXXXXX or 963XXXXXXXXX or 09XXXXXXXX
+        const fullFormat = /^\+?963[0-9]{9}$/;
+        const localFormat = /^0?9[0-9]{8}$/;
+
+        if (fullFormat.test(cleaned)) {
+            return { isValid: true, message: 'رقم صحيح ✓' };
+        }
+
+        if (localFormat.test(cleaned)) {
+            return { isValid: true, message: 'رقم صحيح ✓' };
+        }
+
+        // Check if it's partially valid (typing in progress)
+        if (cleaned.startsWith('+963') || cleaned.startsWith('963')) {
+            const digits = cleaned.replace(/^\+?963/, '');
+            if (digits.length < 9) {
+                return { isValid: false, message: `بقي ${9 - digits.length} أرقام` };
+            }
+            if (digits.length > 9) {
+                return { isValid: false, message: 'الرقم طويل جداً' };
+            }
+        }
+
+        if (cleaned.startsWith('09') || cleaned.startsWith('9')) {
+            const digits = cleaned.startsWith('0') ? cleaned.slice(1) : cleaned;
+            if (digits.length < 9) {
+                return { isValid: false, message: `بقي ${9 - digits.length} أرقام` };
+            }
+            if (digits.length > 9) {
+                return { isValid: false, message: 'الرقم طويل جداً' };
+            }
+        }
+
+        return { isValid: false, message: 'يجب أن يبدأ بـ +963 أو 09' };
+    };
+
+    const phoneValidation = validateSyrianPhone(formData.phone);
     const passwordStrength = getPasswordStrength(formData.password);
 
     const handleNext = () => {
@@ -70,6 +117,10 @@ export default function RegisterPage() {
         if (step === 1) {
             if (!formData.fullName || !formData.phone || !formData.email) {
                 setError(t('errors.required'));
+                return;
+            }
+            if (!phoneValidation.isValid) {
+                setError('رقم الهاتف غير صحيح - يجب أن يكون رقم سوري (+963)');
                 return;
             }
             if (formData.password !== formData.confirmPassword) {
@@ -209,19 +260,31 @@ export default function RegisterPage() {
                             </div>
 
                             <div>
-                                <label htmlFor="phone" className="label">رقم الهاتف *</label>
+                                <label htmlFor="phone" className="label">رقم الهاتف * <span className="text-dark-500 text-xs">(سوري +963)</span></label>
                                 <div className="relative">
-                                    <PhoneIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
+                                    <PhoneIcon className={`absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors ${!formData.phone ? 'text-dark-500' :
+                                        phoneValidation.isValid ? 'text-green-500' : 'text-red-500'
+                                        }`} />
                                     <input
                                         id="phone"
                                         type="tel"
-                                        className="input pr-12 text-left"
+                                        className={`input pr-12 pl-4 text-left transition-all ${!formData.phone ? '' :
+                                            phoneValidation.isValid
+                                                ? 'border-green-500 focus:border-green-500 focus:ring-green-500/20'
+                                                : 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                                            }`}
                                         placeholder="+963 9XX XXX XXX"
                                         dir="ltr"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         required
                                     />
+                                    {formData.phone && (
+                                        <span className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-xs font-medium ${phoneValidation.isValid ? 'text-green-500' : 'text-red-400'
+                                            }`}>
+                                            {phoneValidation.message}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
