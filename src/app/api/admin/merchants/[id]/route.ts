@@ -36,7 +36,7 @@ export async function GET(
             include: {
                 user: {
                     include: {
-                        wallet: true,
+                        wallets: true,
                         merchantRequests: {
                             orderBy: { createdAt: 'desc' },
                             take: 1,
@@ -55,7 +55,7 @@ export async function GET(
                         include: {
                             user: {
                                 include: {
-                                    wallet: true,
+                                    wallets: true,
                                     merchantRequests: {
                                         orderBy: { createdAt: 'desc' },
                                         take: 1,

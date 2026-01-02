@@ -26,7 +26,7 @@ export async function GET() {
         // Get or create Central Bank
         let centralBank = await prisma.user.findFirst({
             where: { phone: 'CENTRAL_BANK' },
-            include: { wallet: true },
+            include: { wallets: true },
         });
 
         if (!centralBank) {
@@ -39,16 +39,21 @@ export async function GET() {
                     userType: 'ADMIN',
                     isActive: true,
                     kycStatus: 'APPROVED',
-                    wallet: {
-                        create: {
-                            balance: 0,
-                            currency: 'USD',
-                        },
+                    wallets: {
+                        create: [
+                            { balance: 0, currency: 'USD', walletType: 'PERSONAL' },
+                            { balance: 0, currency: 'SYP', walletType: 'PERSONAL' },
+                        ],
                     },
                 },
-                include: { wallet: true },
+                include: { wallets: true },
             });
         }
+
+        // Find central bank USD wallet for display
+        const centralBankUSDWallet = (centralBank.wallets as any[])?.find(
+            (w: { currency: string }) => w.currency === 'USD'
+        );
 
         // Get all user wallet balances by currency
         const userWalletsUSD = await prisma.wallet.aggregate({
@@ -97,7 +102,7 @@ export async function GET() {
 
         return NextResponse.json({
             centralBank: {
-                balance: centralBank.wallet?.balance || 0,
+                balance: centralBankUSDWallet?.balance || 0,
                 name: centralBank.fullNameAr || centralBank.fullName,
             },
             summary: {
@@ -108,7 +113,7 @@ export async function GET() {
                 totalAgentCash: agentCredits._sum.cashCollected || 0,
                 totalAgentCashSYP: agentCredits._sum.cashCollectedSYP || 0,
                 // System should balance to zero
-                systemBalance: (centralBank.wallet?.balance || 0)
+                systemBalance: (centralBankUSDWallet?.balance || 0)
                     + (userWalletsUSD._sum.balance || 0),
             },
             recentCreditGrants: recentTransactions.map(t => ({
