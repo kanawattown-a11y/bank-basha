@@ -401,17 +401,13 @@ export default function AdminDashboard() {
                         )}
                     </div>
                 </div>
+            </main>
 
+            {/* Grant Credit Modal */}
+            {showGrantCreditModal && (
+                <GrantCreditModal onClose={() => setShowGrantCreditModal(false)} onSuccess={fetchAdminData} />
+            )}
         </div>
-            </main >
-
-        {/* Grant Credit Modal */ }
-    {
-        showGrantCreditModal && (
-            <GrantCreditModal onClose={() => setShowGrantCreditModal(false)} onSuccess={fetchAdminData} />
-        )
-    }
-        </div >
     );
 }
 
