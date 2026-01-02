@@ -20,11 +20,11 @@ async function main() {
             userType: 'ADMIN',
             status: 'ACTIVE',
             kycStatus: 'APPROVED',
-            wallet: {
-                create: {
-                    balance: 0,
-                    currency: '$',
-                },
+            wallets: {
+                create: [
+                    { balance: 0, currency: 'USD', walletType: 'PERSONAL' },
+                    { balance: 0, currency: 'SYP', walletType: 'PERSONAL' },
+                ],
             },
         },
     });
@@ -44,11 +44,11 @@ async function main() {
             userType: 'AGENT',
             status: 'ACTIVE',
             kycStatus: 'APPROVED',
-            wallet: {
-                create: {
-                    balance: 1000000, // Starting with 1M digital balance
-                    currency: '$',
-                },
+            wallets: {
+                create: [
+                    { balance: 1000000, currency: 'USD', walletType: 'PERSONAL' },
+                    { balance: 50000000, currency: 'SYP', walletType: 'PERSONAL' },
+                ],
             },
             agentProfile: {
                 create: {
@@ -58,7 +58,9 @@ async function main() {
                     businessAddress: 'Sweida City Center',
                     creditLimit: 1000000,
                     currentCredit: 1000000,
+                    currentCreditSYP: 50000000,
                     cashCollected: 0,
+                    cashCollectedSYP: 0,
                 },
             },
         },
@@ -79,11 +81,14 @@ async function main() {
             userType: 'MERCHANT',
             status: 'ACTIVE',
             kycStatus: 'APPROVED',
-            wallet: {
-                create: {
-                    balance: 0,
-                    currency: '$',
-                },
+            hasMerchantAccount: true,
+            wallets: {
+                create: [
+                    { balance: 0, currency: 'USD', walletType: 'PERSONAL' },
+                    { balance: 0, currency: 'SYP', walletType: 'PERSONAL' },
+                    { balance: 0, currency: 'USD', walletType: 'BUSINESS' },
+                    { balance: 0, currency: 'SYP', walletType: 'BUSINESS' },
+                ],
             },
             merchantProfile: {
                 create: {
@@ -113,11 +118,11 @@ async function main() {
             userType: 'USER',
             status: 'ACTIVE',
             kycStatus: 'APPROVED',
-            wallet: {
-                create: {
-                    balance: 50000, // Starting with 50K for testing
-                    currency: '$',
-                },
+            wallets: {
+                create: [
+                    { balance: 50000, currency: 'USD', walletType: 'PERSONAL' },
+                    { balance: 2500000, currency: 'SYP', walletType: 'PERSONAL' },
+                ],
             },
         },
     });
