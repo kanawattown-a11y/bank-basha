@@ -29,9 +29,7 @@ export async function GET(request: NextRequest) {
                 userType: { not: 'ADMIN' },
             },
             include: {
-                wallet: {
-                    select: { balance: true },
-                },
+                wallets: true,
                 merchantProfile: {
                     select: {
                         businessName: true,

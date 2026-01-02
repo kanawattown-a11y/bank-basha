@@ -32,9 +32,7 @@ export async function GET(
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                wallet: {
-                    select: { balance: true },
-                },
+                wallets: true,
                 kycDocuments: {
                     select: {
                         documentType: true,
@@ -107,7 +105,7 @@ export async function GET(
                     kycReviewedAt: user.kycReviewedAt,
                     kycRejectionReason: user.kycRejectionReason,
                     createdAt: user.createdAt,
-                    wallet: user.wallet,
+                    wallet: user.wallets,
                 },
                 transactions: transactions.map(t => ({
                     ...t,
