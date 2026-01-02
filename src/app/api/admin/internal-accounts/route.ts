@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         // Recalculate balances from actual data
         const [allWallets, agentProfiles] = await Promise.all([
             prisma.wallet.findMany({
-                where: { userId: { not: null } },
+                where: { userId: { not: undefined } },
                 include: { user: { select: { userType: true } } },
             }),
             prisma.agentProfile.findMany(),
