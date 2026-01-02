@@ -6,7 +6,10 @@ import { z } from 'zod';
 
 const settlementActionSchema = z.object({
     settlementId: z.string(),
-    action: z.enum(['approve', 'reject']),
+    action: z.enum(['approve', 'reject', 'confirm_delivery']),
+    deliveryMethod: z.enum(['FROM_PLATFORM', 'FROM_ADMIN', 'FROM_AGENT']).optional(),
+    sourceAgentId: z.string().optional(),
+    notes: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { settlementId, action } = result.data;
+        const { settlementId, action, deliveryMethod, sourceAgentId, notes } = result.data;
 
         const settlement = await prisma.settlement.findUnique({
             where: { id: settlementId },
@@ -53,57 +56,219 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (action === 'approve') {
-            // Update settlement status
-            await prisma.settlement.update({
-                where: { id: settlementId },
-                data: {
-                    status: 'COMPLETED',
-                    reviewedBy: payload.userId,
-                    reviewedAt: new Date(),
-                    completedAt: new Date(),
-                },
-            });
+        const adminId = payload.userId;
 
-            // Reset agent's cash collected
-            await prisma.agentProfile.update({
-                where: { id: settlement.agentId },
-                data: { cashCollected: 0 },
-            });
-        } else {
+        // ═══════════════════════════════════════════════════════════
+        // APPROVE SETTLEMENT
+        // ═══════════════════════════════════════════════════════════
+        if (action === 'approve') {
+            if (settlement.type === 'CASH_TO_CREDIT') {
+                // Agent gives cash → receives digital credit
+                await prisma.agentProfile.update({
+                    where: { id: settlement.agentId },
+                    data: {
+                        cashCollected: { decrement: settlement.cashCollected! },
+                        currentCredit: { increment: settlement.amountDue! },
+                        totalSettlements: { increment: 1 },
+                        lastSettlement: new Date(),
+                    },
+                });
+
+                await prisma.settlement.update({
+                    where: { id: settlementId },
+                    data: {
+                        status: 'COMPLETED',
+                        reviewedBy: adminId,
+                        reviewedAt: new Date(),
+                        completedBy: adminId,
+                        completedAt: new Date(),
+                    },
+                });
+
+                // Notify agent
+                await prisma.notification.create({
+                    data: {
+                        userId: settlement.agent.userId,
+                        type: 'SYSTEM',
+                        title: 'Settlement Approved',
+                        titleAr: 'تمت الموافقة على التسوية',
+                        message: `Your cash to credit settlement of $${settlement.requestedAmount} has been approved. You received $${settlement.amountDue} credit.`,
+                        messageAr: `تمت الموافقة على تحويل $${settlement.requestedAmount} نقد إلى رصيد. حصلت على $${settlement.amountDue} رصيد.`,
+                    },
+                });
+            }
+            else if (settlement.type === 'CREDIT_REQUEST') {
+                // Agent requests additional credit (loan)
+                await prisma.agentProfile.update({
+                    where: { id: settlement.agentId },
+                    data: {
+                        currentCredit: { increment: settlement.creditGiven! },
+                        pendingDebt: { increment: settlement.creditGiven! },
+                        totalSettlements: { increment: 1 },
+                        lastSettlement: new Date(),
+                    },
+                });
+
+                await prisma.settlement.update({
+                    where: { id: settlementId },
+                    data: {
+                        status: 'APPROVED',
+                        reviewedBy: adminId,
+                        reviewedAt: new Date(),
+                    },
+                });
+
+                // Notify agent
+                await prisma.notification.create({
+                    data: {
+                        userId: settlement.agent.userId,
+                        type: 'SYSTEM',
+                        title: 'Credit Request Approved',
+                        titleAr: 'تمت الموافقة على طلب الرصيد',
+                        message: `Your credit request of $${settlement.creditGiven} has been approved. Remember to repay this amount.`,
+                        messageAr: `تمت الموافقة على طلب رصيد بقيمة $${settlement.creditGiven}. تذكر أن تسدد هذا المبلغ.`,
+                    },
+                });
+            }
+            else if (settlement.type === 'CASH_REQUEST') {
+                // Agent requests physical cash
+                if (!deliveryMethod) {
+                    return NextResponse.json(
+                        { error: 'Delivery method is required for cash requests' },
+                        { status: 400, headers: getSecurityHeaders() }
+                    );
+                }
+
+                // Deduct credit from requesting agent
+                await prisma.agentProfile.update({
+                    where: { id: settlement.agentId },
+                    data: {
+                        currentCredit: { decrement: settlement.creditDeducted! },
+                    },
+                });
+
+                // If FROM_AGENT, deduct cash from source agent
+                if (deliveryMethod === 'FROM_AGENT' && sourceAgentId) {
+                    await prisma.agentProfile.update({
+                        where: { id: sourceAgentId },
+                        data: {
+                            cashCollected: { decrement: settlement.cashToReceive! },
+                        },
+                    });
+                }
+
+                await prisma.settlement.update({
+                    where: { id: settlementId },
+                    data: {
+                        status: 'APPROVED',
+                        deliveryMethod,
+                        sourceAgentId: deliveryMethod === 'FROM_AGENT' ? sourceAgentId : null,
+                        deliveryStatus: 'PENDING',
+                        deliveryNotes: notes,
+                        reviewedBy: adminId,
+                        reviewedAt: new Date(),
+                    },
+                });
+
+                const deliveryMessages: Record<string, { en: string; ar: string }> = {
+                    FROM_PLATFORM: { en: 'Cash will be available at platform office', ar: 'سيكون النقد متاحًا في مكتب المنصة' },
+                    FROM_ADMIN: { en: 'Admin will deliver cash directly', ar: 'سيسلم المسؤول النقد مباشرة' },
+                    FROM_AGENT: { en: 'Cash will be provided by another agent', ar: 'سيوفر وكيل آخر النقد' },
+                };
+
+                const deliveryMsg = deliveryMessages[deliveryMethod];
+
+                // Notify requesting agent
+                await prisma.notification.create({
+                    data: {
+                        userId: settlement.agent.userId,
+                        type: 'SYSTEM',
+                        title: 'Cash Request Approved',
+                        titleAr: 'تمت الموافقة على طلب النقد',
+                        message: `Your cash request of $${settlement.cashToReceive} has been approved. ${deliveryMsg.en}.`,
+                        messageAr: `تمت الموافقة على طلب نقد بقيمة $${settlement.cashToReceive}. ${deliveryMsg.ar}.`,
+                    },
+                });
+            }
+        }
+        // ═══════════════════════════════════════════════════════════
+        // REJECT SETTLEMENT
+        // ═══════════════════════════════════════════════════════════
+        else if (action === 'reject') {
             await prisma.settlement.update({
                 where: { id: settlementId },
                 data: {
                     status: 'REJECTED',
-                    reviewedBy: payload.userId,
+                    rejectionReason: notes,
+                    reviewedBy: adminId,
                     reviewedAt: new Date(),
+                },
+            });
+
+            // Notify agent
+            await prisma.notification.create({
+                data: {
+                    userId: settlement.agent.userId,
+                    type: 'SYSTEM',
+                    title: 'Settlement Rejected',
+                    titleAr: 'تم رفض التسوية',
+                    message: `Your settlement request was rejected${notes ? `: ${notes}` : ''}`,
+                    messageAr: `تم رفض طلب التسوية${notes ? `: ${notes}` : ''}`,
+                },
+            });
+        }
+        // ═══════════════════════════════════════════════════════════
+        // CONFIRM DELIVERY (for CASH_REQUEST only)
+        // ═══════════════════════════════════════════════════════════
+        else if (action === 'confirm_delivery') {
+            if (settlement.type !== 'CASH_REQUEST') {
+                return NextResponse.json(
+                    { error: 'Delivery confirmation is only for cash requests' },
+                    { status: 400, headers: getSecurityHeaders() }
+                );
+            }
+
+            // Add cash to requesting agent's balance
+            await prisma.agentProfile.update({
+                where: { id: settlement.agentId },
+                data: {
+                    cashCollected: { increment: settlement.cashToReceive! },
+                    totalSettlements: { increment: 1 },
+                    lastSettlement: new Date(),
+                },
+            });
+
+            await prisma.settlement.update({
+                where: { id: settlementId },
+                data: {
+                    status: 'COMPLETED',
+                    deliveryStatus: 'DELIVERED',
+                    completedBy: adminId,
+                    completedAt: new Date(),
+                },
+            });
+
+            // Notify agent
+            await prisma.notification.create({
+                data: {
+                    userId: settlement.agent.userId,
+                    type: 'SYSTEM',
+                    title: 'Cash Delivered',
+                    titleAr: 'تم تسليم النقد',
+                    message: `Cash of $${settlement.cashToReceive} has been delivered to you.`,
+                    messageAr: `تم تسليمك نقد بقيمة $${settlement.cashToReceive}.`,
                 },
             });
         }
 
-        // Notify agent
-        await prisma.notification.create({
-            data: {
-                userId: settlement.agent.userId,
-                type: 'SYSTEM',
-                title: action === 'approve' ? 'Settlement Approved' : 'Settlement Rejected',
-                titleAr: action === 'approve' ? 'تمت الموافقة على التسوية' : 'تم رفض التسوية',
-                message: action === 'approve'
-                    ? `Your settlement request for ${settlement.amountDue} $ has been approved`
-                    : 'Your settlement request was rejected',
-                messageAr: action === 'approve'
-                    ? `تمت الموافقة على طلب التسوية بقيمة ${settlement.amountDue} $`
-                    : 'تم رفض طلب التسوية',
-            },
-        });
-
         // Audit log
         await prisma.auditLog.create({
             data: {
-                userId: payload.userId,
+                userId: adminId,
                 action: `SETTLEMENT_${action.toUpperCase()}`,
                 entity: 'Settlement',
                 entityId: settlementId,
+                newValue: JSON.stringify({ type: settlement.type, action, deliveryMethod, sourceAgentId }),
             },
         });
 

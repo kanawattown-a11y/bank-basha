@@ -23,26 +23,12 @@ export default function DepositPage() {
     const router = useRouter();
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [exchangeRate, setExchangeRate] = useState<number | null>(null);
 
     useEffect(() => {
         fetchNearbyAgents();
-        fetchExchangeRate();
     }, []);
 
-    const fetchExchangeRate = async () => {
-        try {
-            const response = await fetch('/api/exchange-rates');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.deposit?.rate) {
-                    setExchangeRate(data.deposit.rate);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching exchange rate:', error);
-        }
-    };
+
 
     const fetchNearbyAgents = async () => {
         try {
@@ -83,43 +69,20 @@ export default function DepositPage() {
                         <div className="w-16 h-16 rounded-2xl bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                             <ArrowDownIcon className="w-8 h-8 text-green-500" />
                         </div>
-                        <h2 className="text-xl font-semibold text-white text-center mb-2">إيداع نقدي</h2>
+                        <h2 className="text-xl font-semibold text-white text-center mb-2">{t('transaction.deposit.cashDeposit')}</h2>
                         <p className="text-dark-400 text-center text-sm">
-                            قم بزيارة أقرب وكيل لإيداع النقود في محفظتك الرقمية
+                            {t('transaction.deposit.description')}
                         </p>
                     </div>
 
-                    {/* Exchange Rate */}
-                    {exchangeRate && (
-                        <div className="card p-4 mb-6 border-green-500/30 bg-gradient-to-r from-green-500/10 to-emerald-500/10">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                                        <CurrencyDollarIcon className="w-5 h-5 text-green-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-dark-400 text-xs">سعر الإيداع</p>
-                                        <p className="text-white font-semibold">1 دولار =</p>
-                                    </div>
-                                </div>
-                                <div className="text-left">
-                                    <p className="text-2xl font-bold text-green-400">
-                                        {formatNumber(exchangeRate)}
-                                    </p>
-                                    <p className="text-dark-400 text-xs">ليرة سورية</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {/* Steps */}
                     <div className="card p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">خطوات الإيداع</h3>
+                        <h3 className="text-lg font-semibold text-white mb-4">{t('transaction.deposit.stepsTitle')}</h3>
                         <div className="space-y-4">
                             {[
-                                { num: 1, text: 'توجه إلى أقرب وكيل معتمد' },
-                                { num: 2, text: 'أعطِ الوكيل رقم هاتفك والمبلغ النقدي' },
-                                { num: 3, text: 'ستصلك رسالة تأكيد فورية بالإيداع' },
+                                { num: 1, text: t('transaction.deposit.step1') },
+                                { num: 2, text: t('transaction.deposit.step2') },
+                                { num: 3, text: t('transaction.deposit.step3') },
                             ].map((step) => (
                                 <div key={step.num} className="flex items-center gap-4">
                                     <div className="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center flex-shrink-0">
@@ -134,7 +97,7 @@ export default function DepositPage() {
                     {/* Nearby Agents */}
                     <div className="card p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-white">الوكلاء القريبين</h3>
+                            <h3 className="text-lg font-semibold text-white">{t('transaction.deposit.nearbyAgents')}</h3>
                             <MapPinIcon className="w-5 h-5 text-primary-500" />
                         </div>
 
@@ -144,8 +107,8 @@ export default function DepositPage() {
                             </div>
                         ) : agents.length === 0 ? (
                             <div className="text-center py-8 text-dark-400">
-                                <p>لا يوجد وكلاء متاحين حالياً</p>
-                                <p className="text-sm mt-2">يرجى المحاولة لاحقاً</p>
+                                <p>{t('transaction.deposit.noAgents')}</p>
+                                <p className="text-sm mt-2">{t('transaction.deposit.tryLater')}</p>
                             </div>
                         ) : (
                             <div className="space-y-3">

@@ -147,20 +147,6 @@ model PasswordResetRequest {
   @@map("password_reset_requests")
 }
 
-// Exchange Rate Management for Syrian Pound
-model ExchangeRate {
-  id            String    @id @default(uuid())
-  type          String    // DEPOSIT, WITHDRAW
-  rate          Float     // سعر الليرة السورية مقابل 1 دولار
-  isActive      Boolean   @default(true)
-  updatedBy     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  @@unique([type, isActive])
-  @@index([type])
-  @@map("exchange_rates")
-}
 
 // ============================================
 // WALLET & ACCOUNTS
@@ -217,6 +203,11 @@ model AgentProfile {
   depositCommission   Float?
   withdrawCommission  Float?
   
+  // Settlement Tracking
+  pendingDebt         Float     @default(0)  // Outstanding debt from CREDIT_REQUEST
+  totalSettlements    Int       @default(0)  // Total number of settlements
+  lastSettlement      DateTime? // Last settlement date
+  
   // Location
   latitude        Float?
   longitude       Float?
@@ -230,7 +221,8 @@ model AgentProfile {
   deletedBy       String?
   
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  settlements     Settlement[]
+  settlements     Settlement[] @relation("AgentSettlements")
+  providedCash    Settlement[] @relation("ProvidedCash")
   
   @@index([agentCode])
   @@index([userId])
@@ -407,27 +399,56 @@ model Settlement {
   settlementNumber String   @unique
   agentId         String
   
-  // Amounts
-  creditUsed      Float     // How much credit was sold
-  cashCollected   Float     // Cash collected from users
-  platformShare   Float     // Platform's commission
-  agentShare      Float     // Agent's commission
-  amountDue       Float     // Cash to be given to platform
+  // Settlement Type: CASH_TO_CREDIT, CREDIT_REQUEST, CASH_REQUEST
+  type            String    @default("CASH_TO_CREDIT")
   
-  status          String    @default("PENDING") // SettlementStatus
+  // Requested Amount (applicable to all types)
+  requestedAmount Float
+  
+  // For CASH_TO_CREDIT (cash → digital credit)
+  creditUsed      Float?    // Legacy field
+  cashCollected   Float?    // Cash collected from agent
+  platformShare   Float?    // Platform's commission
+  agentShare      Float?    // Agent's commission
+  amountDue       Float?    // Net credit to give to agent
+  
+  // For CREDIT_REQUEST (request additional credit/loan)
+  creditGiven     Float?    // Credit provided to agent
+  
+  // For CASH_REQUEST (request physical cash)
+  cashToReceive   Float?    // Cash agent will receive
+  creditDeducted  Float?    // Credit deducted from agent
+  
+  // Delivery Method (for CASH_REQUEST): FROM_PLATFORM, FROM_ADMIN, FROM_AGENT
+  deliveryMethod  String?
+  sourceAgentId   String?   // Agent providing cash (for FROM_AGENT)
+  deliveryStatus  String?   // PENDING, IN_TRANSIT, DELIVERED
+  deliveryNotes   String?
+  
+  // Status: PENDING, APPROVED, REJECTED, COMPLETED
+  status          String    @default("PENDING")
   
   notes           String?
+  rejectionReason String?
   reviewedBy      String?
   reviewedAt      DateTime?
   
-  createdAt       DateTime  @default(now())
+  completedBy     String?
   completedAt     DateTime?
   
-  agent           AgentProfile @relation(fields: [agentId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  agent           AgentProfile @relation("AgentSettlements", fields: [agentId], references: [id])
+  sourceAgent     AgentProfile? @relation("ProvidedCash", fields: [sourceAgentId], references: [id])
   
   @@index([agentId])
+  @@index([sourceAgentId])
+  @@index([type])
   @@index([status])
+  @@index([deliveryStatus])
   @@index([createdAt])
+  @@map("settlements")
 }
 
 // ============================================

@@ -245,16 +245,35 @@
         },
         "deposit": {
             "title": "Deposit Money",
+            "cashDeposit": "Cash Deposit",
+            "description": "Visit the nearest agent to deposit cash into your digital wallet",
             "selectAgent": "Select Agent",
             "nearbyAgents": "Nearby Agents",
             "agentCode": "Agent Code",
-            "instructions": "Deposit Instructions"
+            "instructions": "Deposit Instructions",
+            "depositRate": "Deposit Rate",
+            "oneDollarEquals": "1 Dollar =",
+            "syrianPound": "Syrian Pound",
+            "stepsTitle": "Deposit Steps",
+            "step1": "Go to the nearest authorized agent",
+            "step2": "Give the agent your phone number and cash",
+            "step3": "You will receive instant confirmation",
+            "noAgents": "No agents available",
+            "tryLater": "Please try again later"
         },
         "withdraw": {
             "title": "Withdraw Money",
+            "cashWithdraw": "Cash Withdrawal",
+            "description": "Visit the nearest agent to withdraw cash from your wallet",
             "amount": "Withdrawal Amount",
             "confirm": "Confirm Withdrawal",
-            "success": "Withdrawal Successful"
+            "success": "Withdrawal Successful",
+            "availableBalance": "Available Balance",
+            "withdrawRate": "Withdrawal Rate",
+            "stepsTitle": "Withdrawal Steps",
+            "step1": "Go to the nearest authorized agent",
+            "step2": "Tell the agent your phone number and amount",
+            "step3": "Amount will be deducted and you receive cash"
         },
         "pay": {
             "title": "Payment",
@@ -572,10 +591,32 @@
             },
             "labels": {
                 "cashCollected": "Cash Collected",
-                "amountDue": "Amount Due"
+                "amountDue": "Amount Due",
+                "requestedAmount": "Requested Amount",
+                "creditGiven": "Credit Given",
+                "cashToReceive": "Cash to Receive"
             },
+            "types": {
+                "CASH_TO_CREDIT": "Cash to Credit",
+                "CREDIT_REQUEST": "Credit Request",
+                "CASH_REQUEST": "Cash Request"
+            },
+            "deliveryMethod": "Delivery Method",
+            "deliveryMethods": {
+                "FROM_PLATFORM": "From Platform",
+                "FROM_ADMIN": "From Admin",
+                "FROM_AGENT": "From Agent"
+            },
+            "deliveryStatuses": {
+                "PENDING": "Pending",
+                "IN_TRANSIT": "In Transit",
+                "DELIVERED": "Delivered"
+            },
+            "confirmDelivery": "Confirm Delivery",
+            "selectAgent": "Select Agent",
             "status": {
                 "pending": "Pending",
+                "approved": "Approved",
                 "completed": "Completed",
                 "rejected": "Rejected"
             },
@@ -616,10 +657,12 @@
             "fees": {
                 "title": "Fees & Commissions",
                 "depositFee": "Deposit Fee",
+                "depositDescription": "Deposit fee: Deducted when user makes cash deposit at agent.",
                 "withdrawFee": "Withdrawal Fee",
                 "transferFee": "Transfer Fee",
                 "paymentFee": "QR Payment Fee",
                 "agentCommission": "Agent Commission",
+                "agentShareDescription": "Agent share: Percentage agent receives from deposit and withdrawal fees.",
                 "settlementPlatform": "Platform Settlement Commission",
                 "settlementAgent": "Agent Settlement Commission"
             },
@@ -637,13 +680,6 @@
                 "used": "Used",
                 "expired": "Expired"
             }
-        },
-        "exchangeRates": {
-            "title": "Exchange Rates",
-            "depositRate": "Deposit Rate",
-            "withdrawRate": "Withdrawal Rate",
-            "save": "Save Rates",
-            "lastUpdate": "Last Update"
         },
         "ledger": {
             "title": "General Ledger",

@@ -192,7 +192,7 @@ export default function AdminSettingsPage() {
                             <div className="grid md:grid-cols-2 gap-4 p-4 rounded-xl bg-dark-800/50 border border-dark-700">
                                 <div className="md:col-span-2">
                                     <h3 className="text-lg font-medium text-primary-400 mb-1">{t('admin.settings.fees.depositFee')}</h3>
-                                    <p className="text-xs text-dark-400 mb-3">عمولة الإيداع: يتم خصمها عند قيام المستخدم بإيداع نقدي لدى الوكيل.</p>
+                                    <p className="text-xs text-dark-400 mb-3">{t('admin.settings.fees.depositDescription')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-dark-300 text-sm mb-2">نسبة (%)</label>
@@ -312,7 +312,7 @@ export default function AdminSettingsPage() {
                             <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
                                 <div className="mb-2">
                                     <h3 className="text-lg font-medium text-blue-400 mb-1">{t('admin.settings.fees.agentCommission')}</h3>
-                                    <p className="text-xs text-blue-300/70">حصة الوكيل: هي النسبة التي يحصل عليها الوكيل من إجمالي رسوم الإيداع والسحب.</p>
+                                    <p className="text-xs text-blue-300/70">{t('admin.settings.fees.agentShareDescription')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-blue-300 text-sm mb-2">نسبة من الرسوم (%)</label>

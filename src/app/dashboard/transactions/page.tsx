@@ -86,10 +86,10 @@ export default function TransactionsPage() {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            DEPOSIT: 'إيداع',
-            WITHDRAW: 'سحب',
-            TRANSFER: 'تحويل',
-            QR_PAYMENT: 'دفع QR',
+            DEPOSIT: t('transaction.types.deposit'),
+            WITHDRAW: t('transaction.types.withdraw'),
+            TRANSFER: t('transaction.types.transfer'),
+            QR_PAYMENT: t('transaction.types.qrPayment'),
         };
         return labels[type] || type;
     };
@@ -117,11 +117,11 @@ export default function TransactionsPage() {
                     {/* Filter */}
                     <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar">
                         {[
-                            { value: 'all', label: 'الكل' },
-                            { value: 'DEPOSIT', label: 'إيداع' },
-                            { value: 'WITHDRAW', label: 'سحب' },
-                            { value: 'TRANSFER', label: 'تحويل' },
-                            { value: 'QR_PAYMENT', label: 'دفع' },
+                            { value: 'all', label: t('common.all') },
+                            { value: 'DEPOSIT', label: t('transaction.types.deposit') },
+                            { value: 'WITHDRAW', label: t('transaction.types.withdraw') },
+                            { value: 'TRANSFER', label: t('transaction.types.transfer') },
+                            { value: 'QR_PAYMENT', label: t('transaction.types.qrPayment') },
                         ].map((item) => (
                             <button
                                 key={item.value}
@@ -144,8 +144,8 @@ export default function TransactionsPage() {
                     ) : filteredTransactions.length === 0 ? (
                         <div className="card p-12 text-center">
                             <ClockIcon className="w-16 h-16 text-dark-500 mx-auto mb-4" />
-                            <p className="text-xl font-semibold text-dark-300">لا توجد معاملات</p>
-                            <p className="text-dark-500 mt-2">ستظهر معاملاتك هنا</p>
+                            <p className="text-xl font-semibold text-dark-300">{t('wallet.noTransactions')}</p>
+                            <p className="text-dark-500 mt-2">{t('common.noData')}</p>
                         </div>
                     ) : (
                         <div className="space-y-3">

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyAccessToken, getSecurityHeaders } from '@/lib/auth/security';
 import { cookies } from 'next/headers';
 
+// GET: Get agents with sufficient cash for distribution
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -23,32 +24,38 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const settlements = await prisma.settlement.findMany({
-            include: {
-                agent: {
-                    select: {
-                        agentCode: true,
-                        businessName: true,
-                        businessNameAr: true,
-                    },
-                },
-                sourceAgent: {
-                    select: {
-                        agentCode: true,
-                        businessName: true,
-                        businessNameAr: true,
-                    },
+        // Get minimum amount from query params
+        const { searchParams } = new URL(request.url);
+        const minAmount = parseFloat(searchParams.get('minAmount') || '0');
+
+        // Find agents with cash >= minAmount
+        const agents = await prisma.agentProfile.findMany({
+            where: {
+                isActive: true,
+                cashCollected: {
+                    gte: minAmount,
                 },
             },
-            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                agentCode: true,
+                businessName: true,
+                businessNameAr: true,
+                cashCollected: true,
+                currentCredit: true,
+            },
+            orderBy: {
+                cashCollected: 'desc',
+            },
+            take: 20,
         });
 
         return NextResponse.json(
-            { settlements },
+            { agents },
             { status: 200, headers: getSecurityHeaders() }
         );
     } catch (error) {
-        console.error('Get settlements error:', error);
+        console.error('Get agents with cash error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500, headers: getSecurityHeaders() }

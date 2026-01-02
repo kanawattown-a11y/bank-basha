@@ -24,7 +24,6 @@ export default function WithdrawPage() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [balance, setBalance] = useState(0);
-    const [exchangeRate, setExchangeRate] = useState<number | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -32,10 +31,9 @@ export default function WithdrawPage() {
 
     const fetchData = async () => {
         try {
-            const [agentsRes, walletRes, ratesRes] = await Promise.all([
+            const [agentsRes, walletRes] = await Promise.all([
                 fetch('/api/agents/nearby'),
                 fetch('/api/wallet'),
-                fetch('/api/exchange-rates'),
             ]);
 
             if (agentsRes.ok) {
@@ -46,13 +44,6 @@ export default function WithdrawPage() {
             if (walletRes.ok) {
                 const data = await walletRes.json();
                 setBalance(data.wallet?.balance || 0);
-            }
-
-            if (ratesRes.ok) {
-                const data = await ratesRes.json();
-                if (data.withdraw?.rate) {
-                    setExchangeRate(data.withdraw.rate);
-                }
             }
         } catch (error) {
             console.error('Error:', error);
@@ -90,47 +81,24 @@ export default function WithdrawPage() {
                         <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                             <ArrowUpIcon className="w-8 h-8 text-red-500" />
                         </div>
-                        <h2 className="text-xl font-semibold text-white text-center mb-2">سحب نقدي</h2>
+                        <h2 className="text-xl font-semibold text-white text-center mb-2">{t('transaction.withdraw.cashWithdraw')}</h2>
                         <p className="text-dark-400 text-center text-sm mb-4">
-                            قم بزيارة أقرب وكيل لسحب النقود من محفظتك
+                            {t('transaction.withdraw.description')}
                         </p>
                         <div className="p-4 rounded-xl bg-dark-700/50 text-center">
-                            <p className="text-dark-400 text-sm">رصيدك المتاح</p>
+                            <p className="text-dark-400 text-sm">{t('transaction.withdraw.availableBalance')}</p>
                             <p className="text-2xl font-bold text-gradient">{formatAmount(balance)} $</p>
                         </div>
                     </div>
 
-                    {/* Exchange Rate */}
-                    {exchangeRate && (
-                        <div className="card p-4 mb-6 border-red-500/30 bg-gradient-to-r from-red-500/10 to-orange-500/10">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                                        <CurrencyDollarIcon className="w-5 h-5 text-red-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-dark-400 text-xs">سعر السحب</p>
-                                        <p className="text-white font-semibold">1 دولار =</p>
-                                    </div>
-                                </div>
-                                <div className="text-left">
-                                    <p className="text-2xl font-bold text-red-400">
-                                        {formatNumber(exchangeRate)}
-                                    </p>
-                                    <p className="text-dark-400 text-xs">ليرة سورية</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {/* Steps */}
                     <div className="card p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">خطوات السحب</h3>
+                        <h3 className="text-lg font-semibold text-white mb-4">{t('transaction.withdraw.stepsTitle')}</h3>
                         <div className="space-y-4">
                             {[
-                                { num: 1, text: 'توجه إلى أقرب وكيل معتمد' },
-                                { num: 2, text: 'أخبر الوكيل برقم هاتفك والمبلغ المطلوب' },
-                                { num: 3, text: 'سيخصم المبلغ من محفظتك وتستلم النقود' },
+                                { num: 1, text: t('transaction.withdraw.step1') },
+                                { num: 2, text: t('transaction.withdraw.step2') },
+                                { num: 3, text: t('transaction.withdraw.step3') },
                             ].map((step) => (
                                 <div key={step.num} className="flex items-center gap-4">
                                     <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
@@ -145,7 +113,7 @@ export default function WithdrawPage() {
                     {/* Nearby Agents */}
                     <div className="card p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-white">الوكلاء القريبين</h3>
+                            <h3 className="text-lg font-semibold text-white">{t('transaction.deposit.nearbyAgents')}</h3>
                             <MapPinIcon className="w-5 h-5 text-primary-500" />
                         </div>
 
@@ -155,7 +123,7 @@ export default function WithdrawPage() {
                             </div>
                         ) : agents.length === 0 ? (
                             <div className="text-center py-8 text-dark-400">
-                                <p>لا يوجد وكلاء متاحين حالياً</p>
+                                <p>{t('transaction.deposit.noAgents')}</p>
                             </div>
                         ) : (
                             <div className="space-y-3">

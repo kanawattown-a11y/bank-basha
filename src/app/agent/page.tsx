@@ -41,27 +41,11 @@ export default function AgentDashboard() {
     const [formData, setFormData] = useState({ customerPhone: '', amount: '' });
     const [isProcessing, setIsProcessing] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [exchangeRates, setExchangeRates] = useState<{ deposit: number | null; withdraw: number | null }>({ deposit: null, withdraw: null });
 
     useEffect(() => {
         fetchAgentData();
-        fetchExchangeRates();
     }, []);
 
-    const fetchExchangeRates = async () => {
-        try {
-            const response = await fetch('/api/exchange-rates');
-            if (response.ok) {
-                const data = await response.json();
-                setExchangeRates({
-                    deposit: data.deposit?.rate || null,
-                    withdraw: data.withdraw?.rate || null,
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching exchange rates:', error);
-        }
-    };
 
     const fetchAgentData = async () => {
         try {
@@ -210,32 +194,6 @@ export default function AgentDashboard() {
                             <div className="stat-label">{t('agent.dashboard.todayTransactions')}</div>
                         </div>
                     </div>
-
-                    {/* Exchange Rates */}
-                    {(exchangeRates.deposit || exchangeRates.withdraw) && (
-                        <div className="card p-4 border-primary-500/30 bg-gradient-to-r from-primary-500/10 to-purple-500/10">
-                            <div className="flex items-center gap-3 mb-3">
-                                <CurrencyDollarIcon className="w-5 h-5 text-primary-500" />
-                                <span className="text-white font-semibold">سعر الصرف اليوم</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                {exchangeRates.deposit && (
-                                    <div className="text-center p-3 rounded-xl bg-dark-800/50">
-                                        <p className="text-dark-400 text-xs mb-1">سعر الإيداع</p>
-                                        <p className="text-lg font-bold text-green-400">{formatNumber(exchangeRates.deposit)}</p>
-                                        <p className="text-dark-500 text-xs">ل.س / $1</p>
-                                    </div>
-                                )}
-                                {exchangeRates.withdraw && (
-                                    <div className="text-center p-3 rounded-xl bg-dark-800/50">
-                                        <p className="text-dark-400 text-xs mb-1">سعر السحب</p>
-                                        <p className="text-lg font-bold text-red-400">{formatNumber(exchangeRates.withdraw)}</p>
-                                        <p className="text-dark-500 text-xs">ل.س / $1</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Main Actions Card */}
                     <div className="card p-6">

@@ -245,16 +245,35 @@
         },
         "deposit": {
             "title": "إيداع أموال",
+            "cashDeposit": "إيداع نقدي",
+            "description": "قم بزيارة أقرب وكيل لإيداع النقود في محفظتك الرقمية",
             "selectAgent": "اختر الوكيل",
             "nearbyAgents": "الوكلاء القريبين",
             "agentCode": "كود الوكيل",
-            "instructions": "تعليمات الإيداع"
+            "instructions": "تعليمات الإيداع",
+            "depositRate": "سعر الإيداع",
+            "oneDollarEquals": "1 دولار =",
+            "syrianPound": "ليرة سورية",
+            "stepsTitle": "خطوات الإيداع",
+            "step1": "توجه إلى أقرب وكيل معتمد",
+            "step2": "أعطِ الوكيل رقم هاتفك والمبلغ النقدي",
+            "step3": "ستصلك رسالة تأكيد فورية بالإيداع",
+            "noAgents": "لا يوجد وكلاء متاحين حالياً",
+            "tryLater": "يرجى المحاولة لاحقاً"
         },
         "withdraw": {
             "title": "سحب أموال",
+            "cashWithdraw": "سحب نقدي",
+            "description": "قم بزيارة أقرب وكيل لسحب النقود من محفظتك",
             "amount": "مبلغ السحب",
             "confirm": "تأكيد السحب",
-            "success": "تم السحب بنجاح"
+            "success": "تم السحب بنجاح",
+            "availableBalance": "رصيدك المتاح",
+            "withdrawRate": "سعر السحب",
+            "stepsTitle": "خطوات السحب",
+            "step1": "توجه إلى أقرب وكيل معتمد",
+            "step2": "أخبر الوكيل برقم هاتفك والمبلغ المطلوب",
+            "step3": "سيخصم المبلغ من محفظتك وتستلم النقود"
         },
         "pay": {
             "title": "الدفع",
@@ -551,10 +570,32 @@
             },
             "labels": {
                 "cashCollected": "النقد المجموع",
-                "amountDue": "المبلغ المستحق"
+                "amountDue": "المبلغ المستحق",
+                "requestedAmount": "المبلغ المطلوب",
+                "creditGiven": "الرصيد الممنوح",
+                "cashToReceive": "النقد المطلوب"
             },
+            "types": {
+                "CASH_TO_CREDIT": "نقد إلى رصيد",
+                "CREDIT_REQUEST": "طلب رصيد",
+                "CASH_REQUEST": "طلب نقد"
+            },
+            "deliveryMethod": "طريقة التسليم",
+            "deliveryMethods": {
+                "FROM_PLATFORM": "من المنصة",
+                "FROM_ADMIN": "من الإدارة",
+                "FROM_AGENT": "من وكيل"
+            },
+            "deliveryStatuses": {
+                "PENDING": "في الانتظار",
+                "IN_TRANSIT": "جاري التوصيل",
+                "DELIVERED": "تم التسليم"
+            },
+            "confirmDelivery": "تأكيد التسليم",
+            "selectAgent": "اختر الوكيل",
             "status": {
                 "pending": "قيد الانتظار",
+                "approved": "موافق عليه",
                 "completed": "مكتمل",
                 "rejected": "مرفوض"
             },
@@ -595,10 +636,12 @@
             "fees": {
                 "title": "الرسوم والعمولات",
                 "depositFee": "رسوم الإيداع",
+                "depositDescription": "عمولة الإيداع: يتم خصمها عند قيام المستخدم بإيداع نقدي لدى الوكيل.",
                 "withdrawFee": "رسوم السحب",
                 "transferFee": "رسوم التحويل",
                 "paymentFee": "رسوم الدفع QR",
                 "agentCommission": "عمولة الوكيل",
+                "agentShareDescription": "حصة الوكيل: هي النسبة التي يحصل عليها الوكيل من إجمالي رسوم الإيداع والسحب.",
                 "settlementPlatform": "عمولة المنصة من التسوية",
                 "settlementAgent": "عمولة الوكيل من التسوية"
             },
@@ -616,13 +659,6 @@
                 "used": "مستخدم",
                 "expired": "منتهي"
             }
-        },
-        "exchangeRates": {
-            "title": "أسعار الصرف",
-            "depositRate": "سعر الإيداع",
-            "withdrawRate": "سعر السحب",
-            "save": "حفظ الأسعار",
-            "lastUpdate": "آخر تحديث"
         },
         "ledger": {
             "title": "دفتر الأستاذ",

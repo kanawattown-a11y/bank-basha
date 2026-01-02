@@ -9,17 +9,32 @@ import {
     DocumentTextIcon,
     CheckCircleIcon,
     ClockIcon,
+    BanknotesIcon,
+    PlusCircleIcon,
+    ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 
 interface Settlement {
     id: string;
     settlementNumber: string;
-    cashCollected: number;
-    platformShare: number;
-    agentShare: number;
-    amountDue: number;
+    type: string;
+    requestedAmount: number;
+    cashCollected?: number;
+    platformShare?: number;
+    agentShare?: number;
+    amountDue?: number;
+    creditGiven?: number;
+    cashToReceive?: number;
+    deliveryStatus?: string;
     status: string;
     createdAt: string;
+}
+
+interface AgentData {
+    cashCollected: number;
+    currentCredit: number;
+    creditLimit: number;
+    pendingDebt: number;
 }
 
 export default function AgentSettlementPage() {
@@ -28,13 +43,33 @@ export default function AgentSettlementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [settlements, setSettlements] = useState<Settlement[]>([]);
-    const [cashCollected, setCashCollected] = useState(0);
+    const [agentData, setAgentData] = useState<AgentData | null>(null);
+    const [settlementType, setSettlementType] = useState<'CASH_TO_CREDIT' | 'CREDIT_REQUEST' | 'CASH_REQUEST'>('CASH_TO_CREDIT');
+    const [amount, setAmount] = useState('');
     const [notes, setNotes] = useState('');
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+    // System settings (fetch from API in production)
+    const [platformCommission, setPlatformCommission] = useState(2);
+    const [agentCommission, setAgentCommission] = useState(1);
+
     useEffect(() => {
         fetchData();
+        fetchSettings();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/system/settings');
+            if (res.ok) {
+                const data = await res.json();
+                setPlatformCommission(data.settlementPlatformCommission || 2);
+                setAgentCommission(data.settlementAgentCommission || 1);
+            }
+        } catch (error) {
+            console.error('Failed to fetch settings:', error);
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -45,7 +80,12 @@ export default function AgentSettlementPage() {
 
             if (dashRes.ok) {
                 const data = await dashRes.json();
-                setCashCollected(data.cashCollected || 0);
+                setAgentData({
+                    cashCollected: data.cashCollected || 0,
+                    currentCredit: data.currentCredit || 0,
+                    creditLimit: data.creditLimit || 0,
+                    pendingDebt: data.pendingDebt || 0,
+                });
             }
 
             if (settleRes.ok) {
@@ -59,15 +99,52 @@ export default function AgentSettlementPage() {
         }
     };
 
+    const getMaxAmount = () => {
+        if (!agentData) return 0;
+        if (settlementType === 'CASH_TO_CREDIT') {
+            return agentData.cashCollected;
+        } else if (settlementType === 'CREDIT_REQUEST') {
+            return agentData.creditLimit - agentData.currentCredit - agentData.pendingDebt;
+        } else if (settlementType === 'CASH_REQUEST') {
+            return agentData.currentCredit;
+        }
+        return 0;
+    };
+
+    const calculatePreview = () => {
+        const amt = parseFloat(amount) || 0;
+        if (settlementType === 'CASH_TO_CREDIT') {
+            const platformFee = amt * (platformCommission / 100);
+            const agentFee = amt * (agentCommission / 100);
+            const netCredit = amt - platformFee - agentFee;
+            return { platformFee, agentFee, netCredit };
+        }
+        return null;
+    };
+
     const handleRequestSettlement = async () => {
         setIsSubmitting(true);
         setMessage(null);
 
         try {
+            const amt = parseFloat(amount);
+            if (!amt || amt < 10) {
+                throw new Error('Minimum settlement amount is $10');
+            }
+
+            const maxAmount = getMaxAmount();
+            if (amt > maxAmount) {
+                throw new Error(`Maximum available: $${maxAmount}`);
+            }
+
             const response = await fetch('/api/agents/settlements', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ notes }),
+                body: JSON.stringify({
+                    type: settlementType,
+                    amount: amt,
+                    notes
+                }),
             });
 
             const data = await response.json();
@@ -80,6 +157,7 @@ export default function AgentSettlementPage() {
                 type: 'success',
                 text: t('common.success'),
             });
+            setAmount('');
             setNotes('');
             fetchData();
         } catch (err) {
@@ -108,12 +186,27 @@ export default function AgentSettlementPage() {
         switch (status) {
             case 'PENDING':
                 return <span className="badge-warning">{t('common.pending')}</span>;
+            case 'APPROVED':
+                return <span className="badge-info">Approved</span>;
             case 'COMPLETED':
                 return <span className="badge-success">{t('common.completed')}</span>;
             case 'REJECTED':
                 return <span className="badge-error">{t('common.rejected')}</span>;
             default:
                 return <span className="badge">{status}</span>;
+        }
+    };
+
+    const getTypeBadge = (type: string) => {
+        switch (type) {
+            case 'CASH_TO_CREDIT':
+                return <span className="badge-primary">💵→💳 Cash to Credit</span>;
+            case 'CREDIT_REQUEST':
+                return <span className="badge-secondary">📈 Credit Request</span>;
+            case 'CASH_REQUEST':
+                return <span className="badge-accent">💰 Cash Request</span>;
+            default:
+                return <span className="badge">{type}</span>;
         }
     };
 
@@ -124,6 +217,13 @@ export default function AgentSettlementPage() {
             </div>
         );
     }
+
+    if (!agentData) {
+        return <div>Error loading data</div>;
+    }
+
+    const maxAmount = getMaxAmount();
+    const preview = calculatePreview();
 
     return (
         <div className="min-h-screen bg-dark-950">
@@ -142,30 +242,151 @@ export default function AgentSettlementPage() {
             <main className="pt-24 pb-8 px-4">
                 <div className="max-w-2xl mx-auto space-y-6">
 
-                    {/* Current Balance Card */}
+                    {/* Balance Cards */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="card p-4">
+                            <div className="text-sm text-dark-400 mb-1">Cash Balance</div>
+                            <div className="text-2xl font-bold text-white">{formatAmount(agentData.cashCollected)} $</div>
+                            <div className="text-xs text-dark-500 mt-1">
+                                {settlementType === 'CASH_TO_CREDIT' && '✅ Can convert'}
+                                {settlementType === 'CASH_REQUEST' && '⚠️ Need more'}
+                            </div>
+                        </div>
+                        <div className="card p-4">
+                            <div className="text-sm text-dark-400 mb-1">Digital Credit</div>
+                            <div className="text-2xl font-bold text-white">{formatAmount(agentData.currentCredit)} $</div>
+                            <div className="text-xs text-dark-500 mt-1">
+                                {settlementType === 'CREDIT_REQUEST' && `Available: ${formatAmount(maxAmount)} $`}
+                                {settlementType === 'CASH_REQUEST' && '✅ Can convert'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Settlement Type Selector */}
                     <div className="card p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-white">{t('agent.dashboard.cashCollected')}</h2>
-                            <DocumentTextIcon className="w-6 h-6 text-primary-500" />
+                        <h3 className="text-lg font-semibold text-white mb-4">Settlement Type</h3>
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                            <button
+                                onClick={() => { setSettlementType('CASH_TO_CREDIT'); setAmount(''); }}
+                                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${settlementType === 'CASH_TO_CREDIT'
+                                        ? 'border-primary-500 bg-primary-500/10'
+                                        : 'border-dark-700 bg-dark-800 hover:border-dark-600'
+                                    }`}
+                            >
+                                <BanknotesIcon className="w-6 h-6 text-primary-500" />
+                                <span className="text-xl">💵→💳</span>
+                                <span className="text-xs text-center text-dark-300">Cash to Credit</span>
+                            </button>
+                            <button
+                                onClick={() => { setSettlementType('CREDIT_REQUEST'); setAmount(''); }}
+                                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${settlementType === 'CREDIT_REQUEST'
+                                        ? 'border-secondary-500 bg-secondary-500/10'
+                                        : 'border-dark-700 bg-dark-800 hover:border-dark-600'
+                                    }`}
+                            >
+                                <PlusCircleIcon className="w-6 h-6 text-secondary-500" />
+                                <span className="text-xl">📈</span>
+                                <span className="text-xs text-center text-dark-300">Credit Request</span>
+                            </button>
+                            <button
+                                onClick={() => { setSettlementType('CASH_REQUEST'); setAmount(''); }}
+                                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${settlementType === 'CASH_REQUEST'
+                                        ? 'border-accent-500 bg-accent-500/10'
+                                        : 'border-dark-700 bg-dark-800 hover:border-dark-600'
+                                    }`}
+                            >
+                                <ArrowDownTrayIcon className="w-6 h-6 text-accent-500" />
+                                <span className="text-xl">💰</span>
+                                <span className="text-xs text-center text-dark-300">Cash Request</span>
+                            </button>
                         </div>
 
-                        <div className="text-4xl font-bold text-gradient mb-2">
-                            {formatAmount(cashCollected)} $
+                        {/* Amount Input */}
+                        <div className="mb-4">
+                            <label className="block text-dark-300 text-sm mb-2">
+                                Amount (${formatAmount(10)} - ${formatAmount(maxAmount)})
+                            </label>
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                max={maxAmount}
+                                min={10}
+                                step="0.01"
+                                className="input w-full"
+                                placeholder="Enter amount"
+                            />
+                            <p className="text-sm text-dark-400 mt-1">
+                                Available: ${formatAmount(maxAmount)}
+                            </p>
                         </div>
-                        <p className="text-dark-400 text-sm mb-6">
-                            {t('agent.settlement.description')}
-                        </p>
 
-                        {message && (
-                            <div className={`mb-4 p-3 rounded-xl text-sm ${message.type === 'success'
-                                ? 'bg-green-500/10 text-green-400'
-                                : 'bg-red-500/10 text-red-400'
-                                }`}>
-                                {message.text}
+                        {/* Preview */}
+                        {amount && parseFloat(amount) >= 10 && (
+                            <div className="card bg-dark-800 p-4 mb-4">
+                                <h4 className="font-semibold text-white mb-3">Preview:</h4>
+                                {settlementType === 'CASH_TO_CREDIT' && preview && (
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Cash to Give:</span>
+                                            <span className="text-white font-medium">${formatAmount(parseFloat(amount))}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Platform Fee ({platformCommission}%):</span>
+                                            <span className="text-red-400">-${formatAmount(preview.platformFee)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Agent Fee ({agentCommission}%):</span>
+                                            <span className="text-red-400">-${formatAmount(preview.agentFee)}</span>
+                                        </div>
+                                        <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
+                                            <span className="text-dark-300">Credit You'll Receive:</span>
+                                            <span className="text-primary-500">${formatAmount(preview.netCredit)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {settlementType === 'CREDIT_REQUEST' && (
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Credit Requested:</span>
+                                            <span className="text-white font-medium">${formatAmount(parseFloat(amount))}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Current Debt:</span>
+                                            <span className="text-orange-400">${formatAmount(agentData.pendingDebt)}</span>
+                                        </div>
+                                        <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
+                                            <span className="text-dark-300">New Total Debt:</span>
+                                            <span className="text-red-500">${formatAmount(agentData.pendingDebt + parseFloat(amount))}</span>
+                                        </div>
+                                        <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                                            <p className="text-xs text-orange-400">⚠️ This is a loan - you'll need to repay later</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {settlementType === 'CASH_REQUEST' && (
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Cash Needed:</span>
+                                            <span className="text-white font-medium">${formatAmount(parseFloat(amount))}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-dark-300">Credit to Deduct:</span>
+                                            <span className="text-red-400">-${formatAmount(parseFloat(amount))}</span>
+                                        </div>
+                                        <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
+                                            <span className="text-dark-300">Cash You'll Receive:</span>
+                                            <span className="text-green-500">${formatAmount(parseFloat(amount))}</span>
+                                        </div>
+                                        <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                            <p className="text-xs text-blue-400">ℹ️ Admin will arrange cash delivery</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        {/* Notes Field */}
+                        {/* Notes */}
                         <div className="mb-4">
                             <label className="block text-dark-300 text-sm mb-2">
                                 {t('common.note')} ({t('common.optional')})
@@ -174,35 +395,40 @@ export default function AgentSettlementPage() {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 className="input w-full min-h-[80px]"
-                                placeholder={t('agent.settlement.notesPlaceholder')}
+                                placeholder="Add notes (optional)"
                             />
                         </div>
 
+                        {/* Messages */}
+                        {message && (
+                            <div className={`mb-4 p-3 rounded-xl text-sm ${message.type === 'success'
+                                    ? 'bg-green-500/10 text-green-400'
+                                    : 'bg-red-500/10 text-red-400'
+                                }`}>
+                                {message.text}
+                            </div>
+                        )}
+
+                        {/* Submit Button */}
                         <button
                             onClick={handleRequestSettlement}
                             className="btn-primary w-full"
-                            disabled={isSubmitting || cashCollected < 10}
+                            disabled={isSubmitting || !amount || parseFloat(amount) < 10 || parseFloat(amount) > maxAmount}
                         >
                             {isSubmitting ? (
                                 <div className="spinner w-5 h-5"></div>
                             ) : (
                                 <>
                                     <DocumentTextIcon className="w-5 h-5" />
-                                    <span>{t('agent.settlement.request')}</span>
+                                    <span>Request Settlement</span>
                                 </>
                             )}
                         </button>
-
-                        {cashCollected < 10 && (
-                            <p className="text-dark-500 text-sm text-center mt-3">
-                                {t('agent.settlement.minimum')}
-                            </p>
-                        )}
                     </div>
 
                     {/* Settlement History */}
                     <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">{t('agent.settlement.history')}</h3>
+                        <h3 className="text-lg font-semibold text-white mb-4">Settlement History</h3>
 
                         {settlements.length === 0 ? (
                             <div className="text-center py-8 text-dark-400">
@@ -217,12 +443,20 @@ export default function AgentSettlementPage() {
                                             <span className="text-white font-medium">{settlement.settlementNumber}</span>
                                             {getStatusBadge(settlement.status)}
                                         </div>
+                                        <div className="mb-2">
+                                            {getTypeBadge(settlement.type)}
+                                        </div>
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-dark-400">{formatDate(settlement.createdAt)}</span>
                                             <span className="text-primary-500 font-semibold">
-                                                {formatAmount(settlement.amountDue)} $
+                                                ${formatAmount(settlement.requestedAmount)}
                                             </span>
                                         </div>
+                                        {settlement.deliveryStatus && (
+                                            <div className="mt-2 text-xs text-blue-400">
+                                                Delivery: {settlement.deliveryStatus}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

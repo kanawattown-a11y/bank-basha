@@ -149,7 +149,6 @@ export default function AdminDashboard() {
         { id: 'settlements', icon: DocumentTextIcon, label: t('admin.settlements.title'), link: '/admin/settlements' },
         { id: 'support', icon: TicketIcon, label: t('support.title'), link: '/admin/support' },
         { id: 'password-requests', icon: ShieldExclamationIcon, label: t('admin.passwordRequests.title'), link: '/admin/password-requests' },
-        { id: 'exchange-rates', icon: BanknotesIcon, label: t('admin.exchangeRates.title'), link: '/admin/exchange-rates' },
         { id: 'ledger', icon: ChartBarIcon, label: t('admin.ledger.title'), link: '/admin/ledger' },
         { id: 'advanced-settings', icon: ExclamationTriangleIcon, label: t('admin.settings.advancedSettings'), link: '/admin/advanced-settings' },
         { id: 'bin', icon: TrashIcon, label: t('admin.bin.title'), link: '/admin/bin' },

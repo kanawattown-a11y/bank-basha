@@ -102,6 +102,7 @@ export async function GET(request: NextRequest) {
 
                 todayTransactions,
                 pendingSettlement: pendingSettlements._sum.amountDue || 0,
+                pendingDebt: agentProfile.pendingDebt || 0,
                 agentCode: agent.agentProfile.agentCode,
                 businessName: agent.agentProfile.businessName,
                 businessNameAr: agent.agentProfile.businessNameAr,

@@ -86,15 +86,50 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Parse request body
+        const body = await request.json();
+        const { type, amount, notes } = body;
 
-        // Check if there's any cash to settle
-        if (agentProfile.cashCollected <= 0) {
+        // Validate settlement type
+        if (!['CASH_TO_CREDIT', 'CREDIT_REQUEST', 'CASH_REQUEST'].includes(type)) {
             return NextResponse.json(
-                { error: 'No cash available for settlement' },
+                { error: 'Invalid settlement type' },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
 
+        // Validate amount
+        if (!amount || amount < 10) {
+            return NextResponse.json(
+                { error: 'Minimum settlement amount is $10' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Type-specific validations
+        if (type === 'CASH_TO_CREDIT') {
+            if (amount > agentProfile.cashCollected) {
+                return NextResponse.json(
+                    { error: `Insufficient cash balance. Available: $${agentProfile.cashCollected}` },
+                    { status: 400, headers: getSecurityHeaders() }
+                );
+            }
+        } else if (type === 'CREDIT_REQUEST') {
+            const availableCredit = agentProfile.creditLimit - agentProfile.currentCredit - agentProfile.pendingDebt;
+            if (amount > availableCredit) {
+                return NextResponse.json(
+                    { error: `Insufficient credit limit. Available: $${availableCredit}` },
+                    { status: 400, headers: getSecurityHeaders() }
+                );
+            }
+        } else if (type === 'CASH_REQUEST') {
+            if (amount > agentProfile.currentCredit) {
+                return NextResponse.json(
+                    { error: `Insufficient digital credit. Available: $${agentProfile.currentCredit}` },
+                    { status: 400, headers: getSecurityHeaders() }
+                );
+            }
+        }
 
         // Check for pending settlement
         const pendingSettlement = await prisma.settlement.findFirst({
@@ -111,7 +146,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Fetch system settings for dynamic commission rates
+        // Fetch system settings for commission rates
         const settings = await prisma.systemSettings.findFirst();
         if (!settings) {
             return NextResponse.json(
@@ -120,33 +155,46 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get notes from request body
-        let notes = '';
-        try {
-            const body = await request.json();
-            notes = body.notes || '';
-        } catch {
-            // No body or invalid JSON, notes will be empty
-        }
+        // Prepare settlement data based on type
+        let settlementData: any = {
+            settlementNumber: generateReferenceNumber('STL'),
+            agentId: agentProfile.id,
+            type,
+            requestedAmount: amount,
+            status: 'PENDING',
+            notes: notes || null,
+        };
 
-        // Calculate amounts using dynamic commission rates
-        const cashCollected = agentProfile.cashCollected;
-        const platformShare = cashCollected * (settings.settlementPlatformCommission / 100);
-        const agentShare = cashCollected * (settings.settlementAgentCommission / 100);
-        const amountDue = cashCollected - platformShare - agentShare;
+        // Type-specific calculations
+        if (type === 'CASH_TO_CREDIT') {
+            const platformShare = amount * (settings.settlementPlatformCommission / 100);
+            const agentShare = amount * (settings.settlementAgentCommission / 100);
+            const amountDue = amount - platformShare - agentShare;
 
-        const settlement = await prisma.settlement.create({
-            data: {
-                settlementNumber: generateReferenceNumber('STL'),
-                agentId: agentProfile.id,
-                creditUsed: agentProfile.currentCredit,
-                cashCollected,
+            settlementData = {
+                ...settlementData,
+                cashCollected: amount,
                 platformShare,
                 agentShare,
                 amountDue,
-                status: 'PENDING',
-                notes: notes || null,
-            },
+                creditUsed: agentProfile.currentCredit,
+            };
+        } else if (type === 'CREDIT_REQUEST') {
+            settlementData = {
+                ...settlementData,
+                creditGiven: amount,
+            };
+        } else if (type === 'CASH_REQUEST') {
+            settlementData = {
+                ...settlementData,
+                cashToReceive: amount,
+                creditDeducted: amount,
+                deliveryStatus: 'PENDING',
+            };
+        }
+
+        const settlement = await prisma.settlement.create({
+            data: settlementData,
         });
 
         // Notify admins
@@ -155,6 +203,13 @@ export async function POST(request: NextRequest) {
             select: { id: true, fcmToken: true },
         });
 
+        const typeLabels: Record<string, { en: string; ar: string }> = {
+            CASH_TO_CREDIT: { en: 'Cash to Credit', ar: 'نقد إلى رصيد' },
+            CREDIT_REQUEST: { en: 'Credit Request', ar: 'طلب رصيد' },
+            CASH_REQUEST: { en: 'Cash Request', ar: 'طلب نقد' },
+        };
+
+        const typeLabel = typeLabels[type];
         const notesText = notes ? `\nNote: ${notes}` : '';
         const notesTextAr = notes ? `\nملاحظة: ${notes}` : '';
 
@@ -162,21 +217,21 @@ export async function POST(request: NextRequest) {
             data: admins.map(admin => ({
                 userId: admin.id,
                 type: 'SYSTEM',
-                title: 'New Settlement Request',
-                titleAr: 'طلب تسوية جديد',
-                message: `Agent ${agentProfile.businessName} requested a settlement of ${amountDue} $${notesText}`,
-                messageAr: `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} تسوية بقيمة ${amountDue} $${notesTextAr}`,
+                title: `New ${typeLabel.en} Request`,
+                titleAr: `طلب ${typeLabel.ar} جديد`,
+                message: `Agent ${agentProfile.businessName} requested ${typeLabel.en.toLowerCase()} of $${amount}${notesText}`,
+                messageAr: `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} ${typeLabel.ar} بقيمة $${amount}${notesTextAr}`,
             })),
         });
 
-        // Send push notifications to admins
+        // Send push notifications
         const { sendPushNotification } = await import('@/lib/firebase/admin');
         for (const admin of admins) {
             if (admin.fcmToken) {
                 sendPushNotification(
                     admin.fcmToken,
-                    '💰 طلب تسوية جديد',
-                    `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} تسوية بقيمة ${amountDue} $`,
+                    `💰 طلب ${typeLabel.ar} جديد`,
+                    `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} ${typeLabel.ar} بقيمة $${amount}`,
                     { type: 'SETTLEMENT_REQUEST', url: '/admin/settlements' }
                 ).catch(err => console.error('Push notification error:', err));
             }
