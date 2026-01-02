@@ -67,12 +67,17 @@ export async function POST(request: NextRequest) {
             // 1. Debit Central Bank (goes negative - source of all money)
             const centralBank = await tx.user.findFirst({
                 where: { phone: 'CENTRAL_BANK' },
-                include: { wallet: true },
+                include: { wallets: true },
             });
 
-            if (centralBank?.wallet) {
+            // Find central bank wallet for the specified currency
+            const centralBankWallet = (centralBank?.wallets as any[])?.find(
+                (w: { currency: string }) => w.currency === currency
+            );
+
+            if (centralBankWallet) {
                 await tx.wallet.update({
-                    where: { id: centralBank.wallet.id },
+                    where: { id: centralBankWallet.id },
                     data: { balance: { decrement: amount } }, // Goes negative
                 });
             }
