@@ -188,6 +188,7 @@ export async function calculateCommission(
 
 /**
  * Process a deposit (User receives digital balance from Agent)
+ * Supports dual currency (USD / SYP)
  * 
  * Accounting:
  * - User wallet: +netAmount (receives digital money)
@@ -198,7 +199,8 @@ export async function processDeposit(
     userId: string,
     agentId: string,
     amount: number,
-    createdBy?: string
+    createdBy?: string,
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<TransactionResult> {
     try {
         // Validate amount
@@ -209,35 +211,51 @@ export async function processDeposit(
         // Get system settings for validation
         const settings = await getSystemSettings();
 
-        // Validate against min/max limits
-        if (amount < settings.minTransactionAmount) {
-            return { success: false, error: `Minimum transaction amount is $${settings.minTransactionAmount}` };
+        // Validate against min/max limits (adjust for currency)
+        const minAmount = currency === 'SYP' ? settings.minTransactionAmount * 15000 : settings.minTransactionAmount;
+        const maxAmount = currency === 'SYP' ? settings.maxTransactionAmount * 15000 : settings.maxTransactionAmount;
+        const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
+
+        if (amount < minAmount) {
+            return { success: false, error: `الحد الأدنى للمعاملة هو ${currencySymbol}${minAmount.toLocaleString()}` };
         }
-        if (amount > settings.maxTransactionAmount) {
-            return { success: false, error: `Maximum transaction amount is $${settings.maxTransactionAmount}` };
+        if (amount > maxAmount) {
+            return { success: false, error: `الحد الأقصى للمعاملة هو ${currencySymbol}${maxAmount.toLocaleString()}` };
         }
 
         return await prisma.$transaction(async (tx) => {
-            // Get user and agent
+            // Get user and agent with their wallets
             const user = await tx.user.findUnique({
                 where: { id: userId },
-                include: { wallet: true },
+                include: { wallets: true },
             });
             const agent = await tx.user.findUnique({
                 where: { id: agentId },
-                include: { wallet: true, agentProfile: true },
+                include: { wallets: true, agentProfile: true },
             });
 
-            if (!user || !user.wallet) {
-                return { success: false, error: 'User not found or wallet not created' };
+            if (!user) {
+                return { success: false, error: 'User not found' };
             }
             if (!agent || !agent.agentProfile) {
                 return { success: false, error: 'Agent not found or not registered' };
             }
 
-            // Check agent has enough credit
-            if (agent.agentProfile.currentCredit < amount) {
-                return { success: false, error: `Insufficient credit. Available: $${agent.agentProfile.currentCredit.toFixed(2)}` };
+            // Get user's wallet for this currency
+            const userWallet = user.wallets.find(
+                (w: { currency: string; walletType: string }) => w.currency === currency && w.walletType === 'PERSONAL'
+            );
+            if (!userWallet) {
+                return { success: false, error: `المستخدم ليس لديه محفظة بـ${currency === 'SYP' ? 'الليرة السورية' : 'الدولار'}` };
+            }
+
+            // Check agent has enough credit for this currency
+            const agentCredit = currency === 'SYP'
+                ? agent.agentProfile.currentCreditSYP
+                : agent.agentProfile.currentCredit;
+
+            if (agentCredit < amount) {
+                return { success: false, error: `رصيد الائتمان غير كافي. المتاح: ${currencySymbol}${agentCredit.toLocaleString()}` };
             }
 
             // Calculate commission from system settings
@@ -252,19 +270,30 @@ export async function processDeposit(
 
             // 1. User wallet INCREASES (receives digital balance)
             await tx.wallet.update({
-                where: { id: user.wallet.id },
+                where: { id: userWallet.id },
                 data: { balance: { increment: netAmount } },
             });
 
-            // 2. Agent credit DECREASES (gives money), cash INCREASES (collects cash)
-            await tx.agentProfile.update({
-                where: { id: agent.agentProfile.id },
-                data: {
-                    currentCredit: { decrement: amount }, // Uses credit
-                    cashCollected: { increment: amount }, // Collects cash
-                    totalDeposits: { increment: amount },
-                },
-            });
+            // 2. Agent credit DECREASES, cash INCREASES - based on currency
+            if (currency === 'SYP') {
+                await tx.agentProfile.update({
+                    where: { id: agent.agentProfile.id },
+                    data: {
+                        currentCreditSYP: { decrement: amount },
+                        cashCollectedSYP: { increment: amount },
+                        totalDepositsSYP: { increment: amount },
+                    },
+                });
+            } else {
+                await tx.agentProfile.update({
+                    where: { id: agent.agentProfile.id },
+                    data: {
+                        currentCredit: { decrement: amount },
+                        cashCollected: { increment: amount },
+                        totalDeposits: { increment: amount },
+                    },
+                });
+            }
 
             // 3. Create transaction record
             const transaction = await tx.transaction.create({
@@ -280,6 +309,7 @@ export async function processDeposit(
                     platformFee,
                     agentFee,
                     netAmount,
+                    currency, // USD or SYP
                     description: `Deposit from ${agent.agentProfile.businessName}`,
                     descriptionAr: `إيداع من ${agent.agentProfile.businessNameAr || agent.agentProfile.businessName}`,
                     completedAt: new Date(),
@@ -300,6 +330,7 @@ export async function processDeposit(
 
 /**
  * Process a withdrawal (User receives cash from Agent)
+ * Supports dual currency (USD / SYP)
  * 
  * Accounting:
  * - User wallet: -amount (gives up digital balance)
@@ -314,7 +345,8 @@ export async function processWithdrawal(
     userId: string,
     agentId: string,
     amount: number,
-    createdBy?: string
+    createdBy?: string,
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<TransactionResult> {
     try {
         // Validate amount
@@ -325,29 +357,41 @@ export async function processWithdrawal(
         // Get system settings for validation
         const settings = await getSystemSettings();
 
-        // Validate against min/max limits
-        if (amount < settings.minTransactionAmount) {
-            return { success: false, error: `Minimum transaction amount is $${settings.minTransactionAmount}` };
+        // Validate against min/max limits (adjust for currency)
+        const minAmount = currency === 'SYP' ? settings.minTransactionAmount * 15000 : settings.minTransactionAmount;
+        const maxAmount = currency === 'SYP' ? settings.maxTransactionAmount * 15000 : settings.maxTransactionAmount;
+        const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
+
+        if (amount < minAmount) {
+            return { success: false, error: `الحد الأدنى للمعاملة هو ${currencySymbol}${minAmount.toLocaleString()}` };
         }
-        if (amount > settings.maxTransactionAmount) {
-            return { success: false, error: `Maximum transaction amount is $${settings.maxTransactionAmount}` };
+        if (amount > maxAmount) {
+            return { success: false, error: `الحد الأقصى للمعاملة هو ${currencySymbol}${maxAmount.toLocaleString()}` };
         }
 
         return await prisma.$transaction(async (tx) => {
             const user = await tx.user.findUnique({
                 where: { id: userId },
-                include: { wallet: true },
+                include: { wallets: true },
             });
             const agent = await tx.user.findUnique({
                 where: { id: agentId },
-                include: { wallet: true, agentProfile: true },
+                include: { wallets: true, agentProfile: true },
             });
 
-            if (!user || !user.wallet) {
+            if (!user) {
                 return { success: false, error: 'User not found' };
             }
             if (!agent || !agent.agentProfile) {
                 return { success: false, error: 'Agent not found' };
+            }
+
+            // Get user's wallet for this currency
+            const userWallet = user.wallets.find(
+                (w: { currency: string; walletType: string }) => w.currency === currency && w.walletType === 'PERSONAL'
+            );
+            if (!userWallet) {
+                return { success: false, error: `ليس لديك محفظة بـ${currency === 'SYP' ? 'الليرة السورية' : 'الدولار'}` };
             }
 
             // ═══════════════════════════════════════════════════════════════
@@ -355,13 +399,17 @@ export async function processWithdrawal(
             // ═══════════════════════════════════════════════════════════════
 
             // 1. User must have sufficient balance
-            if (user.wallet.balance < amount) {
-                return { success: false, error: `Insufficient balance. Available: $${user.wallet.balance.toFixed(2)}` };
+            if (userWallet.balance < amount) {
+                return { success: false, error: `رصيد غير كافي. المتاح: ${currencySymbol}${userWallet.balance.toLocaleString()}` };
             }
 
-            // 2. Agent must have sufficient cash to give
-            if (agent.agentProfile.cashCollected < amount) {
-                return { success: false, error: `Agent has insufficient cash. Available: $${agent.agentProfile.cashCollected.toFixed(2)}` };
+            // 2. Agent must have sufficient cash to give (based on currency)
+            const agentCash = currency === 'SYP'
+                ? agent.agentProfile.cashCollectedSYP
+                : agent.agentProfile.cashCollected;
+
+            if (agentCash < amount) {
+                return { success: false, error: `الوكيل ليس لديه نقد كافي. المتاح: ${currencySymbol}${agentCash.toLocaleString()}` };
             }
 
             // Calculate commission from system settings
@@ -375,19 +423,30 @@ export async function processWithdrawal(
 
             // 1. User wallet DECREASES (gives up digital balance)
             await tx.wallet.update({
-                where: { id: user.wallet.id },
+                where: { id: userWallet.id },
                 data: { balance: { decrement: amount } },
             });
 
-            // 2. Agent credit INCREASES (receives balance back), cash DECREASES (gives cash)
-            await tx.agentProfile.update({
-                where: { id: agent.agentProfile.id },
-                data: {
-                    currentCredit: { increment: netAmount }, // Gets credit back
-                    cashCollected: { decrement: amount }, // Gives cash to user
-                    totalWithdrawals: { increment: amount }, // Track stats
-                },
-            });
+            // 2. Agent credit INCREASES, cash DECREASES - based on currency
+            if (currency === 'SYP') {
+                await tx.agentProfile.update({
+                    where: { id: agent.agentProfile.id },
+                    data: {
+                        currentCreditSYP: { increment: netAmount },
+                        cashCollectedSYP: { decrement: amount },
+                        totalWithdrawalsSYP: { increment: amount },
+                    },
+                });
+            } else {
+                await tx.agentProfile.update({
+                    where: { id: agent.agentProfile.id },
+                    data: {
+                        currentCredit: { increment: netAmount },
+                        cashCollected: { decrement: amount },
+                        totalWithdrawals: { increment: amount },
+                    },
+                });
+            }
 
             // 3. Create transaction record
             const transaction = await tx.transaction.create({
@@ -403,6 +462,7 @@ export async function processWithdrawal(
                     platformFee,
                     agentFee,
                     netAmount,
+                    currency, // USD or SYP
                     description: `Withdrawal at ${agent.agentProfile.businessName}`,
                     descriptionAr: `سحب من ${agent.agentProfile.businessNameAr || agent.agentProfile.businessName}`,
                     completedAt: new Date(),
@@ -422,54 +482,77 @@ export async function processWithdrawal(
 }
 
 /**
- * Process P2P transfer
+ * Process P2P transfer with dual currency support
  */
 export async function processTransfer(
     senderId: string,
     receiverId: string,
     amount: number,
-    note?: string
+    note?: string,
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<TransactionResult> {
     try {
         return await prisma.$transaction(async (tx) => {
+            // Get sender and receiver with their wallets
             const sender = await tx.user.findUnique({
                 where: { id: senderId },
-                include: { wallet: true },
+                include: { wallets: true },
             });
             const receiver = await tx.user.findUnique({
                 where: { id: receiverId },
-                include: { wallet: true },
+                include: { wallets: true },
             });
 
-            if (!sender || !sender.wallet) {
+            if (!sender) {
                 return { success: false, error: 'Sender not found' };
             }
-            if (!receiver || !receiver.wallet) {
+            if (!receiver) {
                 return { success: false, error: 'Receiver not found' };
             }
             if (senderId === receiverId) {
                 return { success: false, error: 'Cannot transfer to yourself' };
             }
 
-            const { platformFee, totalFee, netAmount } = await calculateCommission(amount, 'TRANSFER');
+            // Get the correct wallet for the currency
+            const senderWallet = sender.wallets.find(
+                w => w.currency === currency && w.walletType === 'PERSONAL'
+            );
+            const receiverWallet = receiver.wallets.find(
+                w => w.currency === currency && w.walletType === 'PERSONAL'
+            );
+
+            if (!senderWallet) {
+                const currencyName = currency === 'SYP' ? 'الليرة السورية' : 'الدولار';
+                return { success: false, error: `ليس لديك محفظة بـ${currencyName}` };
+            }
+            if (!receiverWallet) {
+                const currencyName = currency === 'SYP' ? 'الليرة السورية' : 'الدولار';
+                return { success: false, error: `المستلم ليس لديه محفظة بـ${currencyName}` };
+            }
+
+            const { platformFee, totalFee } = await calculateCommission(amount, 'TRANSFER');
 
             // Validation: Sender cannot go negative
             const requiredBalance = amount + totalFee;
-            if (sender.wallet.balance < requiredBalance) {
-                return { success: false, error: `Insufficient balance. Available: $${sender.wallet.balance.toFixed(2)}, Required: $${requiredBalance.toFixed(2)}` };
+            if (senderWallet.balance < requiredBalance) {
+                const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
+                return {
+                    success: false,
+                    error: `رصيد غير كافي. المتاح: ${currencySymbol}${senderWallet.balance.toLocaleString()}, المطلوب: ${currencySymbol}${requiredBalance.toLocaleString()}`
+                };
             }
 
             const referenceNumber = generateReferenceNumber('TRF');
 
             // Deduct from sender (amount + fee)
             await tx.wallet.update({
-                where: { id: sender.wallet.id },
+                where: { id: senderWallet.id },
                 data: { balance: { decrement: amount + totalFee } },
             });
 
             // Add to receiver
             await tx.wallet.update({
-                where: { id: receiver.wallet.id },
+                where: { id: receiverWallet.id },
                 data: { balance: { increment: amount } },
             });
 
@@ -485,6 +568,7 @@ export async function processTransfer(
                     platformFee,
                     agentFee: 0,
                     netAmount: amount,
+                    currency, // USD or SYP
                     description: note || `Transfer to ${receiver.fullName}`,
                     descriptionAr: note || `تحويل إلى ${receiver.fullNameAr || receiver.fullName}`,
                     completedAt: new Date(),

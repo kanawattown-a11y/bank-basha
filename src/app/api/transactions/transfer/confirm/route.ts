@@ -106,12 +106,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // OTP is valid - Process the transfer
+        // OTP is valid - Process the transfer with the stored currency
         const transferResult = await processTransfer(
             payload.userId,
             otpRecord.recipientId,
             otpRecord.amount,
-            otpRecord.note ?? undefined
+            otpRecord.note ?? undefined,
+            (otpRecord as unknown as { currency: 'USD' | 'SYP' }).currency || 'USD'
         );
 
         if (!transferResult.success) {

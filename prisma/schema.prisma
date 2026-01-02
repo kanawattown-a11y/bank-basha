@@ -67,11 +67,9 @@ model User {
   // Business Account
   hasMerchantAccount  Boolean     @default(false)
   activeAccountType   String      @default("PERSONAL") // PERSONAL or BUSINESS
-  businessWalletId    String?     @unique
   
-  // Relations
-  wallet          Wallet?     @relation("PersonalWallet")
-  businessWallet  Wallet?     @relation("BusinessWallet", fields: [businessWalletId], references: [id])
+  // Relations - Multiple wallets per user (USD/SYP x PERSONAL/BUSINESS)
+  wallets         Wallet[]    @relation("UserWallets")
   kycDocuments    KYCDocument[]
   sentTransactions      Transaction[]   @relation("TransactionSender")
   receivedTransactions  Transaction[]   @relation("TransactionReceiver")
@@ -170,10 +168,10 @@ model ExchangeRate {
 
 model Wallet {
   id              String    @id @default(uuid())
-  userId          String?   @unique
+  userId          String
   balance         Float     @default(0)
   frozenBalance   Float     @default(0)
-  currency        String    @default("USD")
+  currency        String    @default("USD") // USD or SYP
   walletType      String    @default("PERSONAL") // PERSONAL or BUSINESS
   isActive        Boolean   @default(true)
   dailyLimit      Float     @default(1000000)
@@ -182,9 +180,11 @@ model Wallet {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
-  user            User?     @relation("PersonalWallet", fields: [userId], references: [id], onDelete: Cascade)
-  businessUser    User?     @relation("BusinessWallet")
+  user            User      @relation("UserWallets", fields: [userId], references: [id], onDelete: Cascade)
   
+  @@unique([userId, currency, walletType]) // Each user has one wallet per currency+type
+  @@index([userId])
+  @@index([currency])
   @@index([walletType])
 }
 
@@ -199,13 +199,19 @@ model AgentProfile {
   businessName    String
   businessNameAr  String?
   businessAddress String
+  // USD Stats
   creditLimit     Float     @default(0)
   currentCredit   Float     @default(0)
   cashCollected   Float     @default(0)
-  
-  // Stats
   totalDeposits   Float     @default(0)
   totalWithdrawals Float    @default(0)
+  
+  // SYP Stats
+  creditLimitSYP      Float     @default(0)
+  currentCreditSYP    Float     @default(0)
+  cashCollectedSYP    Float     @default(0)
+  totalDepositsSYP    Float     @default(0)
+  totalWithdrawalsSYP Float     @default(0)
   
   // Commission rates (override defaults if set)
   depositCommission   Float?
@@ -246,9 +252,13 @@ model MerchantProfile {
   // QR Code for payments
   qrCode          String    @unique
   
-  // Stats
+  // USD Stats
   totalSales      Float     @default(0)
   totalTransactions Int     @default(0)
+  
+  // SYP Stats
+  totalSalesSYP       Float     @default(0)
+  totalTransactionsSYP Int      @default(0)
   
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
@@ -928,6 +938,7 @@ model TransferOTP {
   
   // Transfer Details
   amount        Float
+  currency      String    @default("USD") // USD or SYP
   recipientId   String
   note          String?
   

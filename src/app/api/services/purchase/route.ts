@@ -9,6 +9,7 @@ const purchaseSchema = z.object({
     phoneNumber: z.string().min(9, 'رقم الهاتف مطلوب'),
     amount: z.number().positive().optional(),
     userInput: z.string().optional(),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
 });
 
 // POST - Purchase a service (with seller approval)
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { serviceId, phoneNumber, amount: customAmount, userInput } = result.data;
+        const { serviceId, phoneNumber, amount: customAmount, userInput, currency } = result.data;
 
         // Get service
         const service = await prisma.service.findUnique({
@@ -70,22 +71,27 @@ export async function POST(request: NextRequest) {
 
         const totalDeducted = amount;
 
-        // Get user wallet
-        const wallet = await prisma.wallet.findUnique({
-            where: { userId: payload.userId },
+        // Get user wallet based on currency
+        const wallet = await prisma.wallet.findFirst({
+            where: {
+                userId: payload.userId,
+                currency: currency,
+                walletType: 'PERSONAL',
+            },
         });
 
         if (!wallet) {
             return NextResponse.json(
-                { error: 'المحفظة غير موجودة' },
+                { error: `المحفظة غير موجودة (${currency})` },
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
 
         // Check balance
         if (wallet.balance < totalDeducted) {
+            const symbol = currency === 'USD' ? '$' : 'ل.س';
             return NextResponse.json(
-                { error: `رصيد غير كافي. المطلوب: $${totalDeducted.toFixed(2)}` },
+                { error: `رصيد غير كافي. المطلوب: ${totalDeducted.toFixed(2)} ${symbol}` },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }

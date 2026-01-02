@@ -16,15 +16,18 @@ import {
     GlobeAltIcon,
     CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
+import { CurrencyToggle, formatCurrencyAmount, type Currency } from '@/components/CurrencySelector';
 
 interface AgentData {
-    digitalBalance: number;
-    currentCredit: number;
-    cashCollected: number;
+    balances: { USD: number; SYP: number };
+    currentCredit: { USD: number; SYP: number };
+    cashCollected: { USD: number; SYP: number };
     todayTransactions: number;
     pendingSettlement: number;
     agentCode: string;
     businessName: string;
+    // Legacy fields
+    digitalBalance?: number;
 }
 
 export default function AgentDashboard() {
@@ -34,6 +37,7 @@ export default function AgentDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [agentData, setAgentData] = useState<AgentData | null>(null);
     const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
+    const [currency, setCurrency] = useState<Currency>('USD');
     const [formData, setFormData] = useState({ customerPhone: '', amount: '' });
     const [isProcessing, setIsProcessing] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -91,6 +95,7 @@ export default function AgentDashboard() {
                 body: JSON.stringify({
                     customerPhone: formData.customerPhone,
                     amount: parseFloat(formData.amount),
+                    currency, // Add currency
                 }),
             });
 
@@ -175,13 +180,15 @@ export default function AgentDashboard() {
             <main className="pt-20 pb-8 px-4">
                 <div className="max-w-6xl mx-auto space-y-6">
 
-                    {/* Stats Grid */}
+                    {/* Stats Grid - Dual Currency */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="stat-card">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-500/10 mx-auto mb-3">
                                 <BanknotesIcon className="w-6 h-6 text-primary-500" />
                             </div>
-                            <div className="stat-value text-gradient">${formatAmount(agentData?.currentCredit || 0)}</div>
+                            <div className="stat-value text-gradient">
+                                {formatCurrencyAmount(agentData?.currentCredit?.[currency] || agentData?.currentCredit?.USD || 0, currency)}
+                            </div>
                             <div className="stat-label">{t('agent.dashboard.balance')}</div>
                         </div>
 
@@ -189,7 +196,9 @@ export default function AgentDashboard() {
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-500/10 mx-auto mb-3">
                                 <BanknotesIcon className="w-6 h-6 text-green-500" />
                             </div>
-                            <div className="stat-value text-green-500">${formatAmount(agentData?.cashCollected || 0)}</div>
+                            <div className="stat-value text-green-500">
+                                {formatCurrencyAmount(agentData?.cashCollected?.[currency] || agentData?.cashCollected?.USD || 0, currency)}
+                            </div>
                             <div className="stat-label">{t('agent.dashboard.cashCollected')}</div>
                         </div>
 
@@ -230,6 +239,11 @@ export default function AgentDashboard() {
 
                     {/* Main Actions Card */}
                     <div className="card p-6">
+                        {/* Currency Toggle */}
+                        <div className="flex items-center justify-center mb-4">
+                            <CurrencyToggle value={currency} onChange={setCurrency} />
+                        </div>
+
                         {/* Tabs */}
                         <div className="flex gap-2 mb-6">
                             <button

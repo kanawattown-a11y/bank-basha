@@ -12,6 +12,7 @@ const transferSchema = z.object({
     amount: z.number().positive('Amount must be positive'),
     pin: z.string().length(4, 'PIN must be 4 digits'),
     note: z.string().max(200).optional(),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
 });
 
 /**
@@ -34,10 +35,10 @@ export async function POST(request: NextRequest) {
         // Check merchant account
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { merchantProfile: true },
+            include: { merchantProfile: true, wallets: true },
         });
 
-        if (!user || !user.hasMerchantAccount || !user.businessWalletId) {
+        if (!user || !user.hasMerchantAccount) {
             return NextResponse.json(
                 { error: 'Merchant account required' },
                 { status: 403, headers: getSecurityHeaders() }
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { recipientPhone, amount, pin, note } = result.data;
+        const { recipientPhone, amount, pin, note, currency } = result.data;
 
         // Verify Payment PIN
         if (!user.paymentPin) {
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
         const sanitizedPhone = sanitizePhoneNumber(recipientPhone);
         const recipient = await prisma.user.findUnique({
             where: { phone: sanitizedPhone },
-            include: { wallet: true },
+            include: { wallets: true },
         });
 
         if (!recipient) {
@@ -109,14 +110,33 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get business wallet
-        const businessWallet = await prisma.wallet.findUnique({
-            where: { id: user.businessWalletId },
-        });
+        // Get business wallet based on currency
+        const businessWallet = (user.wallets as any[])?.find(
+            (w: { currency: string; walletType: string }) => w.currency === currency && w.walletType === 'BUSINESS'
+        );
 
-        if (!businessWallet || businessWallet.balance < amount) {
+        if (!businessWallet) {
+            return NextResponse.json(
+                { error: `Business wallet not found for ${currency}` },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        if (businessWallet.balance < amount) {
             return NextResponse.json(
                 { error: 'Insufficient balance in business wallet' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Find recipient's personal wallet with same currency
+        const recipientWallet = (recipient.wallets as any[])?.find(
+            (w: { currency: string; walletType: string }) => w.currency === currency && w.walletType === 'PERSONAL'
+        );
+
+        if (!recipientWallet) {
+            return NextResponse.json(
+                { error: `Recipient does not have a ${currency} wallet` },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
@@ -131,7 +151,7 @@ export async function POST(request: NextRequest) {
 
             // Add to recipient's personal wallet
             await tx.wallet.update({
-                where: { userId: recipient.id },
+                where: { id: recipientWallet.id },
                 data: { balance: { increment: amount } },
             });
 

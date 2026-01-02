@@ -36,6 +36,21 @@ export async function GET() {
                 avatarUrl: true,
                 address: true,
                 dateOfBirth: true,
+                hasMerchantAccount: true,
+                wallets: {
+                    select: {
+                        id: true,
+                        balance: true,
+                        frozenBalance: true,
+                        currency: true,
+                        walletType: true,
+                        isActive: true,
+                    },
+                    orderBy: [
+                        { walletType: 'asc' },
+                        { currency: 'asc' },
+                    ],
+                },
             },
         });
 
@@ -46,8 +61,20 @@ export async function GET() {
             );
         }
 
+        // Format wallets for easy frontend consumption
+        const walletsSummary = {
+            personal: {
+                USD: user.wallets.find(w => w.walletType === 'PERSONAL' && w.currency === 'USD'),
+                SYP: user.wallets.find(w => w.walletType === 'PERSONAL' && w.currency === 'SYP'),
+            },
+            business: user.hasMerchantAccount ? {
+                USD: user.wallets.find(w => w.walletType === 'BUSINESS' && w.currency === 'USD'),
+                SYP: user.wallets.find(w => w.walletType === 'BUSINESS' && w.currency === 'SYP'),
+            } : null,
+        };
+
         return NextResponse.json(
-            { user },
+            { user, walletsSummary },
             { status: 200, headers: getSecurityHeaders() }
         );
     } catch (error) {

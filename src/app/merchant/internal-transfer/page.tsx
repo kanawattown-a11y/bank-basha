@@ -11,10 +11,11 @@ import {
     BanknotesIcon,
     BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline';
+import { CurrencyToggle, formatCurrencyAmount, type Currency } from '@/components/CurrencySelector';
 
 interface WalletData {
-    personal: number;
-    business: number;
+    personal: { USD: number; SYP: number };
+    business: { USD: number; SYP: number };
 }
 
 export default function InternalTransferPage() {
@@ -23,7 +24,11 @@ export default function InternalTransferPage() {
     const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
-    const [wallets, setWallets] = useState<WalletData>({ personal: 0, business: 0 });
+    const [wallets, setWallets] = useState<WalletData>({
+        personal: { USD: 0, SYP: 0 },
+        business: { USD: 0, SYP: 0 },
+    });
+    const [currency, setCurrency] = useState<Currency>('USD');
     const [direction, setDirection] = useState<'to_personal' | 'to_business'>('to_personal');
     const [amount, setAmount] = useState('');
     const [error, setError] = useState('');
@@ -41,8 +46,14 @@ export default function InternalTransferPage() {
                 const data = await res.json();
                 console.log('Wallet data:', data); // Debug log
                 setWallets({
-                    personal: data.wallet?.balance || 0,
-                    business: data.businessWallet?.balance || 0,
+                    personal: {
+                        USD: data.personalWallets?.USD?.balance || data.wallet?.balance || 0,
+                        SYP: data.personalWallets?.SYP?.balance || 0,
+                    },
+                    business: {
+                        USD: data.businessWallets?.USD?.balance || data.businessWallet?.balance || 0,
+                        SYP: data.businessWallets?.SYP?.balance || 0,
+                    },
                 });
             } else if (res.status === 401 || res.status === 403) {
                 router.push('/login');
@@ -63,7 +74,9 @@ export default function InternalTransferPage() {
             return;
         }
 
-        const sourceBalance = direction === 'to_personal' ? wallets.business : wallets.personal;
+        const sourceBalance = direction === 'to_personal'
+            ? wallets.business[currency]
+            : wallets.personal[currency];
         if (amountNum > sourceBalance) {
             setError('رصيد غير كافي');
             return;
@@ -78,6 +91,7 @@ export default function InternalTransferPage() {
                     fromWallet: direction === 'to_personal' ? 'business' : 'personal',
                     toWallet: direction === 'to_personal' ? 'personal' : 'business',
                     amount: amountNum,
+                    currency,
                 }),
             });
 
@@ -127,11 +141,11 @@ export default function InternalTransferPage() {
                     <div className="bg-dark-800 rounded-xl p-4 mb-6">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-dark-400">💼 البزنس</span>
-                            <span className="text-white font-bold">${formatAmount(wallets.business)}</span>
+                            <span className="text-white font-bold">{formatCurrencyAmount(wallets.business[currency], currency)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-dark-400">👤 الشخصي</span>
-                            <span className="text-white font-bold">${formatAmount(wallets.personal)}</span>
+                            <span className="text-white font-bold">{formatCurrencyAmount(wallets.personal[currency], currency)}</span>
                         </div>
                     </div>
 
@@ -165,20 +179,25 @@ export default function InternalTransferPage() {
             <main className="pt-24 pb-8 px-4">
                 <div className="max-w-md mx-auto space-y-6">
 
+                    {/* Currency Toggle */}
+                    <div className="flex items-center justify-center">
+                        <CurrencyToggle value={currency} onChange={setCurrency} />
+                    </div>
+
                     {/* Wallet Balances */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className={`card p-4 text-center cursor-pointer transition-all ${direction === 'to_personal' ? 'ring-2 ring-primary-500' : ''}`}
                             onClick={() => setDirection('to_personal')}>
                             <BuildingStorefrontIcon className="w-8 h-8 text-primary-500 mx-auto mb-2" />
                             <p className="text-dark-400 text-xs mb-1">البزنس</p>
-                            <p className="text-white font-bold">${formatAmount(wallets.business)}</p>
+                            <p className="text-white font-bold">{formatCurrencyAmount(wallets.business[currency], currency)}</p>
                             {direction === 'to_personal' && <p className="text-xs text-primary-500 mt-1">← المصدر</p>}
                         </div>
                         <div className={`card p-4 text-center cursor-pointer transition-all ${direction === 'to_business' ? 'ring-2 ring-primary-500' : ''}`}
                             onClick={() => setDirection('to_business')}>
                             <BanknotesIcon className="w-8 h-8 text-green-500 mx-auto mb-2" />
                             <p className="text-dark-400 text-xs mb-1">الشخصي</p>
-                            <p className="text-white font-bold">${formatAmount(wallets.personal)}</p>
+                            <p className="text-white font-bold">{formatCurrencyAmount(wallets.personal[currency], currency)}</p>
                             {direction === 'to_business' && <p className="text-xs text-primary-500 mt-1">← المصدر</p>}
                         </div>
                     </div>
@@ -221,7 +240,7 @@ export default function InternalTransferPage() {
                             step="0.01"
                         />
                         <p className="text-dark-500 text-xs mt-2 text-center">
-                            الرصيد المتاح: ${formatAmount(direction === 'to_personal' ? wallets.business : wallets.personal)}
+                            الرصيد المتاح: {formatCurrencyAmount(direction === 'to_personal' ? wallets.business[currency] : wallets.personal[currency], currency)}
                         </p>
                     </div>
 

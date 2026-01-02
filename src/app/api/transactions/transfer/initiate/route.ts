@@ -4,11 +4,13 @@ import { getSecurityHeaders, validateAmount, sanitizePhoneNumber } from '@/lib/a
 import { verifyAuth, getAuthErrorMessage } from '@/lib/auth/verify-session';
 import { generateOTP, hashOTP, getOTPExpiry } from '@/lib/otp/generator';
 import { sendPushNotification } from '@/lib/firebase/admin';
+import { getUserWallet, type Currency, isValidCurrency, formatCurrency } from '@/lib/wallet/currency';
 import { z } from 'zod';
 
 const initiateSchema = z.object({
     recipientPhone: z.string().min(9, 'Invalid phone number'),
     amount: z.number().positive('Amount must be positive'),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
     note: z.string().max(200).optional(),
 });
 
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { recipientPhone, amount, note } = result.data;
+        const { recipientPhone, amount, currency, note } = result.data;
 
         if (!validateAmount(amount)) {
             return NextResponse.json(
@@ -65,14 +67,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check balance
-        const senderWallet = await prisma.wallet.findUnique({
-            where: { userId: userId },
-        });
+        // Check sender's balance for the selected currency
+        const senderWallet = await getUserWallet(userId, currency as Currency, 'PERSONAL');
 
         if (!senderWallet || senderWallet.balance < amount) {
+            const currencyName = currency === 'SYP' ? 'الليرة السورية' : 'الدولار';
             return NextResponse.json(
-                { error: 'Insufficient balance' },
+                { error: `رصيدك غير كافي بـ${currencyName}` },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Check if recipient has a wallet for this currency
+        const recipientWallet = await getUserWallet(recipient.id, currency as Currency, 'PERSONAL');
+        if (!recipientWallet) {
+            return NextResponse.json(
+                { error: 'المستلم ليس لديه محفظة بهذه العملة' },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
@@ -115,6 +125,7 @@ export async function POST(request: NextRequest) {
                 userId: userId,
                 otpHash,
                 amount,
+                currency, // USD or SYP
                 recipientId: recipient.id,
                 note,
                 expiresAt,

@@ -23,11 +23,11 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get agent profile with wallet
+        // Get agent profile with wallets
         const agent = await prisma.user.findUnique({
             where: { id: payload.userId },
             include: {
-                wallet: true,
+                wallets: true,
                 agentProfile: true,
             },
         });
@@ -38,6 +38,14 @@ export async function GET(request: NextRequest) {
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
+
+        // Get wallets by currency
+        const walletUSD = agent.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'PERSONAL'
+        );
+        const walletSYP = agent.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'SYP' && w.walletType === 'PERSONAL'
+        );
 
         // Get today's transaction count
         const today = new Date();
@@ -62,14 +70,44 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(
             {
-                digitalBalance: agent.wallet?.balance || 0,
-                cashCollected: agent.agentProfile.cashCollected,
+                // Dual currency balances
+                balances: {
+                    USD: walletUSD?.balance || 0,
+                    SYP: walletSYP?.balance || 0,
+                },
+
+                // Dual currency cash collected
+                cashCollected: {
+                    USD: agent.agentProfile.cashCollected,
+                    SYP: agent.agentProfile.cashCollectedSYP,
+                },
+
+                // Dual currency credit
+                currentCredit: {
+                    USD: agent.agentProfile.currentCredit,
+                    SYP: agent.agentProfile.currentCreditSYP,
+                },
+
+                // Dual currency stats
+                stats: {
+                    USD: {
+                        totalDeposits: agent.agentProfile.totalDeposits,
+                        totalWithdrawals: agent.agentProfile.totalWithdrawals,
+                    },
+                    SYP: {
+                        totalDeposits: agent.agentProfile.totalDepositsSYP,
+                        totalWithdrawals: agent.agentProfile.totalWithdrawalsSYP,
+                    },
+                },
+
                 todayTransactions,
                 pendingSettlement: pendingSettlements._sum.amountDue || 0,
                 agentCode: agent.agentProfile.agentCode,
                 businessName: agent.agentProfile.businessName,
                 businessNameAr: agent.agentProfile.businessNameAr,
-                currentCredit: agent.agentProfile.currentCredit,
+
+                // Legacy fields for backward compatibility
+                digitalBalance: walletUSD?.balance || 0,
             },
             { status: 200, headers: getSecurityHeaders() }
         );

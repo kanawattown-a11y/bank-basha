@@ -8,11 +8,13 @@ const transferSchema = z.object({
     fromWallet: z.enum(['personal', 'business']),
     toWallet: z.enum(['personal', 'business']),
     amount: z.number().positive().min(0.01),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
 });
 
 /**
  * Internal transfer between personal and business wallets
  * No PIN required since it's between own accounts
+ * Supports dual currency (USD / SYP)
  */
 export async function POST(request: NextRequest) {
     try {
@@ -30,11 +32,11 @@ export async function POST(request: NextRequest) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                wallet: true,
+                wallets: true,
             },
         });
 
-        if (!user || !user.hasMerchantAccount || !user.businessWalletId) {
+        if (!user || !user.hasMerchantAccount) {
             return NextResponse.json(
                 { error: 'Merchant account required' },
                 { status: 403, headers: getSecurityHeaders() }
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { fromWallet, toWallet, amount } = validation.data;
+        const { fromWallet, toWallet, amount, currency } = validation.data;
 
         // Can't transfer to same wallet
         if (fromWallet === toWallet) {
@@ -62,15 +64,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get both wallets
-        const personalWallet = user.wallet;
-        const businessWallet = await prisma.wallet.findUnique({
-            where: { id: user.businessWalletId },
-        });
+        // Get wallets for the selected currency
+        const personalWallet = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === currency && w.walletType === 'PERSONAL'
+        );
+        const businessWallet = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === currency && w.walletType === 'BUSINESS'
+        );
 
         if (!personalWallet || !businessWallet) {
             return NextResponse.json(
-                { error: 'Wallet not found' },
+                { error: `لا توجد محفظة ${currency === 'SYP' ? 'ليرة سورية' : 'دولار'}` },
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
         // Check balance
         if (sourceWallet.balance < amount) {
             return NextResponse.json(
-                { error: 'Insufficient balance' },
+                { error: 'رصيد غير كافي' },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
@@ -109,6 +113,7 @@ export async function POST(request: NextRequest) {
                     receiverId: userId,
                     amount,
                     netAmount: amount,
+                    currency, // Add currency
                     referenceNumber,
                     type: 'INTERNAL_TRANSFER',
                     status: 'COMPLETED',
@@ -118,6 +123,7 @@ export async function POST(request: NextRequest) {
                     metadata: JSON.stringify({
                         fromWallet,
                         toWallet,
+                        currency,
                         sourceWalletId: sourceWallet.id,
                         destWalletId: destWallet.id,
                     }),
@@ -136,6 +142,7 @@ export async function POST(request: NextRequest) {
             transaction: {
                 id: result.id,
                 amount,
+                currency,
                 fromWallet,
                 toWallet,
             },

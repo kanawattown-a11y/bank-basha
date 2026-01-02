@@ -32,16 +32,39 @@ export async function GET(request: NextRequest) {
             prisma.settlement.count({ where: { status: 'PENDING' } }),
         ]);
 
-        // Get today's volume
+        // Get today's volume by currency
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const todayVolumeResult = await prisma.transaction.aggregate({
+        // Total volume today - USD transactions
+        const todayVolumeUSD = await prisma.transaction.aggregate({
             where: {
                 status: 'COMPLETED',
                 createdAt: { gte: today },
+                currency: 'USD',
             },
             _sum: { amount: true },
+        });
+
+        // Total volume today - SYP transactions
+        const todayVolumeSYP = await prisma.transaction.aggregate({
+            where: {
+                status: 'COMPLETED',
+                createdAt: { gte: today },
+                currency: 'SYP',
+            },
+            _sum: { amount: true },
+        });
+
+        // Get total balances by currency
+        const totalBalanceUSD = await prisma.wallet.aggregate({
+            where: { currency: 'USD' },
+            _sum: { balance: true },
+        });
+
+        const totalBalanceSYP = await prisma.wallet.aggregate({
+            where: { currency: 'SYP' },
+            _sum: { balance: true },
         });
 
         // Get pending KYC users
@@ -78,11 +101,25 @@ export async function GET(request: NextRequest) {
                     totalUsers,
                     totalAgents,
                     totalMerchants,
-                    todayVolume: todayVolumeResult._sum.amount || 0,
+
+                    // Dual currency volumes
+                    todayVolume: {
+                        USD: todayVolumeUSD._sum.amount || 0,
+                        SYP: todayVolumeSYP._sum.amount || 0,
+                    },
+
+                    // Dual currency total balances
+                    totalBalance: {
+                        USD: totalBalanceUSD._sum.balance || 0,
+                        SYP: totalBalanceSYP._sum.balance || 0,
+                    },
+
                     pendingKYC: pendingKYCCount,
                     pendingSettlements: pendingSettlementsCount,
                 },
+
                 pendingKYC,
+
                 pendingSettlements: pendingSettlements.map(s => ({
                     id: s.id,
                     agentCode: s.agent.agentCode,

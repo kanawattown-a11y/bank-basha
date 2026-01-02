@@ -3,11 +3,13 @@ import { prisma } from '@/lib/db/prisma';
 import { getSecurityHeaders, validateAmount, generateReferenceNumber } from '@/lib/auth/security';
 import { verifyAuth, getAuthErrorMessage } from '@/lib/auth/verify-session';
 import { sendPushNotification } from '@/lib/firebase/admin';
+import { getUserWallet, getOrCreateWallet, formatCurrency, type Currency } from '@/lib/wallet/currency';
 import { z } from 'zod';
 
 const qrPaymentSchema = z.object({
     merchantCode: z.string().min(3, 'Invalid merchant code'),
     amount: z.number().positive('Amount must be positive'),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
 });
 
 export async function POST(request: NextRequest) {
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { merchantCode, amount } = result.data;
+        const { merchantCode, amount, currency } = result.data;
 
         if (!validateAmount(amount)) {
             return NextResponse.json(
@@ -43,16 +45,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Find merchant with their business wallet
+        // Find merchant profile
         const merchantProfile = await prisma.merchantProfile.findUnique({
             where: { merchantCode },
             include: {
-                user: {
-                    include: {
-                        wallet: true,
-                        businessWallet: true,
-                    }
-                }
+                user: true,
             },
         });
 
@@ -63,66 +60,70 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get sender wallet and user
-        const sender = await prisma.user.findUnique({
-            where: { id: payload.userId },
-            include: { wallet: true },
-        });
+        // Get sender's wallet for the selected currency
+        const senderWallet = await getUserWallet(payload.userId, currency as Currency, 'PERSONAL');
 
-        if (!sender?.wallet || sender.wallet.balance < amount) {
+        if (!senderWallet) {
+            const currencyName = currency === 'SYP' ? 'الليرة السورية' : 'الدولار';
             return NextResponse.json(
-                { error: 'Insufficient balance' },
+                { error: `ليس لديك محفظة بـ${currencyName}` },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
-        // Calculate fees from system settings
+
+        // Calculate fees
         const { calculateCommission } = await import('@/lib/ledger/ledger');
-        const { platformFee, totalFee, netAmount } = await calculateCommission(amount, 'QR_PAYMENT');
+        const { platformFee, totalFee } = await calculateCommission(amount, 'QR_PAYMENT');
 
-        // Check if sender has enough for amount + fee
-        if (sender.wallet.balance < amount + totalFee) {
+        // Check balance
+        if (senderWallet.balance < amount + totalFee) {
             return NextResponse.json(
-                { error: `رصيد غير كافٍ. المطلوب: $${(amount + totalFee).toFixed(2)}` },
+                { error: `رصيد غير كافٍ. المطلوب: ${formatCurrency(amount + totalFee, currency as Currency)}` },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
 
-        // Process payment in a transaction
+        // Get or create merchant's business wallet for this currency
+        let merchantWallet = await getUserWallet(merchantProfile.userId, currency as Currency, 'BUSINESS');
+        if (!merchantWallet) {
+            // Create business wallet if it doesn't exist
+            merchantWallet = await getOrCreateWallet(merchantProfile.userId, currency as Currency, 'BUSINESS');
+        }
+
+        // Process payment
         const referenceNumber = generateReferenceNumber('QRP');
 
         const transaction = await prisma.$transaction(async (tx) => {
-            // Deduct from sender (amount + fee)
+            // Deduct from sender
             await tx.wallet.update({
-                where: { userId: payload.userId },
+                where: { id: senderWallet.id },
                 data: { balance: { decrement: amount + totalFee } },
             });
 
-            // Add to merchant's business wallet if available, otherwise personal wallet
-            const merchantUser = merchantProfile.user;
-            if (merchantUser.businessWallet) {
-                // Credit business wallet (for merchants with business account)
-                await tx.wallet.update({
-                    where: { id: merchantUser.businessWallet.id },
-                    data: { balance: { increment: amount } },
-                });
-            } else if (merchantUser.wallet) {
-                // Fallback to personal wallet
-                await tx.wallet.update({
-                    where: { id: merchantUser.wallet.id },
-                    data: { balance: { increment: amount } },
+            // Add to merchant's business wallet
+            await tx.wallet.update({
+                where: { id: merchantWallet!.id },
+                data: { balance: { increment: amount } },
+            });
+
+            // Update merchant stats based on currency
+            if (currency === 'SYP') {
+                await tx.merchantProfile.update({
+                    where: { id: merchantProfile.id },
+                    data: {
+                        totalSalesSYP: { increment: amount },
+                        totalTransactionsSYP: { increment: 1 },
+                    },
                 });
             } else {
-                throw new Error('Merchant has no wallet configured');
+                await tx.merchantProfile.update({
+                    where: { id: merchantProfile.id },
+                    data: {
+                        totalSales: { increment: amount },
+                        totalTransactions: { increment: 1 },
+                    },
+                });
             }
-
-            // Update merchant stats
-            await tx.merchantProfile.update({
-                where: { id: merchantProfile.id },
-                data: {
-                    totalSales: { increment: amount },
-                    totalTransactions: { increment: 1 },
-                },
-            });
 
             // Create transaction record
             const newTransaction = await tx.transaction.create({
@@ -136,7 +137,8 @@ export async function POST(request: NextRequest) {
                     fee: totalFee,
                     platformFee,
                     agentFee: 0,
-                    netAmount: amount, // Merchant receives full amount
+                    netAmount: amount,
+                    currency, // USD or SYP
                     description: `Payment to ${merchantProfile.businessName}`,
                     descriptionAr: `دفع إلى ${merchantProfile.businessNameAr || merchantProfile.businessName}`,
                     completedAt: new Date(),
@@ -146,7 +148,13 @@ export async function POST(request: NextRequest) {
             return newTransaction;
         });
 
-        // Create database notifications
+        // Get sender info for notifications
+        const sender = await prisma.user.findUnique({
+            where: { id: payload.userId },
+        });
+
+        // Create database notifications with currency
+        const formattedAmount = formatCurrency(amount, currency as Currency);
         await prisma.notification.createMany({
             data: [
                 {
@@ -154,38 +162,36 @@ export async function POST(request: NextRequest) {
                     type: 'TRANSACTION',
                     title: 'Payment Sent',
                     titleAr: 'تم الدفع',
-                    message: `You paid ${amount} $ to ${merchantProfile.businessName}`,
-                    messageAr: `دفعت ${amount} $ إلى ${merchantProfile.businessNameAr || merchantProfile.businessName}`,
+                    message: `You paid ${formattedAmount} to ${merchantProfile.businessName}`,
+                    messageAr: `دفعت ${formattedAmount} إلى ${merchantProfile.businessNameAr || merchantProfile.businessName}`,
                 },
                 {
                     userId: merchantProfile.userId,
                     type: 'TRANSACTION',
                     title: 'Payment Received',
                     titleAr: 'تم استلام دفعة',
-                    message: `You received ${amount} $`,
-                    messageAr: `استلمت ${amount} $`,
+                    message: `You received ${formattedAmount}`,
+                    messageAr: `استلمت ${formattedAmount}`,
                 },
             ],
         });
 
         // Send Firebase Push Notifications
-        // Push to payer (you paid)
-        if (sender.fcmToken) {
+        if (sender?.fcmToken) {
             sendPushNotification(
                 sender.fcmToken,
                 '💳 تم الدفع بنجاح',
-                `دفعت $${amount.toFixed(2)} إلى ${merchantProfile.businessNameAr || merchantProfile.businessName}`,
-                { type: 'PAYMENT_SENT', amount: amount.toString() }
+                `دفعت ${formattedAmount} إلى ${merchantProfile.businessNameAr || merchantProfile.businessName}`,
+                { type: 'PAYMENT_SENT', amount: amount.toString(), currency }
             ).catch(err => console.error('Push payer error:', err));
         }
 
-        // Push to merchant (you received payment)
         if (merchantProfile.user.fcmToken) {
             sendPushNotification(
                 merchantProfile.user.fcmToken,
                 '💰 دفعة جديدة!',
-                `استلمت $${amount.toFixed(2)} من ${sender.fullNameAr || sender.fullName}`,
-                { type: 'PAYMENT_RECEIVED', amount: amount.toString() }
+                `استلمت ${formattedAmount} من ${sender?.fullNameAr || sender?.fullName}`,
+                { type: 'PAYMENT_RECEIVED', amount: amount.toString(), currency }
             ).catch(err => console.error('Push merchant error:', err));
         }
 
@@ -194,6 +200,7 @@ export async function POST(request: NextRequest) {
                 success: true,
                 transactionId: transaction.id,
                 referenceNumber,
+                currency,
             },
             { status: 200, headers: getSecurityHeaders() }
         );

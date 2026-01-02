@@ -37,8 +37,13 @@ interface UserDetail {
     selfiePhotoUrl: string | null;
     kycSubmittedAt: string | null;
     createdAt: string;
-    wallet: {
+    wallet?: {
         balance: number;
+    };
+    // Dual currency wallets
+    wallets?: {
+        USD: { balance: number } | null;
+        SYP: { balance: number } | null;
     };
     merchantProfile?: {
         businessName: string;
@@ -310,8 +315,15 @@ export default function AdminUserDetailPage() {
                                 <p className="text-white">{user.dateOfBirth ? formatDate(user.dateOfBirth) : 'N/A'}</p>
                             </div>
                             <div>
-                                <p className="text-dark-400 text-sm mb-1">{t('admin.userDetails.info.balance')}</p>
-                                <p className="text-white font-mono dir-ltr text-end">${user.wallet.balance.toFixed(2)}</p>
+                                <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.info.balance')}</p>
+                                <div className="space-y-1">
+                                    <p className="text-white font-mono dir-ltr text-end">
+                                        ${(user.wallets?.USD?.balance || user.wallet?.balance || 0).toFixed(2)} USD
+                                    </p>
+                                    <p className="text-dark-300 font-mono dir-ltr text-end text-sm">
+                                        {(user.wallets?.SYP?.balance || 0).toLocaleString()} ل.س
+                                    </p>
+                                </div>
                             </div>
                             <div>
                                 <p className="text-dark-400 text-sm mb-1">{t('admin.userDetails.info.joinedAt')}</p>

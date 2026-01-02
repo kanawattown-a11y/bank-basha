@@ -19,6 +19,7 @@ import {
     ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
 import usePushNotifications from '@/hooks/usePushNotifications';
+import { DualBalanceDisplay } from '@/components/CurrencySelector';
 
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
 
@@ -61,8 +62,10 @@ export default function UserDashboard() {
     const [mounted, setMounted] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [wallet, setWallet] = useState<WalletData | null>(null);
+    const [personalBalances, setPersonalBalances] = useState<{ USD: number; SYP: number }>({ USD: 0, SYP: 0 });
     const [userName, setUserName] = useState<string>('');
     const [businessWallet, setBusinessWallet] = useState<WalletData | null>(null);
+    const [businessBalances, setBusinessBalances] = useState<{ USD: number; SYP: number } | null>(null);
     const [merchantProfile, setMerchantProfile] = useState<MerchantProfile | null>(null);
     const [hasMerchantAccount, setHasMerchantAccount] = useState(false);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -98,7 +101,21 @@ export default function UserDashboard() {
             const data = await response.json();
             setUserName(data.user?.fullName || data.user?.fullNameAr || '');
             setWallet(data.wallet);
+
+            // Set dual currency balances
+            setPersonalBalances({
+                USD: data.personalWallets?.USD?.balance || data.wallet?.balance || 0,
+                SYP: data.personalWallets?.SYP?.balance || 0,
+            });
+
             setBusinessWallet(data.businessWallet);
+            if (data.businessWallets) {
+                setBusinessBalances({
+                    USD: data.businessWallets?.USD?.balance || 0,
+                    SYP: data.businessWallets?.SYP?.balance || 0,
+                });
+            }
+
             setMerchantProfile(data.merchantProfile);
             setHasMerchantAccount(data.hasMerchantAccount || false);
             setTransactions(data.recentTransactions);
@@ -209,15 +226,16 @@ export default function UserDashboard() {
                         <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-primary-500/10"></div>
                         <div className="relative">
                             {/* Header with name and balance label */}
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between mb-4">
                                 <p className="text-dark-400">{t('wallet.balance')}</p>
                                 <div className="text-end">
                                     <p className="text-primary-500 font-semibold text-lg">{userName}</p>
                                 </div>
                             </div>
-                            <div className="flex items-baseline gap-2 mb-6">
-                                <span className="balance-display">{formatAmount(wallet?.balance || 0)}</span>
-                                <span className="text-2xl text-dark-400">{t('common.currencySymbol')}</span>
+
+                            {/* Dual Currency Balances */}
+                            <div className="mb-6">
+                                <DualBalanceDisplay balances={personalBalances} />
                             </div>
 
                             {wallet && wallet.frozenBalance > 0 && (

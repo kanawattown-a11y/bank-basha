@@ -10,6 +10,7 @@ import {
     CameraIcon,
     MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
+import CurrencySelector, { type Currency, formatCurrencyAmount } from '@/components/CurrencySelector';
 
 // Dynamic import for QR Scanner (to avoid SSR issues)
 const QRScanner = lazy(() => import('@/components/QRScanner'));
@@ -21,6 +22,11 @@ interface Merchant {
     merchantCode: string;
 }
 
+interface WalletBalances {
+    USD: number;
+    SYP: number;
+}
+
 export default function PayPage() {
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
@@ -29,6 +35,8 @@ export default function PayPage() {
     const [error, setError] = useState('');
     const [merchant, setMerchant] = useState<Merchant | null>(null);
     const [showScanner, setShowScanner] = useState(false);
+    const [currency, setCurrency] = useState<Currency>('USD');
+    const [balances, setBalances] = useState<WalletBalances>({ USD: 0, SYP: 0 });
     const [formData, setFormData] = useState({
         merchantCode: '',
         amount: '',
@@ -37,7 +45,23 @@ export default function PayPage() {
 
     useEffect(() => {
         setMounted(true);
+        fetchBalances();
     }, []);
+
+    const fetchBalances = async () => {
+        try {
+            const res = await fetch('/api/wallet');
+            if (res.ok) {
+                const data = await res.json();
+                setBalances({
+                    USD: data.personalWallets?.USD?.balance || data.wallet?.balance || 0,
+                    SYP: data.personalWallets?.SYP?.balance || 0,
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching balances:', error);
+        }
+    };
 
     const lookupMerchant = async (code?: string) => {
         const merchantCode = code || formData.merchantCode;
@@ -103,13 +127,14 @@ export default function PayPage() {
                 return;
             }
 
-            // Process payment
+            // Process payment with currency
             const response = await fetch('/api/transactions/qr-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     merchantCode: formData.merchantCode,
                     amount: parseFloat(formData.amount),
+                    currency, // Add currency to request
                 }),
             });
 

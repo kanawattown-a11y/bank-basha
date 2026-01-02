@@ -26,7 +26,9 @@ interface InternalAccount {
     nameAr: string | null;
     type: string;
     balance: number;
+    balanceSYP?: number;
     frozenBalance: number;
+    frozenBalanceSYP?: number;
     description: string | null;
     isActive: boolean;
 }
@@ -239,16 +241,30 @@ export default function InternalAccountsPage() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <span className="text-dark-400 text-sm">{t('admin.internalAccounts.balance')}:</span>
-                                        <span className={`font-bold ${account.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                            {formatAmount(account.balance)}
-                                        </span>
+                                        <div className="text-end">
+                                            <span className={`font-bold ${account.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {formatAmount(account.balance)}
+                                            </span>
+                                            {account.balanceSYP !== undefined && account.balanceSYP !== 0 && (
+                                                <p className="text-blue-400 text-xs">
+                                                    {new Intl.NumberFormat('en-US').format(account.balanceSYP)} ل.س
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                    {account.frozenBalance > 0 && (
+                                    {(account.frozenBalance > 0 || (account.frozenBalanceSYP && account.frozenBalanceSYP > 0)) && (
                                         <div className="flex justify-between items-center">
                                             <span className="text-dark-400 text-sm">{t('admin.internalAccounts.frozen')}:</span>
-                                            <span className="text-orange-500 font-medium">
-                                                {formatAmount(account.frozenBalance)}
-                                            </span>
+                                            <div className="text-end">
+                                                <span className="text-orange-500 font-medium">
+                                                    {formatAmount(account.frozenBalance)}
+                                                </span>
+                                                {account.frozenBalanceSYP !== undefined && account.frozenBalanceSYP > 0 && (
+                                                    <p className="text-orange-400 text-xs">
+                                                        {new Intl.NumberFormat('en-US').format(account.frozenBalanceSYP)} ل.س
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>

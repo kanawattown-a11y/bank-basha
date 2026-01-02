@@ -16,17 +16,23 @@ import { useTranslations, useLocale } from 'next-intl';
 interface CentralBankData {
     centralBank: {
         balance: number;
+        balanceSYP?: number;
         name: string;
     };
     summary: {
         totalUserBalances: number;
+        totalUserBalancesSYP?: number;
         totalAgentCredit: number;
+        totalAgentCreditSYP?: number;
         totalAgentCash: number;
+        totalAgentCashSYP?: number;
         systemBalance: number;
+        systemBalanceSYP?: number;
     };
     recentCreditGrants: Array<{
         id: string;
         amount: number;
+        currency?: string;
         receiver: string;
         date: string;
         reference: string;
@@ -137,6 +143,11 @@ export default function CentralBankPage() {
                         <div className="stat-value text-blue-500">
                             ${formatAmount(data?.summary.totalUserBalances || 0)}
                         </div>
+                        {data?.summary.totalUserBalancesSYP !== undefined && data.summary.totalUserBalancesSYP > 0 && (
+                            <div className="text-sm text-blue-400">
+                                {formatAmount(data.summary.totalUserBalancesSYP)} ل.س
+                            </div>
+                        )}
                         <div className="stat-label">{t('admin.centralBank.userBalance')}</div>
                     </div>
 
@@ -147,6 +158,11 @@ export default function CentralBankPage() {
                         <div className="stat-value text-green-500">
                             ${formatAmount(data?.summary.totalAgentCredit || 0)}
                         </div>
+                        {data?.summary.totalAgentCreditSYP !== undefined && data.summary.totalAgentCreditSYP > 0 && (
+                            <div className="text-sm text-green-400">
+                                {formatAmount(data.summary.totalAgentCreditSYP)} ل.س
+                            </div>
+                        )}
                         <div className="stat-label">{t('admin.centralBank.agentCredit')}</div>
                     </div>
 
@@ -157,6 +173,11 @@ export default function CentralBankPage() {
                         <div className="stat-value text-yellow-500">
                             ${formatAmount(data?.summary.totalAgentCash || 0)}
                         </div>
+                        {data?.summary.totalAgentCashSYP !== undefined && data.summary.totalAgentCashSYP > 0 && (
+                            <div className="text-sm text-yellow-400">
+                                {formatAmount(data.summary.totalAgentCashSYP)} ل.س
+                            </div>
+                        )}
                         <div className="stat-label">{t('admin.centralBank.agentCash')}</div>
                     </div>
 

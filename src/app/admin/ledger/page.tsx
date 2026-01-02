@@ -17,6 +17,7 @@ interface LedgerEntry {
     description: string;
     totalDebit: number;
     totalCredit: number;
+    currency?: string;
     createdAt: string;
     sender: {
         fullName: string;
@@ -164,17 +165,23 @@ export default function AdminLedgerPage() {
                                     <div className="grid grid-cols-3 gap-3 pt-3 border-t border-dark-800">
                                         <div>
                                             <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.amount')}</p>
-                                            <p className="text-white font-medium">${formatAmount(entry.totalDebit)}</p>
+                                            <p className="text-white font-medium">
+                                                {formatAmount(entry.totalDebit)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
+                                            </p>
                                         </div>
                                         {entry.fee > 0 && (
                                             <div>
                                                 <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.fee')}</p>
-                                                <p className="text-red-500 font-medium">${formatAmount(entry.fee)}</p>
+                                                <p className="text-red-500 font-medium">
+                                                    {formatAmount(entry.fee)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
+                                                </p>
                                             </div>
                                         )}
                                         <div>
                                             <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.net')}</p>
-                                            <p className="text-green-500 font-medium">${formatAmount(entry.totalCredit)}</p>
+                                            <p className="text-green-500 font-medium">
+                                                {formatAmount(entry.totalCredit)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
+                                            </p>
                                         </div>
                                     </div>
                                 </Link>

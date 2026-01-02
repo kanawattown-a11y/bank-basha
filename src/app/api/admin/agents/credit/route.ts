@@ -7,6 +7,7 @@ import { z } from 'zod';
 const grantCreditSchema = z.object({
     agentPhone: z.string().min(9, 'Invalid phone number'),
     amount: z.number().positive('Amount must be positive'),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
 });
 
 export async function POST(request: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { agentPhone, amount } = result.data;
+        const { agentPhone, amount, currency } = result.data;
         const sanitizedPhone = sanitizePhoneNumber(agentPhone);
 
         // Find agent
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
                 userType: 'AGENT',
             },
             include: {
-                wallet: true,
+                wallets: true,
                 agentProfile: true,
             },
         });
@@ -76,13 +77,22 @@ export async function POST(request: NextRequest) {
                 });
             }
 
-            // 2. Credit Agent (add to currentCredit)
-            await tx.agentProfile.update({
-                where: { id: agent.agentProfile!.id },
-                data: {
-                    currentCredit: { increment: amount },
-                },
-            });
+            // 2. Credit Agent (add to currentCredit based on currency)
+            if (currency === 'SYP') {
+                await tx.agentProfile.update({
+                    where: { id: agent.agentProfile!.id },
+                    data: {
+                        currentCreditSYP: { increment: amount },
+                    },
+                });
+            } else {
+                await tx.agentProfile.update({
+                    where: { id: agent.agentProfile!.id },
+                    data: {
+                        currentCredit: { increment: amount },
+                    },
+                });
+            }
 
             // 3. Create transaction record
             await tx.transaction.create({
@@ -96,8 +106,9 @@ export async function POST(request: NextRequest) {
                     platformFee: 0,
                     agentFee: 0,
                     netAmount: amount,
-                    description: `Credit grant from admin`,
-                    descriptionAr: `منح رصيد من الإدارة`,
+                    currency,
+                    description: `Credit grant from admin (${currency})`,
+                    descriptionAr: `منح رصيد من الإدارة (${currency})`,
                     completedAt: new Date(),
                 },
             });
@@ -122,8 +133,8 @@ export async function POST(request: NextRequest) {
                 type: 'SYSTEM',
                 title: 'Credit Granted',
                 titleAr: 'تم منحك رصيد',
-                message: `You have been granted ${amount} $ credit`,
-                messageAr: `تم منحك رصيد بقيمة ${amount} $`,
+                message: `You have been granted ${amount} ${currency === 'SYP' ? 'SYP' : 'USD'} credit`,
+                messageAr: `تم منحك رصيد بقيمة ${amount} ${currency === 'SYP' ? 'ل.س' : '$'}`,
             },
         });
 

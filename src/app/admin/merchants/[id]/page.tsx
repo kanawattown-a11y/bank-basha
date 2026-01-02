@@ -26,6 +26,8 @@ interface MerchantDetail {
     isActive: boolean;
     createdAt: string;
     balance: number;
+    // Dual currency
+    balances?: { USD: number; SYP: number };
 
     businessName: string;
     businessNameAr: string | null;
@@ -34,7 +36,9 @@ interface MerchantDetail {
     businessType: string | null;
     businessAddress: string | null;
     totalSales: number;
+    totalSalesSYP?: number;
     totalTransactions: number;
+    totalTransactionsSYP?: number;
 
     licenseUrl: string | null;
     idPhotoUrl: string | null;
@@ -183,12 +187,18 @@ export default function MerchantDetailsPage() {
                         <div className="card p-4 text-center">
                             <CurrencyDollarIcon className="w-8 h-8 text-green-500 mx-auto mb-2" />
                             <p className="text-dark-400 text-xs">الرصيد</p>
-                            <p className="text-white font-bold">${formatAmount(merchant.balance)}</p>
+                            <p className="text-white font-bold">${formatAmount(merchant.balances?.USD || merchant.balance)}</p>
+                            {merchant.balances?.SYP !== undefined && merchant.balances.SYP > 0 && (
+                                <p className="text-blue-400 text-sm">{formatAmount(merchant.balances.SYP)} ل.س</p>
+                            )}
                         </div>
                         <div className="card p-4 text-center">
                             <p className="text-2xl mb-2">💰</p>
                             <p className="text-dark-400 text-xs">إجمالي المبيعات</p>
                             <p className="text-green-500 font-bold">${formatAmount(merchant.totalSales)}</p>
+                            {merchant.totalSalesSYP !== undefined && merchant.totalSalesSYP > 0 && (
+                                <p className="text-blue-400 text-sm">{formatAmount(merchant.totalSalesSYP)} ل.س</p>
+                            )}
                         </div>
                         <div className="card p-4 text-center">
                             <QrCodeIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />

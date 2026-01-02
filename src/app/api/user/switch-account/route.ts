@@ -33,12 +33,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get user with merchant status
+        // Get user with wallets
         const user = await prisma.user.findUnique({
             where: { id: payload.userId },
             include: {
-                wallet: true,
-                businessWallet: true,
+                wallets: true,
                 merchantProfile: true,
             },
         });
@@ -66,8 +65,15 @@ export async function POST(request: NextRequest) {
             data: { activeAccountType: accountType },
         });
 
-        // Get the active wallet
-        const activeWallet = accountType === 'BUSINESS' ? user.businessWallet : user.wallet;
+        // Get wallets organized by type
+        const personalWalletUSD = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'PERSONAL'
+        );
+        const businessWalletUSD = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'BUSINESS'
+        );
+
+        const activeWallet = accountType === 'BUSINESS' ? businessWalletUSD : personalWalletUSD;
 
         return NextResponse.json({
             success: true,
@@ -113,8 +119,7 @@ export async function GET() {
         const user = await prisma.user.findUnique({
             where: { id: payload.userId },
             include: {
-                wallet: true,
-                businessWallet: true,
+                wallets: true,
                 merchantProfile: true,
             },
         });
@@ -126,16 +131,32 @@ export async function GET() {
             );
         }
 
-        const activeWallet = user.activeAccountType === 'BUSINESS' ? user.businessWallet : user.wallet;
+        // Organize wallets
+        const personalWalletUSD = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'PERSONAL'
+        );
+        const personalWalletSYP = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'SYP' && w.walletType === 'PERSONAL'
+        );
+        const businessWalletUSD = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'BUSINESS'
+        );
+        const businessWalletSYP = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'SYP' && w.walletType === 'BUSINESS'
+        );
+
+        const activeWallet = user.activeAccountType === 'BUSINESS' ? businessWalletUSD : personalWalletUSD;
 
         return NextResponse.json({
             hasMerchantAccount: user.hasMerchantAccount,
             activeAccountType: user.activeAccountType,
-            personalWallet: user.wallet ? {
-                balance: user.wallet.balance,
-            } : null,
-            businessWallet: user.businessWallet ? {
-                balance: user.businessWallet.balance,
+            personalWallets: {
+                USD: personalWalletUSD ? { balance: personalWalletUSD.balance } : null,
+                SYP: personalWalletSYP ? { balance: personalWalletSYP.balance } : null,
+            },
+            businessWallets: user.hasMerchantAccount ? {
+                USD: businessWalletUSD ? { balance: businessWalletUSD.balance } : null,
+                SYP: businessWalletSYP ? { balance: businessWalletSYP.balance } : null,
             } : null,
             activeBalance: activeWallet?.balance || 0,
             merchantProfile: user.merchantProfile ? {

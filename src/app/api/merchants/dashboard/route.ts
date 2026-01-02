@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAccessToken, getSecurityHeaders } from '@/lib/auth/security';
 import { cookies } from 'next/headers';
+import { getAllUserWallets } from '@/lib/wallet/currency';
 
 export async function GET(request: NextRequest) {
     try {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         const user = await prisma.user.findUnique({
             where: { id: payload.userId },
             include: {
-                wallet: true,
+                wallets: true,
                 merchantProfile: true,
             },
         });
@@ -45,16 +46,13 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get business wallet if user has separate business wallet
-        let businessBalance = user.wallet?.balance || 0;
-        if (user.businessWalletId) {
-            const businessWallet = await prisma.wallet.findUnique({
-                where: { id: user.businessWalletId },
-            });
-            if (businessWallet) {
-                businessBalance = businessWallet.balance;
-            }
-        }
+        // Get all business wallets
+        const businessWalletUSD = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'BUSINESS'
+        );
+        const businessWalletSYP = user.wallets.find(
+            (w: { currency: string; walletType: string }) => w.currency === 'SYP' && w.walletType === 'BUSINESS'
+        );
 
         // Get today's transactions
         const today = new Date();
@@ -91,13 +89,32 @@ export async function GET(request: NextRequest) {
                 qrCode: user.merchantProfile.qrCode,
                 businessName: user.merchantProfile.businessName,
                 businessNameAr: user.merchantProfile.businessNameAr,
-                balance: businessBalance,
-                totalSales: user.merchantProfile.totalSales,
+
+                // Dual currency balances
+                balances: {
+                    USD: businessWalletUSD?.balance || 0,
+                    SYP: businessWalletSYP?.balance || 0,
+                },
+
+                // Dual currency stats
+                stats: {
+                    USD: {
+                        totalSales: user.merchantProfile.totalSales,
+                        totalTransactions: user.merchantProfile.totalTransactions,
+                    },
+                    SYP: {
+                        totalSales: user.merchantProfile.totalSalesSYP,
+                        totalTransactions: user.merchantProfile.totalTransactionsSYP,
+                    },
+                },
+
                 todayTransactions,
+
                 recentTransactions: recentTransactions.map(tx => ({
                     id: tx.id,
                     referenceNumber: tx.referenceNumber,
                     amount: tx.amount,
+                    currency: (tx as unknown as { currency: string }).currency || 'USD',
                     fee: tx.fee,
                     netAmount: tx.netAmount,
                     description: tx.description,
@@ -105,6 +122,10 @@ export async function GET(request: NextRequest) {
                     createdAt: tx.createdAt,
                     senderName: tx.sender?.fullNameAr || tx.sender?.fullName || 'ناقص',
                 })),
+
+                // Legacy field for backward compatibility
+                balance: businessWalletUSD?.balance || 0,
+                totalSales: user.merchantProfile.totalSales,
             },
             { status: 200, headers: getSecurityHeaders() }
         );

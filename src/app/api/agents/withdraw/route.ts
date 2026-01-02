@@ -4,11 +4,13 @@ import { getSecurityHeaders, validateAmount } from '@/lib/auth/security';
 import { verifyAuth, getAuthErrorMessage, hasRole } from '@/lib/auth/verify-session';
 import { processWithdrawal } from '@/lib/ledger/ledger';
 import { sendTransactionEmail } from '@/lib/email/email';
+import { formatCurrency, type Currency, getUserWallet } from '@/lib/wallet/currency';
 import { z } from 'zod';
 
 const withdrawSchema = z.object({
     customerPhone: z.string().min(9, 'Invalid phone number'),
     amount: z.number().positive('Amount must be positive'),
+    currency: z.enum(['USD', 'SYP']).default('USD'),
 });
 
 export async function POST(request: NextRequest) {
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { customerPhone, amount } = result.data;
+        const { customerPhone, amount, currency } = result.data;
 
         if (!validateAmount(amount)) {
             return NextResponse.json(
@@ -66,11 +68,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Process withdrawal
+        // Process withdrawal with selected currency
         const withdrawResult = await processWithdrawal(
             customer.id,
             payload.userId,
-            amount
+            amount,
+            undefined, // createdBy
+            currency as 'USD' | 'SYP'
         );
 
         if (!withdrawResult.success) {
@@ -107,7 +111,7 @@ export async function POST(request: NextRequest) {
 
         // Send email notification
         if (customer.email) {
-            const wallet = await prisma.wallet.findUnique({ where: { userId: customer.id } });
+            const wallet = await prisma.wallet.findFirst({ where: { userId: customer.id, currency, walletType: 'PERSONAL' } });
             await sendTransactionEmail({
                 to: customer.email,
                 userName: customer.fullNameAr || customer.fullName,

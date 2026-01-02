@@ -5,12 +5,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, UserIcon, CheckCircleIcon, MagnifyingGlassIcon, KeyIcon } from '@heroicons/react/24/outline';
 import usePushNotifications from '@/hooks/usePushNotifications';
+import { CurrencyToggle, formatCurrencyAmount, type Currency } from '@/components/CurrencySelector';
 
 interface User {
     id: string;
     fullName: string;
     fullNameAr: string | null;
     phone: string;
+}
+
+interface WalletBalances {
+    USD: number;
+    SYP: number;
 }
 
 export default function TransferPage() {
@@ -23,7 +29,8 @@ export default function TransferPage() {
     const [amount, setAmount] = useState('');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
-    const [balance, setBalance] = useState(0);
+    const [balances, setBalances] = useState<WalletBalances>({ USD: 0, SYP: 0 });
+    const [currency, setCurrency] = useState<Currency>('USD');
     const [transferRequestId, setTransferRequestId] = useState('');
     const [otpExpiresIn, setOtpExpiresIn] = useState(300);
     const [remainingAttempts, setRemainingAttempts] = useState(3);
@@ -62,7 +69,10 @@ export default function TransferPage() {
             const res = await fetch('/api/wallet');
             if (res.ok) {
                 const data = await res.json();
-                setBalance(data.wallet?.balance || 0);
+                setBalances({
+                    USD: data.personalWallets?.USD?.balance || data.wallet?.balance || 0,
+                    SYP: data.personalWallets?.SYP?.balance || 0,
+                });
             }
         } catch (error) {
             console.error('Error:', error);
@@ -81,6 +91,9 @@ export default function TransferPage() {
             console.error('Error fetching fees:', error);
         }
     };
+
+    // Get current balance based on selected currency
+    const currentBalance = balances[currency];
 
     // Calculate fee based on amount
     const calculateFee = (amt: number): number => {
@@ -129,6 +142,7 @@ export default function TransferPage() {
                 body: JSON.stringify({
                     recipientPhone: recipient.phone,
                     amount: parseFloat(amount),
+                    currency, // Add currency to request
                 }),
             });
 
@@ -218,10 +232,15 @@ export default function TransferPage() {
 
             <main className="pt-24 pb-8 px-4">
                 <div className="max-w-md mx-auto">
-                    {/* Balance */}
+                    {/* Balance with Currency Toggle */}
                     <div className="card p-4 mb-6 bg-primary-500/10">
-                        <p className="text-dark-400 text-sm">رصيدك المتاح</p>
-                        <p className="text-2xl font-bold text-primary-500">${formatAmount(balance)}</p>
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-dark-400 text-sm">رصيدك المتاح</p>
+                            <CurrencyToggle value={currency} onChange={setCurrency} disabled={step !== 'search'} />
+                        </div>
+                        <p className="text-2xl font-bold text-primary-500">
+                            {formatCurrencyAmount(currentBalance, currency)}
+                        </p>
                     </div>
 
                     {/* Step: Search */}
@@ -269,14 +288,16 @@ export default function TransferPage() {
                             </div>
 
                             <div className="mb-6">
-                                <label className="block text-dark-300 text-sm mb-2 text-center">المبلغ ($)</label>
+                                <label className="block text-dark-300 text-sm mb-2 text-center">
+                                    المبلغ ({currency === 'SYP' ? 'ل.س' : '$'})
+                                </label>
                                 <input
                                     type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    max={balance}
+                                    step={currency === 'SYP' ? '1000' : '0.01'}
+                                    min={currency === 'SYP' ? '1000' : '0.01'}
+                                    max={currentBalance}
                                     className="input text-center text-3xl font-bold"
-                                    placeholder="0.00"
+                                    placeholder={currency === 'SYP' ? '0' : '0.00'}
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     autoFocus
@@ -305,7 +326,7 @@ export default function TransferPage() {
                                             <span className="text-primary-500 font-bold text-lg">${formatAmount(totalAmount)}</span>
                                         </div>
                                     </div>
-                                    {totalAmount > balance && (
+                                    {totalAmount > currentBalance && (
                                         <p className="text-red-400 text-xs text-center mt-2">
                                             ⚠️ الرصيد غير كافٍ
                                         </p>
@@ -317,7 +338,7 @@ export default function TransferPage() {
 
                             <button
                                 onClick={requestOTP}
-                                disabled={loading || !amount || parseFloat(amount) <= 0 || totalAmount > balance}
+                                disabled={loading || !amount || parseFloat(amount) <= 0 || totalAmount > currentBalance}
                                 className="btn-primary w-full"
                             >
                                 {loading ? <div className="spinner w-5 h-5"></div> : 'طلب رمز التأكيد'}

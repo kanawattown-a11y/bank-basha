@@ -36,17 +36,17 @@ export async function GET(request: NextRequest) {
         const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1;
         const year = yearParam ? parseInt(yearParam) : now.getFullYear();
 
-        // Get user with wallet
+        // Get user with wallets
         const user = await prisma.user.findUnique({
             where: { id: payload.userId },
             include: {
-                wallet: true,
+                wallets: true,
                 merchantProfile: true,
                 agentProfile: true,
             },
         });
 
-        if (!user || !user.wallet) {
+        if (!user || !user.wallets || user.wallets.length === 0) {
             return NextResponse.json(
                 { error: 'User not found' },
                 { status: 404, headers: getSecurityHeaders() }

@@ -50,10 +50,11 @@ export async function GET() {
             });
         }
 
-        // Get all user wallet balances
-        const userWallets = await prisma.wallet.aggregate({
+        // Get all user wallet balances by currency
+        const userWalletsUSD = await prisma.wallet.aggregate({
             _sum: { balance: true },
             where: {
+                currency: 'USD',
                 user: {
                     userType: { in: ['USER', 'MERCHANT'] },
                     phone: { not: 'CENTRAL_BANK' },
@@ -61,9 +62,25 @@ export async function GET() {
             },
         });
 
-        // Get all agent credits
+        const userWalletsSYP = await prisma.wallet.aggregate({
+            _sum: { balance: true },
+            where: {
+                currency: 'SYP',
+                user: {
+                    userType: { in: ['USER', 'MERCHANT'] },
+                    phone: { not: 'CENTRAL_BANK' },
+                },
+            },
+        });
+
+        // Get all agent credits (USD and SYP)
         const agentCredits = await prisma.agentProfile.aggregate({
-            _sum: { currentCredit: true, cashCollected: true },
+            _sum: {
+                currentCredit: true,
+                cashCollected: true,
+                currentCreditSYP: true,
+                cashCollectedSYP: true,
+            },
         });
 
         // Get recent credit grants
@@ -84,16 +101,20 @@ export async function GET() {
                 name: centralBank.fullNameAr || centralBank.fullName,
             },
             summary: {
-                totalUserBalances: userWallets._sum.balance || 0,
+                totalUserBalances: userWalletsUSD._sum.balance || 0,
+                totalUserBalancesSYP: userWalletsSYP._sum.balance || 0,
                 totalAgentCredit: agentCredits._sum.currentCredit || 0,
+                totalAgentCreditSYP: agentCredits._sum.currentCreditSYP || 0,
                 totalAgentCash: agentCredits._sum.cashCollected || 0,
+                totalAgentCashSYP: agentCredits._sum.cashCollectedSYP || 0,
                 // System should balance to zero
                 systemBalance: (centralBank.wallet?.balance || 0)
-                    + (userWallets._sum.balance || 0),
+                    + (userWalletsUSD._sum.balance || 0),
             },
             recentCreditGrants: recentTransactions.map(t => ({
                 id: t.id,
                 amount: t.amount,
+                currency: t.currency || 'USD',
                 receiver: t.receiver?.fullName || 'N/A',
                 date: t.createdAt,
                 reference: t.referenceNumber,

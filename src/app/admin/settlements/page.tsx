@@ -18,7 +18,10 @@ interface Settlement {
     agentCode: string;
     businessName: string;
     cashCollected: number;
+    cashCollectedSYP?: number;
     amountDue: number;
+    amountDueSYP?: number;
+    currency?: string;
     status: string;
     createdAt: string;
 }
@@ -169,10 +172,16 @@ export default function AdminSettlementsPage() {
                                         <div>
                                             <p className="text-dark-400">{t('admin.settlements.labels.cashCollected')}</p>
                                             <p className="text-white font-medium">{formatAmount(settlement.cashCollected)} $</p>
+                                            {settlement.cashCollectedSYP !== undefined && settlement.cashCollectedSYP > 0 && (
+                                                <p className="text-blue-400 text-xs">{formatAmount(settlement.cashCollectedSYP)} ل.س</p>
+                                            )}
                                         </div>
                                         <div>
                                             <p className="text-dark-400">{t('admin.settlements.labels.amountDue')}</p>
                                             <p className="text-green-500 font-medium">{formatAmount(settlement.amountDue)} $</p>
+                                            {settlement.amountDueSYP !== undefined && settlement.amountDueSYP > 0 && (
+                                                <p className="text-blue-400 text-xs">{formatAmount(settlement.amountDueSYP)} ل.س</p>
+                                            )}
                                         </div>
                                     </div>
 

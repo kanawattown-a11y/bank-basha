@@ -30,7 +30,8 @@ interface AdminStats {
     totalUsers: number;
     totalAgents: number;
     totalMerchants: number;
-    todayVolume: number;
+    todayVolume: { USD: number; SYP: number } | number;
+    totalBalance?: { USD: number; SYP: number };
     pendingKYC: number;
     pendingSettlements: number;
 }
@@ -259,7 +260,7 @@ export default function AdminDashboard() {
                             { label: t('admin.dashboard.totalUsers'), value: stats?.totalUsers || 0, icon: UsersIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                             { label: t('admin.dashboard.totalAgents'), value: stats?.totalAgents || 0, icon: UserGroupIcon, color: 'text-green-500', bg: 'bg-green-500/10' },
                             { label: t('admin.dashboard.totalMerchants'), value: stats?.totalMerchants || 0, icon: BuildingStorefrontIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-                            { label: t('admin.dashboard.todayVolume'), value: formatAmount(stats?.todayVolume || 0), icon: BanknotesIcon, color: 'text-primary-500', bg: 'bg-primary-500/10' },
+                            { label: t('admin.dashboard.pendingKYC'), value: stats?.pendingKYC || 0, icon: DocumentTextIcon, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
                         ].map((stat, index) => (
                             <div key={index} className="card p-6">
                                 <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center mb-4`}>
@@ -269,6 +270,54 @@ export default function AdminDashboard() {
                                 <div className="text-dark-400 text-sm">{stat.label}</div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Dual Currency Stats */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div className="card p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                                    <BanknotesIcon className="w-5 h-5 text-green-500" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.todayVolume')}</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-dark-800/50 rounded-xl p-4 text-center">
+                                    <p className="text-dark-400 text-xs mb-1">USD</p>
+                                    <p className="text-2xl font-bold text-green-400">
+                                        ${formatAmount(typeof stats?.todayVolume === 'object' ? stats.todayVolume.USD : (stats?.todayVolume || 0))}
+                                    </p>
+                                </div>
+                                <div className="bg-dark-800/50 rounded-xl p-4 text-center">
+                                    <p className="text-dark-400 text-xs mb-1">SYP</p>
+                                    <p className="text-2xl font-bold text-blue-400">
+                                        {formatAmount(typeof stats?.todayVolume === 'object' ? stats.todayVolume.SYP : 0)} ل.س
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="card p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center">
+                                    <BanknotesIcon className="w-5 h-5 text-primary-500" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-white">{t('admin.dashboard.totalBalance') || 'إجمالي الأرصدة'}</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-dark-800/50 rounded-xl p-4 text-center">
+                                    <p className="text-dark-400 text-xs mb-1">USD</p>
+                                    <p className="text-2xl font-bold text-primary-400">
+                                        ${formatAmount(stats?.totalBalance?.USD || 0)}
+                                    </p>
+                                </div>
+                                <div className="bg-dark-800/50 rounded-xl p-4 text-center">
+                                    <p className="text-dark-400 text-xs mb-1">SYP</p>
+                                    <p className="text-2xl font-bold text-purple-400">
+                                        {formatAmount(stats?.totalBalance?.SYP || 0)} ل.س
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid lg:grid-cols-2 gap-6">

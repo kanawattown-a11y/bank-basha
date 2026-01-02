@@ -17,6 +17,7 @@ import {
     PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 import MerchantQRCode from '@/components/MerchantQRCode';
+import { CurrencyToggle, formatCurrencyAmount, type Currency } from '@/components/CurrencySelector';
 
 interface MerchantData {
     merchantCode: string;
@@ -25,12 +26,19 @@ interface MerchantData {
     balance: number;
     totalSales: number;
     todayTransactions: number;
+    // Dual currency
+    balances?: { USD: number; SYP: number };
+    stats?: {
+        USD: { totalSales: number; totalTransactions: number };
+        SYP: { totalSales: number; totalTransactions: number };
+    };
 }
 
 interface Transaction {
     id: string;
     referenceNumber: string;
     amount: number;
+    currency?: string;
     createdAt: string;
     senderName: string;
 }
@@ -45,6 +53,7 @@ export default function MerchantDashboard() {
     const [data, setData] = useState<MerchantData | null>(null);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [showQR, setShowQR] = useState(false);
+    const [currency, setCurrency] = useState<Currency>('USD');
     const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -192,11 +201,18 @@ export default function MerchantDashboard() {
             <main className="pt-20 pb-8 px-4">
                 <div className="max-w-4xl mx-auto space-y-6">
 
+                    {/* Currency Toggle */}
+                    <div className="flex items-center justify-center mb-4">
+                        <CurrencyToggle value={currency} onChange={setCurrency} />
+                    </div>
+
                     {/* Stats */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="stat-card">
                             <BanknotesIcon className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-                            <div className="stat-value text-gradient" suppressHydrationWarning>{formatAmount(data?.balance || 0)}</div>
+                            <div className="stat-value text-gradient" suppressHydrationWarning>
+                                {formatCurrencyAmount(data?.balances?.[currency] || data?.balance || 0, currency)}
+                            </div>
                             <div className="stat-label">{t('wallet.balance')}</div>
                         </div>
                         <div className="stat-card">

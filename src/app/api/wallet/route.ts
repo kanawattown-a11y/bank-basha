@@ -41,26 +41,36 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const wallet = await prisma.wallet.findUnique({
+        // Get all user wallets
+        const wallets = await prisma.wallet.findMany({
             where: { userId: user.id },
+            orderBy: [{ walletType: 'asc' }, { currency: 'asc' }],
         });
 
-        if (!wallet) {
+        if (wallets.length === 0) {
             return NextResponse.json(
                 { error: 'Wallet not found' },
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
 
-        // Get business wallet if user has merchant account
-        let businessWallet = null;
+        // Organize wallets by type and currency
+        const personalWalletUSD = wallets.find(
+            (w: { currency: string; walletType: string }) => w.walletType === 'PERSONAL' && w.currency === 'USD'
+        );
+        const personalWalletSYP = wallets.find(
+            (w: { currency: string; walletType: string }) => w.walletType === 'PERSONAL' && w.currency === 'SYP'
+        );
+        const businessWalletUSD = wallets.find(
+            (w: { currency: string; walletType: string }) => w.walletType === 'BUSINESS' && w.currency === 'USD'
+        );
+        const businessWalletSYP = wallets.find(
+            (w: { currency: string; walletType: string }) => w.walletType === 'BUSINESS' && w.currency === 'SYP'
+        );
+
+        // Get merchant profile if user has merchant account
         let merchantProfile = null;
-
-        if (user.hasMerchantAccount && user.businessWalletId) {
-            businessWallet = await prisma.wallet.findUnique({
-                where: { id: user.businessWalletId },
-            });
-
+        if (user.hasMerchantAccount) {
             merchantProfile = await prisma.merchantProfile.findUnique({
                 where: { userId: user.id },
             });
@@ -113,30 +123,69 @@ export async function GET(request: NextRequest) {
                     fullNameAr: user.fullNameAr,
                     phone: user.phone,
                 },
-                wallet: {
-                    balance: wallet.balance,
-                    frozenBalance: wallet.frozenBalance,
-                    currency: wallet.currency,
-                    isActive: wallet.isActive,
-                    dailyLimit: wallet.dailyLimit,
-                    monthlyLimit: wallet.monthlyLimit,
-                },
-                businessWallet: businessWallet ? {
-                    balance: businessWallet.balance,
-                    frozenBalance: businessWallet.frozenBalance,
-                    currency: businessWallet.currency,
+
+                // Main wallet (USD personal for backward compatibility)
+                wallet: personalWalletUSD ? {
+                    balance: personalWalletUSD.balance,
+                    frozenBalance: personalWalletUSD.frozenBalance,
+                    currency: personalWalletUSD.currency,
+                    isActive: personalWalletUSD.isActive,
+                    dailyLimit: personalWalletUSD.dailyLimit,
+                    monthlyLimit: personalWalletUSD.monthlyLimit,
                 } : null,
+
+                // All personal wallets
+                personalWallets: {
+                    USD: personalWalletUSD ? {
+                        id: personalWalletUSD.id,
+                        balance: personalWalletUSD.balance,
+                        frozenBalance: personalWalletUSD.frozenBalance,
+                        isActive: personalWalletUSD.isActive,
+                    } : null,
+                    SYP: personalWalletSYP ? {
+                        id: personalWalletSYP.id,
+                        balance: personalWalletSYP.balance,
+                        frozenBalance: personalWalletSYP.frozenBalance,
+                        isActive: personalWalletSYP.isActive,
+                    } : null,
+                },
+
+                // Business wallet (USD for backward compatibility)
+                businessWallet: businessWalletUSD ? {
+                    balance: businessWalletUSD.balance,
+                    frozenBalance: businessWalletUSD.frozenBalance,
+                    currency: businessWalletUSD.currency,
+                } : null,
+
+                // All business wallets
+                businessWallets: user.hasMerchantAccount ? {
+                    USD: businessWalletUSD ? {
+                        id: businessWalletUSD.id,
+                        balance: businessWalletUSD.balance,
+                        frozenBalance: businessWalletUSD.frozenBalance,
+                    } : null,
+                    SYP: businessWalletSYP ? {
+                        id: businessWalletSYP.id,
+                        balance: businessWalletSYP.balance,
+                        frozenBalance: businessWalletSYP.frozenBalance,
+                    } : null,
+                } : null,
+
                 merchantProfile: merchantProfile ? {
                     businessName: merchantProfile.businessName,
                     businessNameAr: merchantProfile.businessNameAr,
+                    merchantCode: merchantProfile.merchantCode,
                     qrCode: merchantProfile.qrCode,
                 } : null,
+
                 hasMerchantAccount: user.hasMerchantAccount,
+
                 recentTransactions: recentTransactions.map(tx => ({
                     id: tx.id,
                     referenceNumber: tx.referenceNumber,
                     type: tx.type,
                     amount: tx.amount,
+                    currency: (tx as unknown as { currency: string }).currency || 'USD',
                     fee: tx.fee,
                     netAmount: tx.netAmount,
                     status: tx.status,
@@ -150,6 +199,7 @@ export async function GET(request: NextRequest) {
                         ? tx.receiver?.fullName
                         : tx.sender?.fullName,
                 })),
+
                 monthlyStats: monthlyStats.reduce((acc, stat) => {
                     acc[stat.type] = {
                         total: stat._sum.amount || 0,

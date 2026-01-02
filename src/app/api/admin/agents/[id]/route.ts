@@ -32,14 +32,14 @@ export async function GET(
         // Try to find by AgentProfile ID first
         let agentProfile = await prisma.agentProfile.findUnique({
             where: { id: agentProfileId },
-            include: { user: { include: { wallet: true } } }
+            include: { user: { include: { wallets: true } } }
         });
 
         // Fallback: Check if it's a User ID (for backward compatibility or direct links)
         if (!agentProfile) {
             const userAgent = await prisma.user.findUnique({
                 where: { id: agentProfileId, userType: 'AGENT' },
-                include: { agentProfile: true, wallet: true }
+                include: { agentProfile: true, wallets: true }
             });
 
             if (userAgent && userAgent.agentProfile) {

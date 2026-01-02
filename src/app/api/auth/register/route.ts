@@ -195,15 +195,26 @@ export async function POST(request: NextRequest) {
                 });
             }
 
-            // Create wallet (inactive until KYC approval)
-            await tx.wallet.create({
-                data: {
-                    userId: newUser.id,
-                    balance: 0,
-                    frozenBalance: 0,
-                    currency: 'USD',
-                    isActive: false,
-                },
+            // Create wallets (USD + SYP) - inactive until KYC approval
+            await tx.wallet.createMany({
+                data: [
+                    {
+                        userId: newUser.id,
+                        balance: 0,
+                        frozenBalance: 0,
+                        currency: 'USD',
+                        walletType: 'PERSONAL',
+                        isActive: false,
+                    },
+                    {
+                        userId: newUser.id,
+                        balance: 0,
+                        frozenBalance: 0,
+                        currency: 'SYP',
+                        walletType: 'PERSONAL',
+                        isActive: false,
+                    },
+                ],
             });
 
             return newUser;

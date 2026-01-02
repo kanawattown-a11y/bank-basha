@@ -18,6 +18,7 @@ interface Transaction {
     referenceNumber: string;
     type: string;
     amount: number;
+    currency?: string;
     status: string;
     senderName: string;
     receiverName: string;
@@ -160,7 +161,9 @@ export default function AdminTransactionsPage() {
                                                 </p>
                                             </div>
                                             <div className="text-end">
-                                                <p className="text-white font-semibold">{formatAmount(tx.amount)} $</p>
+                                                <p className="text-white font-semibold">
+                                                    {formatAmount(tx.amount)} {tx.currency === 'SYP' ? 'ل.س' : '$'}
+                                                </p>
                                                 <p className="text-dark-500 text-xs">{formatDate(tx.createdAt)}</p>
                                             </div>
                                         </div>

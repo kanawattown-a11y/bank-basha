@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         // Find user
         const user = await prisma.user.findUnique({
             where: { phone: sanitizedPhone },
-            include: { wallet: true },
+            include: { wallets: true },
         });
 
         if (!user) {
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
                     userType: user.userType,
                     status: user.status,
                     kycStatus: user.kycStatus,
-                    balance: user.wallet?.balance || 0,
+                    balance: user.wallets?.find((w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'PERSONAL')?.balance || 0,
                 },
             },
             { status: 200, headers: getSecurityHeaders() }
