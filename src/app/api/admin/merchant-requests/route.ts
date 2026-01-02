@@ -131,12 +131,22 @@ export async function POST(request: NextRequest) {
             const merchantCode = 'M' + Date.now().toString().slice(-8);
             const qrCode = generateMerchantQR(merchantCode);
 
-            // Create business wallet
-            const businessWallet = await prisma.wallet.create({
+            // Create business wallets (USD and SYP) linked to user
+            const businessWalletUSD = await prisma.wallet.create({
                 data: {
+                    userId: merchantRequest.userId,
                     balance: 0,
                     walletType: 'BUSINESS',
                     currency: 'USD',
+                },
+            });
+
+            await prisma.wallet.create({
+                data: {
+                    userId: merchantRequest.userId,
+                    balance: 0,
+                    walletType: 'BUSINESS',
+                    currency: 'SYP',
                 },
             });
 
@@ -158,7 +168,7 @@ export async function POST(request: NextRequest) {
                 where: { id: merchantRequest.userId },
                 data: {
                     hasMerchantAccount: true,
-                    businessWalletId: businessWallet.id,
+                    businessWalletId: businessWalletUSD.id,
                 },
             });
 

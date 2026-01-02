@@ -105,7 +105,7 @@ export async function GET(
                 email: user.email,
                 isActive: user.isActive,
                 createdAt: user.createdAt,
-                balance: user.wallet?.balance || 0,
+                balance: ((user.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD')?.balance) || 0,
 
                 // Merchant Profile
                 businessName: merchantProfile.businessName,

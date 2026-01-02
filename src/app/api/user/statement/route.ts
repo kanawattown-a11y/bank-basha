@@ -84,7 +84,9 @@ export async function GET(request: NextRequest) {
 
         // Get opening balance (balance before first transaction of month)
         // We'll calculate it by getting current balance and reversing all transactions
-        let currentBalance = user.wallet.balance;
+        // Get USD wallet balance (or first wallet if no USD)
+        const userUSDWallet = (user.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD');
+        let currentBalance = userUSDWallet?.balance || 0;
 
         // Reverse transactions to get opening balance
         const allTxThisMonth = await prisma.transaction.findMany({

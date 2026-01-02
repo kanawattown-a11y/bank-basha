@@ -88,7 +88,9 @@ export async function GET(
         let totalOutgoing = 0;
         let totalFees = 0;
 
-        const currentBalance = user.wallet?.balance || 0;
+        // Get USD wallet balance (or first wallet if no USD)
+        const userUSDWallet = (user.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD');
+        const currentBalance = userUSDWallet?.balance || 0;
 
         // Calculate balance change this month
         const allTxThisMonth = await prisma.transaction.findMany({
