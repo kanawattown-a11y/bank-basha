@@ -414,19 +414,19 @@ export default function AgentSettlementPage() {
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Cash to Give:</span>
-                                            <span className="text-white font-medium">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.cashGiven)}</span>
+                                            <span className="text-white font-medium">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.cashGiven || 0)}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Platform Fee ({platformCommission}%):</span>
-                                            <span className="text-red-400">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.platformFee)}</span>
+                                            <span className="text-red-400 font-medium">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.platformFee || 0)}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Agent Fee ({agentCommission}%):</span>
-                                            <span className="text-red-400">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.agentFee)}</span>
+                                            <span className="text-red-400 font-medium">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.agentFee || 0)}</span>
                                         </div>
-                                        <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
-                                            <span className="text-dark-300">Credit You&apos;ll Receive:</span>
-                                            <span className="text-primary-500">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.netCredit)}</span>
+                                        <div className="flex justify-between pt-3 border-t border-dark-600">
+                                            <span className="text-dark-300 font-medium">Net Credit:</span>
+                                            <span className="text-green-400 font-bold text-lg">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.netCredit || 0)}</span>
                                         </div>
                                     </div>
                                 )}
