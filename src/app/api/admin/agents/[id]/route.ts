@@ -102,7 +102,7 @@ export async function GET(
                     kycReviewedAt: agent.kycReviewedAt,
                     kycRejectionReason: agent.kycRejectionReason,
                     createdAt: agent.createdAt,
-                    wallet: agent.wallet,
+                    wallets: agent.wallets,
                     agentProfile: agentProfile,
                 },
                 transactions: transactions.map(t => ({
