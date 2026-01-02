@@ -18,6 +18,7 @@ interface Transaction {
     referenceNumber: string;
     type: string;
     amount: number;
+    currency: string;
     fee: number;
     agentFee?: number;
     platformFee?: number;
@@ -151,7 +152,7 @@ export default function AgentTransactionsPage() {
                                         <div className="text-end">
                                             <p className={`font-semibold ${tx.type === 'DEPOSIT' ? 'text-green-500' : 'text-red-500'
                                                 }`}>
-                                                {tx.type === 'DEPOSIT' ? '+' : '-'}{formatAmount(tx.amount)} $
+                                                {tx.type === 'DEPOSIT' ? '+' : '-'}{tx.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(tx.amount)}
                                             </p>
                                             <p className="text-dark-500 text-xs">{tx.referenceNumber}</p>
                                         </div>

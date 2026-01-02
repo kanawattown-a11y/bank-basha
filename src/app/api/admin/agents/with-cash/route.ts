@@ -24,15 +24,18 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get minimum amount from query params
+        // Get minimum amount and currency from query params
         const { searchParams } = new URL(request.url);
         const minAmount = parseFloat(searchParams.get('minAmount') || '0');
+        const currency = searchParams.get('currency') || 'USD';
 
-        // Find agents with cash >= minAmount
+        // Find agents with cash >= minAmount in specified currency
+        const cashField = currency === 'SYP' ? 'cashCollectedSYP' : 'cashCollected';
+
         const agents = await prisma.agentProfile.findMany({
             where: {
                 isActive: true,
-                cashCollected: {
+                [cashField]: {
                     gte: minAmount,
                 },
             },
@@ -42,10 +45,11 @@ export async function GET(request: NextRequest) {
                 businessName: true,
                 businessNameAr: true,
                 cashCollected: true,
+                cashCollectedSYP: true,
                 currentCredit: true,
             },
             orderBy: {
-                cashCollected: 'desc',
+                [cashField]: 'desc',
             },
             take: 20,
         });

@@ -39,21 +39,23 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(
             {
-                transactions: transactions.map(tx => ({
+                transactions: transactions.map((tx) => ({
                     id: tx.id,
                     referenceNumber: tx.referenceNumber,
                     type: tx.type,
                     amount: tx.amount,
+                    currency: tx.currency || 'USD', // Include currency
                     fee: tx.fee,
-                    agentFee: tx.agentFee,
-                    platformFee: tx.platformFee,
+                    agentFee: tx.agentFee || 0,
+                    platformFee: tx.platformFee || 0,
                     description: tx.description,
                     status: tx.status,
-                    customerName: tx.type === 'DEPOSIT'
-                        ? (tx.receiver?.fullNameAr || tx.receiver?.fullName || 'عميل')
-                        : (tx.sender?.fullNameAr || tx.sender?.fullName || 'عميل'),
-                    senderName: tx.sender?.fullNameAr || tx.sender?.fullName,
-                    receiverName: tx.receiver?.fullNameAr || tx.receiver?.fullName,
+                    customerName:
+                        tx.senderId === payload.userId
+                            ? tx.receiver?.fullName || tx.receiver?.fullNameAr || 'Unknown'
+                            : tx.sender?.fullName || tx.sender?.fullNameAr || 'Unknown',
+                    senderName: tx.sender?.fullName || tx.sender?.fullNameAr,
+                    receiverName: tx.receiver?.fullName || tx.receiver?.fullNameAr,
                     createdAt: tx.createdAt,
                 })),
             },

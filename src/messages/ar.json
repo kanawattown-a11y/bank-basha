@@ -442,8 +442,11 @@
         "dashboard": {
             "title": "لوحة الإدارة",
             "totalUsers": "إجمالي المستخدمين",
-            "totalAgents": "الوكلاء النشطين",
-            "totalMerchants": "التجار النشطين",
+            "totalAgents": "إجمالي الوكلاء",
+            "totalMerchants": "إجمالي التجار",
+            "totalBalance": "الرصيد الإجمالي",
+            "pendingKYC": "KYC معلق",
+            "pendingWithdrawals": "السحوبات المعلقة",
             "todayVolume": "حجم التداول اليوم",
             "overview": "نظرة عامة",
             "subtitle": "مرحباً، هذه نظرة عامة على النظام",
@@ -562,8 +565,12 @@
         "settlements": {
             "title": "التسويات المالية",
             "pending": "تسويات معلقة",
+            "agent": "الوكيل",
+            "amount": "المبلغ",
+            "date": "التاريخ",
             "filters": {
                 "pending": "قيد الانتظار",
+                "approved": "موافق عليه",
                 "completed": "مكتمل",
                 "rejected": "مرفوض",
                 "all": "الكل"

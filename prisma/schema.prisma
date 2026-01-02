@@ -402,6 +402,9 @@ model Settlement {
   // Settlement Type: CASH_TO_CREDIT, CREDIT_REQUEST, CASH_REQUEST
   type            String    @default("CASH_TO_CREDIT")
   
+  // Currency: USD or SYP
+  currency        String    @default("USD")
+  
   // Requested Amount (applicable to all types)
   requestedAmount Float
   
@@ -445,6 +448,7 @@ model Settlement {
   @@index([agentId])
   @@index([sourceAgentId])
   @@index([type])
+  @@index([currency])
   @@index([status])
   @@index([deliveryStatus])
   @@index([createdAt])

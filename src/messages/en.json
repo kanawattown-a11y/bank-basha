@@ -442,9 +442,12 @@
         "dashboard": {
             "title": "Admin Dashboard",
             "totalUsers": "Total Users",
-            "totalAgents": "Active Agents",
-            "totalMerchants": "Active Merchants",
-            "todayVolume": "Today's Volume",
+            "totalAgents": "Total Agents",
+            "totalMerchants": "Total Merchants",
+            "totalBalance": "Total Balance",
+            "pendingKYC": "Pending KYC",
+            "pendingWithdrawals": "Pending Withdrawals",
+            "totalVolume": "Total Volume",
             "overview": "Overview",
             "subtitle": "Welcome, here is an overview of the system",
             "pendingKyc": "Pending KYC",
@@ -583,8 +586,12 @@
         "settlements": {
             "title": "Settlements",
             "pending": "Pending Settlements",
+            "agent": "Agent",
+            "amount": "Amount",
+            "date": "Date",
             "filters": {
                 "pending": "Pending",
+                "approved": "Approved",
                 "completed": "Completed",
                 "rejected": "Rejected",
                 "all": "All"

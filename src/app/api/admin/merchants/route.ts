@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
                     businessName: merchant.businessNameAr || merchant.businessName,
                     phone: merchant.user.phone,
                     totalSales: merchant.totalSales,
+                    totalSalesSYP: merchant.totalSalesSYP || 0,
                     totalTransactions: merchant.totalTransactions,
                     isActive: merchant.user.isActive,
                 })),

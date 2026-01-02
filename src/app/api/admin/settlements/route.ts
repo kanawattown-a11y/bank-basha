@@ -64,15 +64,29 @@ export async function POST(request: NextRequest) {
         if (action === 'approve') {
             if (settlement.type === 'CASH_TO_CREDIT') {
                 // Agent gives cash → receives digital credit
-                await prisma.agentProfile.update({
-                    where: { id: settlement.agentId },
-                    data: {
-                        cashCollected: { decrement: settlement.cashCollected! },
-                        currentCredit: { increment: settlement.amountDue! },
-                        totalSettlements: { increment: 1 },
-                        lastSettlement: new Date(),
-                    },
-                });
+                const currency = settlement.currency || 'USD';
+
+                if (currency === 'SYP') {
+                    await prisma.agentProfile.update({
+                        where: { id: settlement.agentId },
+                        data: {
+                            cashCollectedSYP: { decrement: settlement.cashCollected! },
+                            currentCreditSYP: { increment: settlement.amountDue! },
+                            totalSettlements: { increment: 1 },
+                            lastSettlement: new Date(),
+                        },
+                    });
+                } else {
+                    await prisma.agentProfile.update({
+                        where: { id: settlement.agentId },
+                        data: {
+                            cashCollected: { decrement: settlement.cashCollected! },
+                            currentCredit: { increment: settlement.amountDue! },
+                            totalSettlements: { increment: 1 },
+                            lastSettlement: new Date(),
+                        },
+                    });
+                }
 
                 await prisma.settlement.update({
                     where: { id: settlementId },
@@ -99,15 +113,29 @@ export async function POST(request: NextRequest) {
             }
             else if (settlement.type === 'CREDIT_REQUEST') {
                 // Agent requests additional credit (loan)
-                await prisma.agentProfile.update({
-                    where: { id: settlement.agentId },
-                    data: {
-                        currentCredit: { increment: settlement.creditGiven! },
-                        pendingDebt: { increment: settlement.creditGiven! },
-                        totalSettlements: { increment: 1 },
-                        lastSettlement: new Date(),
-                    },
-                });
+                const currency = settlement.currency || 'USD';
+
+                if (currency === 'SYP') {
+                    await prisma.agentProfile.update({
+                        where: { id: settlement.agentId },
+                        data: {
+                            currentCreditSYP: { increment: settlement.creditGiven! },
+                            pendingDebt: { increment: settlement.creditGiven! },
+                            totalSettlements: { increment: 1 },
+                            lastSettlement: new Date(),
+                        },
+                    });
+                } else {
+                    await prisma.agentProfile.update({
+                        where: { id: settlement.agentId },
+                        data: {
+                            currentCredit: { increment: settlement.creditGiven! },
+                            pendingDebt: { increment: settlement.creditGiven! },
+                            totalSettlements: { increment: 1 },
+                            lastSettlement: new Date(),
+                        },
+                    });
+                }
 
                 await prisma.settlement.update({
                     where: { id: settlementId },
@@ -125,8 +153,8 @@ export async function POST(request: NextRequest) {
                         type: 'SYSTEM',
                         title: 'Credit Request Approved',
                         titleAr: 'تمت الموافقة على طلب الرصيد',
-                        message: `Your credit request of $${settlement.creditGiven} has been approved. Remember to repay this amount.`,
-                        messageAr: `تمت الموافقة على طلب رصيد بقيمة $${settlement.creditGiven}. تذكر أن تسدد هذا المبلغ.`,
+                        message: `Your credit request of ${settlement.currency === 'SYP' ? 'ل.س' : '$'}${settlement.creditGiven} has been approved. Remember to repay this amount.`,
+                        messageAr: `تمت الموافقة على طلب رصيد بقيمة ${settlement.currency === 'SYP' ? 'ل.س' : '$'}${settlement.creditGiven}. تذكر أن تسدد هذا المبلغ.`,
                     },
                 });
             }
@@ -139,22 +167,42 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
+                const currency = settlement.currency || 'USD';
+
                 // Deduct credit from requesting agent
-                await prisma.agentProfile.update({
-                    where: { id: settlement.agentId },
-                    data: {
-                        currentCredit: { decrement: settlement.creditDeducted! },
-                    },
-                });
+                if (currency === 'SYP') {
+                    await prisma.agentProfile.update({
+                        where: { id: settlement.agentId },
+                        data: {
+                            currentCreditSYP: { decrement: settlement.creditDeducted! },
+                        },
+                    });
+                } else {
+                    await prisma.agentProfile.update({
+                        where: { id: settlement.agentId },
+                        data: {
+                            currentCredit: { decrement: settlement.creditDeducted! },
+                        },
+                    });
+                }
 
                 // If FROM_AGENT, deduct cash from source agent
                 if (deliveryMethod === 'FROM_AGENT' && sourceAgentId) {
-                    await prisma.agentProfile.update({
-                        where: { id: sourceAgentId },
-                        data: {
-                            cashCollected: { decrement: settlement.cashToReceive! },
-                        },
-                    });
+                    if (currency === 'SYP') {
+                        await prisma.agentProfile.update({
+                            where: { id: sourceAgentId },
+                            data: {
+                                cashCollectedSYP: { decrement: settlement.cashToReceive! },
+                            },
+                        });
+                    } else {
+                        await prisma.agentProfile.update({
+                            where: { id: sourceAgentId },
+                            data: {
+                                cashCollected: { decrement: settlement.cashToReceive! },
+                            },
+                        });
+                    }
                 }
 
                 await prisma.settlement.update({
@@ -228,15 +276,28 @@ export async function POST(request: NextRequest) {
                 );
             }
 
+            const currency = settlement.currency || 'USD';
+
             // Add cash to requesting agent's balance
-            await prisma.agentProfile.update({
-                where: { id: settlement.agentId },
-                data: {
-                    cashCollected: { increment: settlement.cashToReceive! },
-                    totalSettlements: { increment: 1 },
-                    lastSettlement: new Date(),
-                },
-            });
+            if (currency === 'SYP') {
+                await prisma.agentProfile.update({
+                    where: { id: settlement.agentId },
+                    data: {
+                        cashCollectedSYP: { increment: settlement.cashToReceive! },
+                        totalSettlements: { increment: 1 },
+                        lastSettlement: new Date(),
+                    },
+                });
+            } else {
+                await prisma.agentProfile.update({
+                    where: { id: settlement.agentId },
+                    data: {
+                        cashCollected: { increment: settlement.cashToReceive! },
+                        totalSettlements: { increment: 1 },
+                        lastSettlement: new Date(),
+                    },
+                });
+            }
 
             await prisma.settlement.update({
                 where: { id: settlementId },

@@ -88,12 +88,20 @@ export async function POST(request: NextRequest) {
 
         // Parse request body
         const body = await request.json();
-        const { type, amount, notes } = body;
+        const { type, amount, currency = 'USD', notes } = body;
 
         // Validate settlement type
         if (!['CASH_TO_CREDIT', 'CREDIT_REQUEST', 'CASH_REQUEST'].includes(type)) {
             return NextResponse.json(
                 { error: 'Invalid settlement type' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
+        // Validate currency
+        if (!['USD', 'SYP'].includes(currency)) {
+            return NextResponse.json(
+                { error: 'Invalid currency. Must be USD or SYP' },
                 { status: 400, headers: getSecurityHeaders() }
             );
         }
@@ -106,26 +114,31 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Get currency-specific balances
+        const cashBalance = currency === 'SYP' ? agentProfile.cashCollectedSYP : agentProfile.cashCollected;
+        const creditBalance = currency === 'SYP' ? agentProfile.currentCreditSYP : agentProfile.currentCredit;
+        const creditLimit = currency === 'SYP' ? agentProfile.creditLimitSYP : agentProfile.creditLimit;
+
         // Type-specific validations
         if (type === 'CASH_TO_CREDIT') {
-            if (amount > agentProfile.cashCollected) {
+            if (amount > cashBalance) {
                 return NextResponse.json(
-                    { error: `Insufficient cash balance. Available: $${agentProfile.cashCollected}` },
+                    { error: `Insufficient cash balance. Available: ${currency === 'SYP' ? 'ل.س' : '$'}${cashBalance}` },
                     { status: 400, headers: getSecurityHeaders() }
                 );
             }
         } else if (type === 'CREDIT_REQUEST') {
-            const availableCredit = agentProfile.creditLimit - agentProfile.currentCredit - agentProfile.pendingDebt;
+            const availableCredit = creditLimit - creditBalance - agentProfile.pendingDebt;
             if (amount > availableCredit) {
                 return NextResponse.json(
-                    { error: `Insufficient credit limit. Available: $${availableCredit}` },
+                    { error: `Insufficient credit limit. Available: ${currency === 'SYP' ? 'ل.س' : '$'}${availableCredit}` },
                     { status: 400, headers: getSecurityHeaders() }
                 );
             }
         } else if (type === 'CASH_REQUEST') {
-            if (amount > agentProfile.currentCredit) {
+            if (amount > creditBalance) {
                 return NextResponse.json(
-                    { error: `Insufficient digital credit. Available: $${agentProfile.currentCredit}` },
+                    { error: `Insufficient digital credit. Available: ${currency === 'SYP' ? 'ل.س' : '$'}${creditBalance}` },
                     { status: 400, headers: getSecurityHeaders() }
                 );
             }
@@ -160,6 +173,7 @@ export async function POST(request: NextRequest) {
             settlementNumber: generateReferenceNumber('STL'),
             agentId: agentProfile.id,
             type,
+            currency,
             requestedAmount: amount,
             status: 'PENDING',
             notes: notes || null,

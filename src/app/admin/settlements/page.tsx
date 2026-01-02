@@ -19,12 +19,14 @@ interface Agent {
     businessName: string;
     businessNameAr?: string;
     cashCollected: number;
+    cashCollectedSYP: number;
 }
 
 interface Settlement {
     id: string;
     settlementNumber: string;
     type: string;
+    currency: string;
     requestedAmount: number;
     cashCollected?: number;
     platformShare?: number;
@@ -88,7 +90,8 @@ export default function AdminSettlementsPage() {
 
     const fetchAgentsWithCash = async (minAmount: number) => {
         try {
-            const response = await fetch(`/api/admin/agents/with-cash?minAmount=${minAmount}`);
+            const currency = selectedSettlement?.currency || 'USD';
+            const response = await fetch(`/api/admin/agents/with-cash?minAmount=${minAmount}&currency=${currency}`);
             if (response.ok) {
                 const data = await response.json();
                 setAgentsWithCash(data.agents || []);
@@ -164,8 +167,8 @@ export default function AdminSettlementsPage() {
         const typeKey = type as 'CASH_TO_CREDIT' | 'CREDIT_REQUEST' | 'CASH_REQUEST';
         return (
             <span className={`px-2 py-1 rounded text-xs font-medium ${type === 'CASH_TO_CREDIT' ? 'bg-primary-500/20 text-primary-400' :
-                    type === 'CREDIT_REQUEST' ? 'bg-secondary-500/20 text-secondary-400' :
-                        'bg-accent-500/20 text-accent-400'
+                type === 'CREDIT_REQUEST' ? 'bg-secondary-500/20 text-secondary-400' :
+                    'bg-accent-500/20 text-accent-400'
                 }`}>
                 {type === 'CASH_TO_CREDIT' && '💵→💳 '}
                 {type === 'CREDIT_REQUEST' && '📈 '}
@@ -214,8 +217,8 @@ export default function AdminSettlementsPage() {
                                 key={f}
                                 onClick={() => setFilter(f)}
                                 className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all ${filter === f
-                                        ? 'bg-primary-500 text-white'
-                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                     }`}
                             >
                                 {t(`admin.settlements.filters.${f === 'all' ? 'all' : f.toLowerCase()}`)}
@@ -273,13 +276,12 @@ export default function AdminSettlementsPage() {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="text-primary-500 font-semibold">
-                                                        ${formatAmount(settlement.requestedAmount)}
+                                                        {settlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(settlement.requestedAmount)}
                                                     </div>
-                                                    {settlement.deliveryStatus && (
-                                                        <div className="text-xs text-blue-400 mt-1">
-                                                            {settlement.deliveryStatus}
-                                                        </div>
-                                                    )}
+                                                    <div className="text-xs text-dark-400 mt-1">
+                                                        {settlement.currency}
+                                                        {settlement.deliveryStatus && ` • ${settlement.deliveryStatus}`}
+                                                    </div>
                                                 </td>
                                                 <td className="px-4 py-3">{getStatusBadge(settlement.status)}</td>
                                                 <td className="px-4 py-3 text-sm text-dark-400">
@@ -330,8 +332,9 @@ export default function AdminSettlementsPage() {
                                     <div>
                                         <div className="text-sm text-dark-400 mb-1">Requested Amount</div>
                                         <div className="text-2xl font-bold text-primary-500">
-                                            ${formatAmount(selectedSettlement.requestedAmount)}
+                                            {selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.requestedAmount)}
                                         </div>
+                                        <div className="text-xs text-dark-500 mt-1">Currency: {selectedSettlement.currency}</div>
                                     </div>
                                 </div>
 
@@ -340,19 +343,19 @@ export default function AdminSettlementsPage() {
                                     <div className="bg-dark-800 p-4 rounded-xl space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-dark-400">Cash Collected:</span>
-                                            <span className="text-white">${formatAmount(selectedSettlement.cashCollected || 0)}</span>
+                                            <span className="text-white">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.cashCollected || 0)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-dark-400">Platform Fee:</span>
-                                            <span className="text-red-400">-${formatAmount(selectedSettlement.platformShare || 0)}</span>
+                                            <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.platformShare || 0)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-dark-400">Agent Fee:</span>
-                                            <span className="text-red-400">-${formatAmount(selectedSettlement.agentShare || 0)}</span>
+                                            <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.agentShare || 0)}</span>
                                         </div>
                                         <div className="flex justify-between font-semibold border-t border-dark-700 pt-2">
                                             <span className="text-dark-300">Credit to Give:</span>
-                                            <span className="text-green-400">${formatAmount(selectedSettlement.amountDue || 0)}</span>
+                                            <span className="text-green-400">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.amountDue || 0)}</span>
                                         </div>
                                     </div>
                                 )}
@@ -362,7 +365,7 @@ export default function AdminSettlementsPage() {
                                         <div className="flex justify-between">
                                             <span className="text-dark-400">Credit to Give:</span>
                                             <span className="text-green-400 font-semibold">
-                                                ${formatAmount(selectedSettlement.creditGiven || 0)}
+                                                {selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.creditGiven || 0)}
                                             </span>
                                         </div>
                                         <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
@@ -376,11 +379,11 @@ export default function AdminSettlementsPage() {
                                         <div className="bg-dark-800 p-4 rounded-xl space-y-2">
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-dark-400">Cash Needed:</span>
-                                                <span className="text-white">${formatAmount(selectedSettlement.cashToReceive || 0)}</span>
+                                                <span className="text-white">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.cashToReceive || 0)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-dark-400">Credit Deducted:</span>
-                                                <span className="text-red-400">-${formatAmount(selectedSettlement.creditDeducted || 0)}</span>
+                                                <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.creditDeducted || 0)}</span>
                                             </div>
                                         </div>
 
@@ -418,12 +421,18 @@ export default function AdminSettlementsPage() {
                                                     className="input w-full"
                                                 >
                                                     <option value="">Select agent...</option>
-                                                    {agentsWithCash.map(agent => (
-                                                        <option key={agent.agentCode} value={agent.agentCode}>
-                                                            {agent.businessNameAr || agent.businessName} -
-                                                            Cash: ${formatAmount(agent.cashCollected)}
-                                                        </option>
-                                                    ))}
+                                                    {agentsWithCash.map(agent => {
+                                                        const cashAmount = selectedSettlement.currency === 'SYP'
+                                                            ? agent.cashCollectedSYP
+                                                            : agent.cashCollected;
+                                                        const symbol = selectedSettlement.currency === 'SYP' ? 'ل.س' : '$';
+                                                        return (
+                                                            <option key={agent.agentCode} value={agent.agentCode}>
+                                                                {agent.businessNameAr || agent.businessName} -
+                                                                Cash: {symbol}{formatAmount(cashAmount)}
+                                                            </option>
+                                                        );
+                                                    })}
                                                 </select>
                                             </div>
                                         )}

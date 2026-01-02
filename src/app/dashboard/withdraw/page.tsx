@@ -10,6 +10,7 @@ import {
     MapPinIcon,
     CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
+import { CurrencyToggle, formatCurrencyAmount, type Currency } from '@/components/CurrencySelector';
 
 interface Agent {
     id: string;
@@ -23,7 +24,8 @@ export default function WithdrawPage() {
     const router = useRouter();
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [balance, setBalance] = useState(0);
+    const [balances, setBalances] = useState<{ USD: number; SYP: number }>({ USD: 0, SYP: 0 });
+    const [currency, setCurrency] = useState<Currency>('USD');
 
     useEffect(() => {
         fetchData();
@@ -43,7 +45,10 @@ export default function WithdrawPage() {
 
             if (walletRes.ok) {
                 const data = await walletRes.json();
-                setBalance(data.wallet?.balance || 0);
+                setBalances({
+                    USD: data.personalWallets?.USD?.balance || data.wallet?.balance || 0,
+                    SYP: data.personalWallets?.SYP?.balance || 0,
+                });
             }
         } catch (error) {
             console.error('Error:', error);
@@ -85,9 +90,15 @@ export default function WithdrawPage() {
                         <p className="text-dark-400 text-center text-sm mb-4">
                             {t('transaction.withdraw.description')}
                         </p>
+
+                        {/* Currency Toggle */}
+                        <div className="flex justify-center mb-3">
+                            <CurrencyToggle value={currency} onChange={setCurrency} />
+                        </div>
+
                         <div className="p-4 rounded-xl bg-dark-700/50 text-center">
                             <p className="text-dark-400 text-sm">{t('transaction.withdraw.availableBalance')}</p>
-                            <p className="text-2xl font-bold text-gradient">{formatAmount(balance)} $</p>
+                            <p className="text-2xl font-bold text-gradient">{formatCurrencyAmount(balances[currency], currency)}</p>
                         </div>
                     </div>
 

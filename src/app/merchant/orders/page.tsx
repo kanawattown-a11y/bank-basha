@@ -18,6 +18,7 @@ interface Order {
     amount: number;
     totalAmount: number;
     phoneNumber: string;
+    currency: string;
     status: string;
     sellerResponse: string;
     sellerNotes: string | null;
@@ -166,7 +167,7 @@ export default function MerchantOrdersPage() {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <p className="text-white font-bold text-lg">
-                                            ${order.amount.toFixed(2)}
+                                            {order.currency === 'SYP' ? 'ل.س' : '$'}{order.amount.toFixed(2)}
                                         </p>
                                         <p className="text-white/50 text-sm">
                                             {locale === 'ar' ? (order.service.nameAr || order.service.name) : order.service.name}

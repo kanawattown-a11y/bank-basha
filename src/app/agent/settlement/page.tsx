@@ -31,9 +31,9 @@ interface Settlement {
 }
 
 interface AgentData {
-    cashCollected: number;
-    currentCredit: number;
-    creditLimit: number;
+    cashCollected: { USD: number; SYP: number };
+    currentCredit: { USD: number; SYP: number };
+    creditLimit: { USD: number; SYP: number };
     pendingDebt: number;
 }
 
@@ -44,6 +44,7 @@ export default function AgentSettlementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [settlements, setSettlements] = useState<Settlement[]>([]);
     const [agentData, setAgentData] = useState<AgentData | null>(null);
+    const [currency, setCurrency] = useState<'USD' | 'SYP'>('USD');
     const [settlementType, setSettlementType] = useState<'CASH_TO_CREDIT' | 'CREDIT_REQUEST' | 'CASH_REQUEST'>('CASH_TO_CREDIT');
     const [amount, setAmount] = useState('');
     const [notes, setNotes] = useState('');
@@ -81,9 +82,18 @@ export default function AgentSettlementPage() {
             if (dashRes.ok) {
                 const data = await dashRes.json();
                 setAgentData({
-                    cashCollected: data.cashCollected || 0,
-                    currentCredit: data.currentCredit || 0,
-                    creditLimit: data.creditLimit || 0,
+                    cashCollected: {
+                        USD: data.cashCollected || 0,
+                        SYP: data.cashCollectedSYP || 0
+                    },
+                    currentCredit: {
+                        USD: data.currentCredit || 0,
+                        SYP: data.currentCreditSYP || 0
+                    },
+                    creditLimit: {
+                        USD: data.creditLimit || 0,
+                        SYP: data.creditLimitSYP || 0
+                    },
                     pendingDebt: data.pendingDebt || 0,
                 });
             }
@@ -101,24 +111,56 @@ export default function AgentSettlementPage() {
 
     const getMaxAmount = () => {
         if (!agentData) return 0;
+
+        const cashBalance = agentData.cashCollected[currency];
+        const creditBalance = agentData.currentCredit[currency];
+        const creditLimit = agentData.creditLimit[currency];
+
         if (settlementType === 'CASH_TO_CREDIT') {
-            return agentData.cashCollected;
+            return cashBalance;
         } else if (settlementType === 'CREDIT_REQUEST') {
-            return agentData.creditLimit - agentData.currentCredit - agentData.pendingDebt;
+            return creditLimit - creditBalance - agentData.pendingDebt;
         } else if (settlementType === 'CASH_REQUEST') {
-            return agentData.currentCredit;
+            return creditBalance;
         }
         return 0;
     };
 
     const calculatePreview = () => {
-        const amt = parseFloat(amount) || 0;
+        if (!amount || !agentData) return null;
+
+        const requestedAmount = parseFloat(amount);
+        if (isNaN(requestedAmount) || requestedAmount <= 0) return null;
+
+        // Get currency-specific balances
+        const cashBalance = agentData.cashCollected[currency];
+        const creditBalance = agentData.currentCredit[currency];
+        const creditLimit = agentData.creditLimit[currency];
+
         if (settlementType === 'CASH_TO_CREDIT') {
-            const platformFee = amt * (platformCommission / 100);
-            const agentFee = amt * (agentCommission / 100);
-            const netCredit = amt - platformFee - agentFee;
-            return { platformFee, agentFee, netCredit };
+            const platformFee = requestedAmount * (platformCommission / 100);
+            const agentFee = requestedAmount * (agentCommission / 100);
+            const netCredit = requestedAmount - platformFee - agentFee;
+
+            return {
+                cashGiven: requestedAmount,
+                platformFee,
+                agentFee,
+                netCredit,
+            };
+        } else if (settlementType === 'CREDIT_REQUEST') {
+            return {
+                creditRequested: requestedAmount,
+                currentDebt: agentData.pendingDebt,
+                newTotalDebt: agentData.pendingDebt + requestedAmount,
+            };
+        } else if (settlementType === 'CASH_REQUEST') {
+            return {
+                cashNeeded: requestedAmount,
+                creditDeducted: requestedAmount,
+            };
         }
+
         return null;
     };
 
@@ -142,8 +184,9 @@ export default function AgentSettlementPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     type: settlementType,
-                    amount: amt,
-                    notes
+                    amount: parseFloat(amount),
+                    currency,
+                    notes: notes.trim() || undefined,
                 }),
             });
 
@@ -240,24 +283,66 @@ export default function AgentSettlementPage() {
             </header>
 
             <main className="pt-24 pb-8 px-4">
-                <div className="max-w-2xl mx-auto space-y-6">
+                <div className="max-w-2xl mx-auto">
+                    {message && (
+                        <div className={`mb-4 p-4 rounded-xl ${message.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                            {message.text}
+                        </div>
+                    )}
 
-                    {/* Balance Cards */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="card p-4">
-                            <div className="text-sm text-dark-400 mb-1">Cash Balance</div>
-                            <div className="text-2xl font-bold text-white">{formatAmount(agentData.cashCollected)} $</div>
-                            <div className="text-xs text-dark-500 mt-1">
-                                {settlementType === 'CASH_TO_CREDIT' && '✅ Can convert'}
-                                {settlementType === 'CASH_REQUEST' && '⚠️ Need more'}
+                    {/* Currency Selector */}
+                    <div className="card mb-6">
+                        <div className="p-4">
+                            <h3 className="text-sm font-medium text-dark-300 mb-3">Select Currency</h3>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setCurrency('USD')}
+                                    className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${currency === 'USD'
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                        }`}
+                                >
+                                    💵 USD
+                                </button>
+                                <button
+                                    onClick={() => setCurrency('SYP')}
+                                    className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${currency === 'SYP'
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                        }`}
+                                >
+                                    🇸🇾 SYP
+                                </button>
                             </div>
                         </div>
-                        <div className="card p-4">
-                            <div className="text-sm text-dark-400 mb-1">Digital Credit</div>
-                            <div className="text-2xl font-bold text-white">{formatAmount(agentData.currentCredit)} $</div>
-                            <div className="text-xs text-dark-500 mt-1">
-                                {settlementType === 'CREDIT_REQUEST' && `Available: ${formatAmount(maxAmount)} $`}
-                                {settlementType === 'CASH_REQUEST' && '✅ Can convert'}
+                    </div>
+
+                    {/* Balance Cards */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="card">
+                            <div className="p-4">
+                                <div className="text-sm text-dark-400 mb-1">Cash Collected</div>
+                                <div className="text-2xl font-bold text-primary-500">
+                                    {currency === 'SYP' ? 'ل.س' : '$'}
+                                    {agentData ? formatAmount(agentData.cashCollected[currency]) : '0.00'}
+                                </div>
+                                <div className="text-xs text-dark-500 mt-1">
+                                    Other: {currency === 'USD' ? 'ل.س' : '$'}
+                                    {agentData ? formatAmount(agentData.cashCollected[currency === 'USD' ? 'SYP' : 'USD']) : '0.00'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="card">
+                            <div className="p-4">
+                                <div className="text-sm text-dark-400 mb-1">Digital Credit</div>
+                                <div className="text-2xl font-bold text-secondary-500">
+                                    {currency === 'SYP' ? 'ل.س' : '$'}
+                                    {agentData ? formatAmount(agentData.currentCredit[currency]) : '0.00'}
+                                </div>
+                                <div className="text-xs text-dark-500 mt-1">
+                                    Other: {currency === 'USD' ? 'ل.س' : '$'}
+                                    {agentData ? formatAmount(agentData.currentCredit[currency === 'USD' ? 'SYP' : 'USD']) : '0.00'}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -325,23 +410,23 @@ export default function AgentSettlementPage() {
                         {amount && parseFloat(amount) >= 10 && (
                             <div className="card bg-dark-800 p-4 mb-4">
                                 <h4 className="font-semibold text-white mb-3">Preview:</h4>
-                                {settlementType === 'CASH_TO_CREDIT' && preview && (
+                                {preview && settlementType === 'CASH_TO_CREDIT' && (
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Cash to Give:</span>
-                                            <span className="text-white font-medium">${formatAmount(parseFloat(amount))}</span>
+                                            <span className="text-white font-medium">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.cashGiven)}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Platform Fee ({platformCommission}%):</span>
-                                            <span className="text-red-400">-${formatAmount(preview.platformFee)}</span>
+                                            <span className="text-red-400">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.platformFee)}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Agent Fee ({agentCommission}%):</span>
-                                            <span className="text-red-400">-${formatAmount(preview.agentFee)}</span>
+                                            <span className="text-red-400">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.agentFee)}</span>
                                         </div>
                                         <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
                                             <span className="text-dark-300">Credit You&apos;ll Receive:</span>
-                                            <span className="text-primary-500">${formatAmount(preview.netCredit)}</span>
+                                            <span className="text-primary-500">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(preview.netCredit)}</span>
                                         </div>
                                     </div>
                                 )}
@@ -349,15 +434,15 @@ export default function AgentSettlementPage() {
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Credit Requested:</span>
-                                            <span className="text-white font-medium">${formatAmount(parseFloat(amount))}</span>
+                                            <span className="text-white font-medium">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(parseFloat(amount))}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Current Debt:</span>
-                                            <span className="text-orange-400">${formatAmount(agentData.pendingDebt)}</span>
+                                            <span className="text-orange-400">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(agentData.pendingDebt)}</span>
                                         </div>
                                         <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
                                             <span className="text-dark-300">New Total Debt:</span>
-                                            <span className="text-red-500">${formatAmount(agentData.pendingDebt + parseFloat(amount))}</span>
+                                            <span className="text-red-500">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(agentData.pendingDebt + parseFloat(amount))}</span>
                                         </div>
                                         <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
                                             <p className="text-xs text-orange-400">⚠️ This is a loan - you&apos;ll need to repay later</p>
@@ -368,15 +453,15 @@ export default function AgentSettlementPage() {
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Cash Needed:</span>
-                                            <span className="text-white font-medium">${formatAmount(parseFloat(amount))}</span>
+                                            <span className="text-white font-medium">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(parseFloat(amount))}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-dark-300">Credit to Deduct:</span>
-                                            <span className="text-red-400">-${formatAmount(parseFloat(amount))}</span>
+                                            <span className="text-red-400">-{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(parseFloat(amount))}</span>
                                         </div>
                                         <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
                                             <span className="text-dark-300">Cash You&apos;ll Receive:</span>
-                                            <span className="text-green-500">${formatAmount(parseFloat(amount))}</span>
+                                            <span className="text-green-500">{currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(parseFloat(amount))}</span>
                                         </div>
                                         <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                                             <p className="text-xs text-blue-400">ℹ️ Admin will arrange cash delivery</p>

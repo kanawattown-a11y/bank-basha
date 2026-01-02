@@ -318,97 +318,100 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div className="grid lg:grid-cols-2 gap-6">
-                        {/* Pending KYC */}
-                        <div className="card p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-white">{t('admin.users.pending')}</h2>
-                                <span className="badge-warning">{stats?.pendingKYC || 0}</span>
-                            </div>
-
-                            {pendingKYC.length === 0 ? (
-                                <div className="text-center py-8 text-dark-400">
-                                    {t('admin.dashboard.noPendingKYC')}
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {pendingKYC.map((user) => (
-                                        <div key={user.id} className="flex items-center justify-between p-4 rounded-xl bg-dark-800/50">
-                                            <div>
-                                                <p className="text-white font-medium">{user.fullName}</p>
-                                                <p className="text-dark-400 text-sm">{user.phone}</p>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleKYCAction(user.id, 'approve')}
-                                                    className="btn-icon bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                                >
-                                                    <CheckIcon className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleKYCAction(user.id, 'reject')}
-                                                    className="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                                                >
-                                                    <XMarkIcon className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Pending KYC */}
+                    <div className="card p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-white">{t('admin.users.pending')}</h2>
+                            <span className="badge-warning">{stats?.pendingKYC || 0}</span>
                         </div>
 
-                        {/* Pending Settlements */}
-                        <div className="card p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-white">{t('admin.settlements.pending')}</h2>
-                                <span className="badge-warning">{stats?.pendingSettlements || 0}</span>
+                        {pendingKYC.length === 0 ? (
+                            <div className="text-center py-8 text-dark-400">
+                                {t('admin.dashboard.noPendingKYC')}
                             </div>
-
-                            {pendingSettlements.length === 0 ? (
-                                <div className="text-center py-8 text-dark-400">
-                                    {t('admin.dashboard.noPendingSettlements')}
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {pendingSettlements.map((settlement) => (
-                                        <div key={settlement.id} className="flex items-center justify-between p-4 rounded-xl bg-dark-800/50">
-                                            <div>
-                                                <p className="text-white font-medium">{settlement.businessName}</p>
-                                                <p className="text-dark-400 text-sm">
-                                                    {settlement.agentCode} • {formatAmount(settlement.amountDue)} $
-                                                </p>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleSettlementAction(settlement.id, 'approve')}
-                                                    className="btn-icon bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                                >
-                                                    <CheckIcon className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSettlementAction(settlement.id, 'reject')}
-                                                    className="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                                                >
-                                                    <XMarkIcon className="w-5 h-5" />
-                                                </button>
-                                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {pendingKYC.map((user) => (
+                                    <div key={user.id} className="flex items-center justify-between p-4 rounded-xl bg-dark-800/50">
+                                        <div>
+                                            <p className="text-white font-medium">{user.fullName}</p>
+                                            <p className="text-dark-400 text-sm">{user.phone}</p>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleKYCAction(user.id, 'approve')}
+                                                className="btn-icon bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                            >
+                                                <CheckIcon className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleKYCAction(user.id, 'reject')}
+                                                className="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                                            >
+                                                <XMarkIcon className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                </div>
-            </main>
+                    {/* Pending Settlements */}
+                    <div className="card p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-white">{t('admin.settlements.pending')}</h2>
+                            <span className="badge-warning">{stats?.pendingSettlements || 0}</span>
+                        </div>
 
-            {/* Grant Credit Modal */}
-            {showGrantCreditModal && (
-                <GrantCreditModal onClose={() => setShowGrantCreditModal(false)} onSuccess={fetchAdminData} />
-            )}
+                        {pendingSettlements.length === 0 ? (
+                            <div className="text-center py-8 text-dark-400">
+                                {t('admin.dashboard.noPendingSettlements')}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {pendingSettlements.map((settlement) => (
+                                    <div key={settlement.id} className="flex items-center justify-between p-4 rounded-xl bg-dark-800/50">
+                                        <div>
+                                            <p className="text-white font-medium">{settlement.businessName}</p>
+                                            <p className="text-dark-400 text-sm">
+                                                {settlement.agentCode} • {formatAmount(settlement.amountDue)} $
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleSettlementAction(settlement.id, 'approve')}
+                                                className="btn-icon bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                            >
+                                                <CheckIcon className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleSettlementAction(settlement.id, 'reject')}
+                                                className="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                                            >
+                                                <XMarkIcon className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
         </div>
+            </main >
+
+        {/* Grant Credit Modal */ }
+    {
+        showGrantCreditModal && (
+            <GrantCreditModal onClose={() => setShowGrantCreditModal(false)} onSuccess={fetchAdminData} />
+        )
+    }
+        </div >
     );
 }
 
