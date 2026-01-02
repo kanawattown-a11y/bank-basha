@@ -17,6 +17,7 @@ interface User {
     id: string;
     fullName: string;
     phone: string;
+    address?: string; // NEW: Address field
     userType: string;
     kycStatus: string;
     isActive: boolean;
@@ -217,8 +218,17 @@ export default function AdminUsersPage() {
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2 flex-wrap mb-2">
-                                                <p className="text-white font-medium">{user.fullName}</p>
+                                            <p className="text-white font-medium">{user.fullName}</p>
+                                            <p className="text-dark-400 text-sm">{user.phone}</p>
+                                            {user.address && (
+                                                <p className="text-dark-500 text-xs mt-1 flex items-center gap-1">
+                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    </svg>
+                                                    {user.address}
+                                                </p>
+                                            )}
+                                            <div className="flex items-center gap-2 flex-wrap mt-2">
                                                 {getKYCBadge(user.kycStatus)}
                                                 {/* User Type Badge - Enhanced */}
                                                 {user.userType === 'AGENT' ? (

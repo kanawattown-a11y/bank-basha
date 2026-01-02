@@ -28,10 +28,14 @@ export default function RegisterPage() {
         fullName: '',
         phone: '',
         email: '',
-        dateOfBirth: '',
         password: '',
         confirmPassword: '',
-        terms: false,
+        address: '', // NEW: Added address field
+        dateOfBirth: '',
+        idPhotoFront: null as File | null,
+        idPhotoBack: null as File | null,
+        selfiePhoto: null as File | null,
+        terms: false, // Terms checkbox
     });
     const [files, setFiles] = useState<{
         idPhotoFront: File | null;
@@ -160,9 +164,10 @@ export default function RegisterPage() {
             const data = new FormData();
             data.append('fullName', formData.fullName);
             data.append('phone', formData.phone);
-            data.append('email', formData.email);
-            data.append('dateOfBirth', formData.dateOfBirth);
+            data.append('email', formData.email || '');
             data.append('password', formData.password);
+            data.append('address', formData.address || ''); // NEW: Include address
+            data.append('dateOfBirth', formData.dateOfBirth || '');
 
             if (files.idPhotoFront) data.append('idPhotoFront', files.idPhotoFront);
             if (files.idPhotoBack) data.append('idPhotoBack', files.idPhotoBack);
@@ -251,7 +256,7 @@ export default function RegisterPage() {
                                         id="fullName"
                                         type="text"
                                         className="input pr-12"
-                                        placeholder="أحمد محمد"
+                                        placeholder="أكتب الإسم هنا"
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                         required
@@ -287,8 +292,28 @@ export default function RegisterPage() {
                                 )}
                             </div>
 
+                            {/* Address Field - NEW */}
                             <div>
-                                <label htmlFor="email" className="label">البريد الإلكتروني *</label>
+                                <label htmlFor="address" className="label">العنوان الكامل (اختياري)</label>
+                                <div className="relative">
+                                    <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <input
+                                        id="address"
+                                        type="text"
+                                        className="input pr-12"
+                                        placeholder="مثال: شارع الثورة - حي المزة - دمشق"
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    />
+                                </div>
+                                <p className="text-xs text-dark-500 mt-1">يستخدم للتواصل وإرسال البطاقات البنكية</p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="email" className="label">البريد الإلكتروني (اختياري)</label>
                                 <div className="relative">
                                     <EnvelopeIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
                                     <input

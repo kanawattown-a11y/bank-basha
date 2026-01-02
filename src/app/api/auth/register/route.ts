@@ -21,6 +21,7 @@ const registerSchema = z.object({
     phone: z.string().min(9, 'Phone number is required'),
     email: z.string().email('Invalid email').optional().or(z.literal('')),
     password: z.string().min(6, 'Password must be at least 6 characters'),
+    address: z.string().optional(), // NEW: Address field
     dateOfBirth: z.string().optional(),
 });
 
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
             phone: formData.get('phone') as string,
             email: formData.get('email') as string,
             password: formData.get('password') as string,
+            address: formData.get('address') as string, // NEW: Extract address
             dateOfBirth: formData.get('dateOfBirth') as string,
         };
 
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { fullName, phone, email, password, dateOfBirth } = validation.data;
+        const { fullName, phone, email, password, address, dateOfBirth } = validation.data;
 
         // Files - support new and old field names
         const idPhotoFront = formData.get('idPhotoFront') as File | null;
@@ -150,6 +152,7 @@ export async function POST(request: NextRequest) {
                     email: email || null,
                     passwordHash,
                     fullName,
+                    address: address || null, // NEW: Save address
                     dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
                     userType: 'USER',
                     status: 'PENDING',
