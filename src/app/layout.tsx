@@ -5,10 +5,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
     title: {
-        default: 'Bank Basha | بنك باشا',
-        template: '%s | Bank Basha',
+        default: 'بنك باشا - Bank Basha',
+        template: '%s | بنك باشا'
     },
-    description: 'Your Digital Financial Partner - Fast, Secure, and Easy financial services at your fingertips | شريكك المالي الرقمي - خدمات مالية سريعة وآمنة وسهلة',
+    description: 'نظام الدفع الإلكتروني - Electronic Payment System',
     keywords: ['Bank Basha', 'بنك باشا', 'digital wallet', 'محفظة رقمية', 'money transfer', 'تحويل أموال', 'السويداء', 'Sweida'],
     authors: [{ name: 'Bank Basha' }],
     creator: 'Bank Basha',
@@ -44,7 +44,12 @@ export const metadata: Metadata = {
         },
     },
     icons: {
-        icon: '/icon.svg',
+        icon: [
+            { url: '/logo.png', type: 'image/png', sizes: '512x512' },
+            { url: '/logo.png', type: 'image/png', sizes: '192x192' },
+        ],
+        apple: '/logo.png',
+        shortcut: '/logo.png',
     },
     manifest: '/manifest.json',
 };
