@@ -151,8 +151,17 @@ export async function POST(request: NextRequest) {
                     },
                 });
 
-                // Update the linked Transaction status
+                // Get currency from linked transaction
+                let orderCurrency = 'USD';
                 if (order.transactionId) {
+                    const linkedTransaction = await tx.transaction.findUnique({
+                        where: { id: order.transactionId },
+                    });
+                    if (linkedTransaction?.currency) {
+                        orderCurrency = linkedTransaction.currency;
+                    }
+
+                    // Update the linked Transaction status
                     await tx.transaction.update({
                         where: { id: order.transactionId },
                         data: {
@@ -162,9 +171,9 @@ export async function POST(request: NextRequest) {
                     });
                 }
 
-                // Add to seller wallet
-                const sellerWallet = await tx.wallet.findUnique({
-                    where: { userId: payload.userId },
+                // Add to seller wallet (using order currency)
+                const sellerWallet = await tx.wallet.findFirst({
+                    where: { userId: payload.userId, walletType: 'BUSINESS', currency: orderCurrency },
                 });
 
                 if (sellerWallet) {
@@ -215,8 +224,17 @@ export async function POST(request: NextRequest) {
                     },
                 });
 
-                // Update the linked Transaction status
+                // Get currency from linked transaction
+                let orderCurrency = 'USD';
                 if (order.transactionId) {
+                    const linkedTransaction = await tx.transaction.findUnique({
+                        where: { id: order.transactionId },
+                    });
+                    if (linkedTransaction?.currency) {
+                        orderCurrency = linkedTransaction.currency;
+                    }
+
+                    // Update the linked Transaction status
                     await tx.transaction.update({
                         where: { id: order.transactionId },
                         data: {
@@ -226,9 +244,9 @@ export async function POST(request: NextRequest) {
                     });
                 }
 
-                // Refund buyer wallet
-                const buyerWallet = await tx.wallet.findUnique({
-                    where: { userId: order.userId },
+                // Refund buyer wallet (using order currency)
+                const buyerWallet = await tx.wallet.findFirst({
+                    where: { userId: order.userId, walletType: 'PERSONAL', currency: orderCurrency },
                 });
 
                 if (buyerWallet) {

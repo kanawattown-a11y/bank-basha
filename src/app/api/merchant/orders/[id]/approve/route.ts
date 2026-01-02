@@ -82,8 +82,17 @@ export async function POST(
                 },
             });
 
-            // Update the linked Transaction status as well
+            // Get the linked transaction to determine currency
+            let orderCurrency = 'USD';
             if (order.transactionId) {
+                const linkedTransaction = await tx.transaction.findUnique({
+                    where: { id: order.transactionId },
+                });
+                if (linkedTransaction?.currency) {
+                    orderCurrency = linkedTransaction.currency;
+                }
+
+                // Update the linked Transaction status as well
                 await tx.transaction.update({
                     where: { id: order.transactionId },
                     data: {
@@ -93,11 +102,16 @@ export async function POST(
                 });
             }
 
-            // Transfer amount to merchant wallet
-            await tx.wallet.update({
-                where: { userId: payload.userId },
-                data: { balance: { increment: order.amount } },
+            // Transfer amount to merchant business wallet (using order currency)
+            const merchantBusinessWallet = await tx.wallet.findFirst({
+                where: { userId: payload.userId, walletType: 'BUSINESS', currency: orderCurrency },
             });
+            if (merchantBusinessWallet) {
+                await tx.wallet.update({
+                    where: { id: merchantBusinessWallet.id },
+                    data: { balance: { increment: order.amount } },
+                });
+            }
         });
 
         // Notify buyer

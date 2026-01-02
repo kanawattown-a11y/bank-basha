@@ -103,11 +103,11 @@ export async function POST(request: NextRequest) {
 
         // Create purchase and deduct balance in transaction
         const purchase = await prisma.$transaction(async (tx) => {
-            // 1. Get Seller Wallet (if exists)
+            // 1. Get Seller Wallet (if exists) - PERSONAL USD wallet
             let sellerWallet = null;
             if (service.sellerId) {
-                sellerWallet = await tx.wallet.findUnique({
-                    where: { userId: service.sellerId },
+                sellerWallet = await tx.wallet.findFirst({
+                    where: { userId: service.sellerId, walletType: 'PERSONAL', currency: 'USD' },
                 });
             }
 

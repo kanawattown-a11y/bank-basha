@@ -78,6 +78,7 @@ export async function POST(
         }
 
         // Reject and refund
+        let orderCurrency = 'USD';
         await prisma.$transaction(async (tx) => {
             // Update order status
             await tx.servicePurchase.update({
@@ -92,8 +93,16 @@ export async function POST(
                 },
             });
 
-            // Update the linked Transaction status as well
+            // Get linked transaction to determine currency
             if (order.transactionId) {
+                const linkedTransaction = await tx.transaction.findUnique({
+                    where: { id: order.transactionId },
+                });
+                if (linkedTransaction?.currency) {
+                    orderCurrency = linkedTransaction.currency;
+                }
+
+                // Update the linked Transaction status as well
                 await tx.transaction.update({
                     where: { id: order.transactionId },
                     data: {
@@ -103,12 +112,20 @@ export async function POST(
                 });
             }
 
-            // Refund to buyer wallet
-            await tx.wallet.update({
-                where: { userId: order.userId },
-                data: { balance: { increment: order.totalAmount } },
+            // Refund to buyer wallet (using order currency)
+            const buyerWallet = await tx.wallet.findFirst({
+                where: { userId: order.userId, walletType: 'PERSONAL', currency: orderCurrency },
             });
+            if (buyerWallet) {
+                await tx.wallet.update({
+                    where: { id: buyerWallet.id },
+                    data: { balance: { increment: order.totalAmount } },
+                });
+            }
         });
+
+        // Format currency symbol
+        const currencySymbol = orderCurrency === 'SYP' ? 'ل.س' : '$';
 
         // Notify buyer
         await prisma.notification.create({
@@ -117,8 +134,8 @@ export async function POST(
                 type: 'SERVICE',
                 title: '❌ تم رفض طلبك',
                 titleAr: '❌ تم رفض طلبك',
-                message: `تم إرجاع $${order.totalAmount} إلى محفظتك. السبب: ${notes}`,
-                messageAr: `تم إرجاع $${order.totalAmount} إلى محفظتك. السبب: ${notes}`,
+                message: `تم إرجاع ${currencySymbol}${order.totalAmount} إلى محفظتك. السبب: ${notes}`,
+                messageAr: `تم إرجاع ${currencySymbol}${order.totalAmount} إلى محفظتك. السبب: ${notes}`,
             },
         });
 
