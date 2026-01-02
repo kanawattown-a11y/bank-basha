@@ -269,8 +269,8 @@ export default function AgentSettlementPage() {
                             <button
                                 onClick={() => { setSettlementType('CASH_TO_CREDIT'); setAmount(''); }}
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${settlementType === 'CASH_TO_CREDIT'
-                                        ? 'border-primary-500 bg-primary-500/10'
-                                        : 'border-dark-700 bg-dark-800 hover:border-dark-600'
+                                    ? 'border-primary-500 bg-primary-500/10'
+                                    : 'border-dark-700 bg-dark-800 hover:border-dark-600'
                                     }`}
                             >
                                 <BanknotesIcon className="w-6 h-6 text-primary-500" />
@@ -280,8 +280,8 @@ export default function AgentSettlementPage() {
                             <button
                                 onClick={() => { setSettlementType('CREDIT_REQUEST'); setAmount(''); }}
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${settlementType === 'CREDIT_REQUEST'
-                                        ? 'border-secondary-500 bg-secondary-500/10'
-                                        : 'border-dark-700 bg-dark-800 hover:border-dark-600'
+                                    ? 'border-secondary-500 bg-secondary-500/10'
+                                    : 'border-dark-700 bg-dark-800 hover:border-dark-600'
                                     }`}
                             >
                                 <PlusCircleIcon className="w-6 h-6 text-secondary-500" />
@@ -291,8 +291,8 @@ export default function AgentSettlementPage() {
                             <button
                                 onClick={() => { setSettlementType('CASH_REQUEST'); setAmount(''); }}
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${settlementType === 'CASH_REQUEST'
-                                        ? 'border-accent-500 bg-accent-500/10'
-                                        : 'border-dark-700 bg-dark-800 hover:border-dark-600'
+                                    ? 'border-accent-500 bg-accent-500/10'
+                                    : 'border-dark-700 bg-dark-800 hover:border-dark-600'
                                     }`}
                             >
                                 <ArrowDownTrayIcon className="w-6 h-6 text-accent-500" />
@@ -340,7 +340,7 @@ export default function AgentSettlementPage() {
                                             <span className="text-red-400">-${formatAmount(preview.agentFee)}</span>
                                         </div>
                                         <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
-                                            <span className="text-dark-300">Credit You'll Receive:</span>
+                                            <span className="text-dark-300">Credit You&apos;ll Receive:</span>
                                             <span className="text-primary-500">${formatAmount(preview.netCredit)}</span>
                                         </div>
                                     </div>
@@ -360,7 +360,7 @@ export default function AgentSettlementPage() {
                                             <span className="text-red-500">${formatAmount(agentData.pendingDebt + parseFloat(amount))}</span>
                                         </div>
                                         <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                                            <p className="text-xs text-orange-400">⚠️ This is a loan - you'll need to repay later</p>
+                                            <p className="text-xs text-orange-400">⚠️ This is a loan - you&apos;ll need to repay later</p>
                                         </div>
                                     </div>
                                 )}
@@ -375,7 +375,7 @@ export default function AgentSettlementPage() {
                                             <span className="text-red-400">-${formatAmount(parseFloat(amount))}</span>
                                         </div>
                                         <div className="border-t border-dark-700 pt-2 mt-2 flex justify-between font-semibold">
-                                            <span className="text-dark-300">Cash You'll Receive:</span>
+                                            <span className="text-dark-300">Cash You&apos;ll Receive:</span>
                                             <span className="text-green-500">${formatAmount(parseFloat(amount))}</span>
                                         </div>
                                         <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -402,8 +402,8 @@ export default function AgentSettlementPage() {
                         {/* Messages */}
                         {message && (
                             <div className={`mb-4 p-3 rounded-xl text-sm ${message.type === 'success'
-                                    ? 'bg-green-500/10 text-green-400'
-                                    : 'bg-red-500/10 text-red-400'
+                                ? 'bg-green-500/10 text-green-400'
+                                : 'bg-red-500/10 text-red-400'
                                 }`}>
                                 {message.text}
                             </div>
