@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
                 where: { id: merchantRequest.userId },
                 data: {
                     hasMerchantAccount: true,
-                    businessWalletId: businessWalletUSD.id,
+                    // businessWalletId is no longer needed - wallets are linked via userId
                 },
             });
 
