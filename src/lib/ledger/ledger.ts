@@ -600,35 +600,43 @@ export async function processQRPayment(
         return await prisma.$transaction(async (tx) => {
             const payer = await tx.user.findUnique({
                 where: { id: payerId },
-                include: { wallet: true },
+                include: { wallets: true },
             });
             const merchant = await tx.user.findUnique({
                 where: { id: merchantId },
-                include: { wallet: true, merchantProfile: true },
+                include: { wallets: true, merchantProfile: true },
             });
 
-            if (!payer || !payer.wallet) {
+            // Get USD personal wallet for payer and USD business wallet for merchant
+            const payerWallet = (payer?.wallets as any[])?.find(
+                (w: { walletType: string; currency: string }) => w.walletType === 'PERSONAL' && w.currency === 'USD'
+            );
+            const merchantWallet = (merchant?.wallets as any[])?.find(
+                (w: { walletType: string; currency: string }) => w.walletType === 'BUSINESS' && w.currency === 'USD'
+            );
+
+            if (!payer || !payerWallet) {
                 return { success: false, error: 'Payer not found' };
             }
-            if (!merchant || !merchant.wallet || !merchant.merchantProfile) {
+            if (!merchant || !merchantWallet || !merchant.merchantProfile) {
                 return { success: false, error: 'Merchant not found' };
             }
 
             // Validation: Payer cannot go negative
-            if (payer.wallet.balance < amount) {
-                return { success: false, error: `Insufficient balance. Available: $${payer.wallet.balance.toFixed(2)}` };
+            if (payerWallet.balance < amount) {
+                return { success: false, error: `Insufficient balance. Available: $${payerWallet.balance.toFixed(2)}` };
             }
 
             const referenceNumber = generateReferenceNumber('QRP');
 
             // QR payments have no fee (can be configured)
             await tx.wallet.update({
-                where: { id: payer.wallet.id },
+                where: { id: payerWallet.id },
                 data: { balance: { decrement: amount } },
             });
 
             await tx.wallet.update({
-                where: { id: merchant.wallet.id },
+                where: { id: merchantWallet.id },
                 data: { balance: { increment: amount } },
             });
 

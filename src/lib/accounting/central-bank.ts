@@ -15,7 +15,7 @@ export async function getCentralBankAccount() {
     // Try to find existing central bank user
     let centralBank = await prisma.user.findFirst({
         where: { phone: CENTRAL_BANK_CODE },
-        include: { wallet: true },
+        include: { wallets: true },
     });
 
     // Create if doesn't exist
@@ -29,14 +29,14 @@ export async function getCentralBankAccount() {
                 userType: 'ADMIN',
                 isActive: true,
                 kycStatus: 'APPROVED',
-                wallet: {
-                    create: {
-                        balance: 0,
-                        currency: 'USD',
-                    },
+                wallets: {
+                    create: [
+                        { balance: 0, currency: 'USD', walletType: 'PERSONAL' },
+                        { balance: 0, currency: 'SYP', walletType: 'PERSONAL' },
+                    ],
                 },
             },
-            include: { wallet: true },
+            include: { wallets: true },
         });
     }
 
@@ -48,25 +48,27 @@ export async function getCentralBankAccount() {
  * Negative = money distributed to users/agents
  * Positive = money held
  */
-export async function getCentralBankBalance(): Promise<number> {
+export async function getCentralBankBalance(currency: 'USD' | 'SYP' = 'USD'): Promise<number> {
     const centralBank = await getCentralBankAccount();
-    return centralBank.wallet?.balance || 0;
+    const wallet = (centralBank.wallets as any[])?.find((w: { currency: string }) => w.currency === currency);
+    return wallet?.balance || 0;
 }
 
 /**
  * Debit Central Bank (when giving credit to agent)
  * This will make the balance more negative
  */
-export async function debitCentralBank(amount: number, description: string) {
+export async function debitCentralBank(amount: number, description: string, currency: 'USD' | 'SYP' = 'USD') {
     const centralBank = await getCentralBankAccount();
 
-    if (!centralBank.wallet) {
-        throw new Error('Central Bank wallet not found');
+    const wallet = (centralBank.wallets as any[])?.find((w: { currency: string }) => w.currency === currency);
+    if (!wallet) {
+        throw new Error(`Central Bank ${currency} wallet not found`);
     }
 
     // Decrease balance (can go negative)
     await prisma.wallet.update({
-        where: { id: centralBank.wallet.id },
+        where: { id: wallet.id },
         data: { balance: { decrement: amount } },
     });
 
@@ -76,8 +78,8 @@ export async function debitCentralBank(amount: number, description: string) {
             userId: centralBank.id,
             action: 'CENTRAL_BANK_DEBIT',
             entity: 'Wallet',
-            entityId: centralBank.wallet.id,
-            newValue: JSON.stringify({ amount, description }),
+            entityId: wallet.id,
+            newValue: JSON.stringify({ amount, description, currency }),
         },
     });
 
@@ -88,16 +90,17 @@ export async function debitCentralBank(amount: number, description: string) {
  * Credit Central Bank (when agent settles)
  * This will make the balance less negative (towards zero)
  */
-export async function creditCentralBank(amount: number, description: string) {
+export async function creditCentralBank(amount: number, description: string, currency: 'USD' | 'SYP' = 'USD') {
     const centralBank = await getCentralBankAccount();
 
-    if (!centralBank.wallet) {
-        throw new Error('Central Bank wallet not found');
+    const wallet = (centralBank.wallets as any[])?.find((w: { currency: string }) => w.currency === currency);
+    if (!wallet) {
+        throw new Error(`Central Bank ${currency} wallet not found`);
     }
 
     // Increase balance (towards zero)
     await prisma.wallet.update({
-        where: { id: centralBank.wallet.id },
+        where: { id: wallet.id },
         data: { balance: { increment: amount } },
     });
 
@@ -107,8 +110,8 @@ export async function creditCentralBank(amount: number, description: string) {
             userId: centralBank.id,
             action: 'CENTRAL_BANK_CREDIT',
             entity: 'Wallet',
-            entityId: centralBank.wallet.id,
-            newValue: JSON.stringify({ amount, description }),
+            entityId: wallet.id,
+            newValue: JSON.stringify({ amount, description, currency }),
         },
     });
 
@@ -136,13 +139,16 @@ export async function getSystemFinancialSummary() {
         _sum: { currentCredit: true, cashCollected: true },
     });
 
+    // Get USD wallet balance
+    const centralBankUSDWallet = (centralBank.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD');
+
     return {
-        centralBankBalance: centralBank.wallet?.balance || 0,
+        centralBankBalance: centralBankUSDWallet?.balance || 0,
         totalUserBalances: userWallets._sum.balance || 0,
         totalAgentCredit: agentCredits._sum.currentCredit || 0,
         totalAgentCash: agentCredits._sum.cashCollected || 0,
         // Should always equal zero if perfectly balanced
-        systemBalance: (centralBank.wallet?.balance || 0)
+        systemBalance: (centralBankUSDWallet?.balance || 0)
             + (userWallets._sum.balance || 0)
             + (agentCredits._sum.currentCredit || 0),
     };
