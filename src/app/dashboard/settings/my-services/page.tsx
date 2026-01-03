@@ -18,6 +18,7 @@ interface Service {
     nameAr: string | null;
     description: string;
     price: number;
+    currency: string; // NEW: Currency field
     category: string;
     status: string;
     rejectionReason: string | null;
@@ -46,6 +47,7 @@ export default function MyServicesPage() {
         description: '',
         descriptionAr: '',
         category: 'OTHER',
+        currency: 'USD' as 'USD' | 'SYP', // NEW: Currency selector
         // Pricing
         isFlexiblePrice: false,
         price: 0,
@@ -118,6 +120,7 @@ export default function MyServicesPage() {
             description: '',
             descriptionAr: '',
             category: 'OTHER',
+            currency: 'USD' as 'USD' | 'SYP', // NEW: Reset currency
             isFlexiblePrice: false,
             price: 0,
             minPrice: 1,
@@ -233,7 +236,9 @@ export default function MyServicesPage() {
                                         {getStatusBadge(service.status)}
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-primary-500 font-bold">{service.price} $</span>
+                                        <span className="text-primary-500 font-bold">
+                                            {service.currency === 'SYP' ? 'ل.س' : '$'}{service.price.toFixed(service.currency === 'SYP' ? 0 : 2)}
+                                        </span>
                                         <span className="text-dark-500">
                                             {service._count.purchases} عملية شراء
                                         </span>
@@ -391,17 +396,32 @@ export default function MyServicesPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-dark-300 text-sm mb-2">السعر ($) *</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
+                                    <label className="block text-dark-300 text-sm mb-2">العملة *</label>
+                                    <select
                                         className="input"
-                                        value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                                        required
-                                    />
+                                        value={formData.currency}
+                                        onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'USD' | 'SYP' })}
+                                    >
+                                        <option value="USD">💵 دولار أمريكي (USD)</option>
+                                        <option value="SYP">🇸🇾 ليرة سورية (SYP)</option>
+                                    </select>
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-dark-300 text-sm mb-2">
+                                    السعر ({formData.currency === 'SYP' ? 'ل.س' : '$'}) *
+                                </label>
+                                <input
+                                    type="number"
+                                    step={formData.currency === 'SYP' ? '100' : '0.01'}
+                                    min="0"
+                                    className="input"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                                    required
+                                    placeholder={formData.currency === 'SYP' ? '10000' : '10.00'}
+                                />
                             </div>
 
                             {/* Flexible Pricing Toggle */}

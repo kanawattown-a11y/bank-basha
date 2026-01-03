@@ -31,6 +31,26 @@ interface AdminService {
     _count: { purchases: number };
 }
 
+interface Service {
+    id: string;
+    name: string;
+    nameAr: string | null;
+    description: string;
+    category: string;
+    price: number;
+    currency: string; // NEW: Currency field
+    isActive: boolean;
+    status: string;
+    rejectionReason: string | null;
+    createdAt: string;
+    seller: {
+        id: string;
+        fullName: string;
+        fullNameAr: string | null;
+    } | null;
+    _count: { purchases: number };
+}
+
 interface ServiceRequest {
     id: string;
     name: string;
@@ -404,7 +424,9 @@ export default function AdminServicesPage() {
                                                                     {t('admin.services.providedBy')} {request.seller?.fullNameAr || request.seller?.fullName} ({request.seller?.phone})
                                                                 </p>
                                                             </div>
-                                                            <div className="text-primary-500 font-bold">{request.price} $</div>
+                                                            <p className="text-primary-500 font-bold">
+                                                                {request.currency === 'SYP' ? 'ل.س' : '$'}{request.price.toFixed(request.currency === 'SYP' ? 0 : 2)}
+                                                            </p>
                                                         </div>
                                                         <button
                                                             onClick={() => setSelectedRequest(request)}

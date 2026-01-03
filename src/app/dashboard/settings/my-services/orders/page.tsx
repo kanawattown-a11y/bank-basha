@@ -19,6 +19,7 @@ interface Order {
     totalAmount: number;
     netAmount: number;
     fee: number;
+    currency: string; // NEW: Currency field
     phoneNumber: string;
     userInput?: string;
     sellerResponse?: string;
@@ -169,7 +170,9 @@ export default function MyOrdersPage() {
                             <p className="text-dark-400 text-xs">ملغي</p>
                         </div>
                         <div className="card p-4 text-center">
-                            <p className="text-2xl font-bold text-primary-400">${stats.totalEarnings.toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-primary-400">
+                                {stats.totalEarnings >= 0 ? `$${stats.totalEarnings.toFixed(2)}` : 'ل.س0'}
+                            </p>
                             <p className="text-dark-400 text-xs">الأرباح</p>
                         </div>
                     </div>
@@ -188,8 +191,8 @@ export default function MyOrdersPage() {
                                 key={status}
                                 onClick={() => setFilter(status)}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${filter === status
-                                        ? 'bg-primary-500 text-white'
-                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                     }`}
                             >
                                 {status === 'ALL' ? 'الكل' :
@@ -236,11 +239,15 @@ export default function MyOrdersPage() {
                                                 <CurrencyDollarIcon className="w-4 h-4" />
                                                 المبلغ
                                             </span>
-                                            <span className="text-primary-500 font-bold">${order.totalAmount}</span>
+                                            <span className="text-primary-500 font-bold">
+                                                {order.currency === 'SYP' ? 'ل.س' : '$'}{order.totalAmount.toFixed(order.currency === 'SYP' ? 0 : 2)}
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-dark-400">صافي ربحك</span>
-                                            <span className="text-green-400 font-bold">${order.netAmount}</span>
+                                            <span className="text-green-400 font-bold">
+                                                {order.currency === 'SYP' ? 'ل.س' : '$'}{order.netAmount.toFixed(order.currency === 'SYP' ? 0 : 2)}
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-dark-400">المشتري</span>

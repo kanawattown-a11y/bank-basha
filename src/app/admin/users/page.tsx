@@ -23,9 +23,10 @@ interface User {
     isActive: boolean;
     hasMerchantAccount: boolean;
     createdAt: string;
-    wallet: {
+    wallets: Array<{  // Changed to wallets array
+        currency: string;
         balance: number;
-    };
+    }>;
     merchantProfile?: {
         businessName: string;
         businessType: string;

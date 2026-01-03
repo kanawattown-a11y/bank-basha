@@ -10,6 +10,7 @@ const serviceSchema = z.object({
     description: z.string().min(1),
     descriptionAr: z.string().optional(),
     category: z.string(),
+    currency: z.enum(['USD', 'SYP']).default('USD'), // NEW: Currency validation
     price: z.number().min(0),
     imageUrl: z.string().optional(),
     providerLocation: z.string().optional(), // موقع مزود الخدمة
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
                 description: validatedData.description,
                 descriptionAr: validatedData.descriptionAr || null,
                 category: validatedData.category,
+                currency: validatedData.currency || 'USD', // NEW: Save currency
                 price: validatedData.price,
                 isFlexiblePrice: validatedData.isFlexiblePrice ?? false,
                 minPrice: validatedData.minPrice ?? null,
