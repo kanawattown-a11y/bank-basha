@@ -51,8 +51,8 @@ export default function MerchantTransferPage() {
             const res = await fetch('/api/wallet');
             if (res.ok) {
                 const data = await res.json();
-                // Get business wallet balance for selected currency
-                const balance = data.businessWallets?.[formData.currency]?.balance || data.businessWallet?.balance || 0;
+                // Get business wallet balance - will update based on currency selector
+                const balance = data.businessWallets?.USD?.balance || data.businessWallet?.balance || 0;
                 setBusinessBalance(balance);
             } else if (res.status === 401 || res.status === 403) {
                 router.push('/login');
@@ -63,7 +63,7 @@ export default function MerchantTransferPage() {
     };
 
     const searchRecipient = async () => {
-        if (!phone.trim()) {
+        if (!formData.phone.trim()) {
             setError('أدخل رقم الهاتف');
             return;
         }
@@ -72,7 +72,7 @@ export default function MerchantTransferPage() {
         setError('');
 
         try {
-            const res = await fetch(`/api/users/search?phone=${encodeURIComponent(phone)}`);
+            const res = await fetch(`/api/users/search?phone=${encodeURIComponent(formData.phone)}`);
             if (res.ok) {
                 const data = await res.json();
                 if (data.user) {
