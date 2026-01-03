@@ -492,7 +492,7 @@ function GrantCreditModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                                         : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                         }`}
                                 >
-                                    💵 USD
+                                    USD $
                                 </button>
                                 <button
                                     type="button"
@@ -502,29 +502,24 @@ function GrantCreditModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                                         : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                         }`}
                                 >
-                                    🇸🇾 SYP
+                                    SYP ل.س
                                 </button>
                             </div>
                         </div>
 
                         <div>
-                            <label className="label">{t('admin.agents.amount')}</label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    className="input"
-                                    placeholder="0"
-                                    dir="ltr"
-                                    min="1"
-                                    step={currency === 'SYP' ? '1' : '0.01'}
-                                    value={formData.amount}
-                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                    required
-                                />
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400">
-                                    {currency === 'SYP' ? 'ل.س' : '$'}
-                                </div>
-                            </div>
+                            <label className="label">{t('admin.agents.amount')} ({currency === 'SYP' ? 'ل.س' : '$'})</label>
+                            <input
+                                type="number"
+                                className="input"
+                                placeholder="0"
+                                dir="ltr"
+                                min="1"
+                                step={currency === 'SYP' ? '1' : '0.01'}
+                                value={formData.amount}
+                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                required
+                            />
                         </div>
                     </div>
 
