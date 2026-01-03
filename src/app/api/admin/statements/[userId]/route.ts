@@ -42,14 +42,9 @@ export async function GET(
         const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1;
         const year = yearParam ? parseInt(yearParam) : now.getFullYear();
 
-        // Get target user with wallet
+        // Get target user
         const user = await prisma.user.findUnique({
             where: { id: targetUserId },
-            include: {
-                wallets: true,
-                merchantProfile: true,
-                agentProfile: true,
-            },
         });
 
         if (!user) {
@@ -58,6 +53,21 @@ export async function GET(
                 { status: 404, headers: getSecurityHeaders() }
             );
         }
+
+        // Get wallets separately
+        const wallets = await prisma.wallet.findMany({
+            where: { userId: targetUserId },
+        });
+
+        // Get merchant profile if user is merchant
+        const merchantProfile = user.userType === 'MERCHANT'
+            ? await prisma.merchantProfile.findUnique({ where: { userId: targetUserId } })
+            : null;
+
+        // Get agent profile if user is agent
+        const agentProfile = user.userType === 'AGENT'
+            ? await prisma.agentProfile.findUnique({ where: { userId: targetUserId } })
+            : null;
 
         // Get date range for the month
         const startDate = new Date(year, month - 1, 1);
@@ -89,7 +99,7 @@ export async function GET(
         let totalFees = 0;
 
         // Get USD wallet balance (or first wallet if no USD)
-        const userUSDWallet = (user.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD');
+        const userUSDWallet = wallets.find((w) => w.currency === 'USD');
         const currentBalance = userUSDWallet?.balance || 0;
 
         // Calculate balance change this month
@@ -157,10 +167,10 @@ export async function GET(
             email: user.email || undefined,
             userType,
 
-            businessName: user.merchantProfile?.businessName || user.agentProfile?.businessName || undefined,
-            businessNameAr: user.merchantProfile?.businessNameAr || user.agentProfile?.businessNameAr || undefined,
-            merchantCode: user.merchantProfile?.merchantCode || undefined,
-            agentCode: user.agentProfile?.agentCode || undefined,
+            businessName: merchantProfile?.businessName || agentProfile?.businessName || undefined,
+            businessNameAr: merchantProfile?.businessNameAr || agentProfile?.businessNameAr || undefined,
+            merchantCode: merchantProfile?.merchantCode || undefined,
+            agentCode: agentProfile?.agentCode || undefined,
 
             month,
             year,
@@ -174,6 +184,9 @@ export async function GET(
             totalOutgoing,
             totalFees,
             transactionCount: transactions.length,
+
+            currency: 'USD', // Default to USD for now
+            currencySymbol: '$', // Default to USD symbol
 
             labels: enMessages.pdf,
         };

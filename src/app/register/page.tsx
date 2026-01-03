@@ -304,7 +304,7 @@ export default function RegisterPage() {
                                         id="address"
                                         type="text"
                                         className="input pr-12"
-                                        placeholder="مثال: شارع الثورة - حي المزة - دمشق"
+                                        placeholder="مثال: شارع الشعراني - مضافة أبو الفضل - السويداء"
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     />

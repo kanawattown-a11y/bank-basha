@@ -296,7 +296,7 @@ export default function MyServicesPage() {
                                     className="input"
                                     value={formData.providerLocation}
                                     onChange={(e) => setFormData({ ...formData, providerLocation: e.target.value })}
-                                    placeholder="مثال: شارع الوكالات - طرابلس"
+                                    placeholder="مثال: شارع الشعراني - السويداء"
                                 />
                                 <p className="text-dark-500 text-xs mt-1">اكتب موقع محلك أو مكان تقديم الخدمة</p>
                             </div>
