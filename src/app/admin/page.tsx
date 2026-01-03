@@ -416,6 +416,7 @@ function GrantCreditModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     const t = useTranslations();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [currency, setCurrency] = useState<'USD' | 'SYP'>('USD');
     const [formData, setFormData] = useState({ agentPhone: '', amount: '' });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -430,6 +431,7 @@ function GrantCreditModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                 body: JSON.stringify({
                     agentPhone: formData.agentPhone,
                     amount: parseFloat(formData.amount),
+                    currency,
                 }),
             });
 
@@ -480,17 +482,49 @@ function GrantCreditModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                         </div>
 
                         <div>
+                            <label className="label">العملة</label>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrency('USD')}
+                                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${currency === 'USD'
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                        }`}
+                                >
+                                    💵 USD
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrency('SYP')}
+                                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${currency === 'SYP'
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                        }`}
+                                >
+                                    🇸🇾 SYP
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
                             <label className="label">{t('admin.agents.amount')}</label>
-                            <input
-                                type="number"
-                                className="input"
-                                placeholder="0"
-                                dir="ltr"
-                                min="1"
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                required
-                            />
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    className="input"
+                                    placeholder="0"
+                                    dir="ltr"
+                                    min="1"
+                                    step={currency === 'SYP' ? '1' : '0.01'}
+                                    value={formData.amount}
+                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                    required
+                                />
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400">
+                                    {currency === 'SYP' ? 'ل.س' : '$'}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
