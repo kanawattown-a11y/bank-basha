@@ -30,11 +30,13 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const monthParam = searchParams.get('month');
         const yearParam = searchParams.get('year');
+        const currencyParam = searchParams.get('currency') || 'USD';
 
         // Default to current month if not specified
         const now = new Date();
         const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1;
         const year = yearParam ? parseInt(yearParam) : now.getFullYear();
+        const currency = currencyParam === 'SYP' ? 'SYP' : 'USD';
 
         // Get user with wallets
         const user = await prisma.user.findUnique({
@@ -57,13 +59,14 @@ export async function GET(request: NextRequest) {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
-        // Get transactions for the month
+        // Get transactions for the month - filtered by currency
         const transactions = await prisma.transaction.findMany({
             where: {
                 OR: [
                     { senderId: user.id },
                     { receiverId: user.id },
                 ],
+                currency: currency, // Filter by selected currency
                 createdAt: {
                     gte: startDate,
                     lte: endDate,
@@ -84,9 +87,9 @@ export async function GET(request: NextRequest) {
 
         // Get opening balance (balance before first transaction of month)
         // We'll calculate it by getting current balance and reversing all transactions
-        // Get USD wallet balance (or first wallet if no USD)
-        const userUSDWallet = (user.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD');
-        let currentBalance = userUSDWallet?.balance || 0;
+        // Get wallet for selected currency
+        const userWallet = (user.wallets as any[])?.find((w: { currency: string }) => w.currency === currency);
+        let currentBalance = userWallet?.balance || 0;
 
         // Reverse transactions to get opening balance
         const allTxThisMonth = await prisma.transaction.findMany({
@@ -170,6 +173,9 @@ export async function GET(request: NextRequest) {
             totalOutgoing,
             totalFees,
             transactionCount: transactions.length,
+
+            currency: currency, // NEW: Currency for PDF
+            currencySymbol: currency === 'USD' ? '$' : 'ل.س', // NEW: Symbol for display
 
             labels: enMessages.pdf,
         };

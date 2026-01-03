@@ -64,6 +64,10 @@ export interface StatementData {
     totalFees: number;
     transactionCount: number;
 
+    // Currency - NEW
+    currency: 'USD' | 'SYP';
+    currencySymbol: string; // '$' or 'ل.س'
+
     // Localization
     labels: {
         title: string;
@@ -266,7 +270,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     doc.text(data.labels.openingBalance, rightCol, y + 8);
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.text(`$${formatAmount(data.openingBalance)}`, rightCol, y + 15);
+    doc.text(`${data.currencySymbol}${formatAmount(data.openingBalance)}`, rightCol, y + 15);
 
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(8);
@@ -281,7 +285,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     // Since I added 'normal' and 'bold', calling doc.setFont('Amiri', 'bold') works.
     // So I just need to replace 'helvetica' with 'Amiri'.
 
-    doc.text(`$${formatAmount(data.closingBalance)}`, rightCol + 35, y + 16);
+    doc.text(`${data.currencySymbol}${formatAmount(data.closingBalance)}`, rightCol + 35, y + 16);
 
     // ═══════════════════════════════════════════════════════════════
     // SUMMARY BOXES
@@ -312,7 +316,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
         doc.setFontSize(11);
         doc.setFont('Amiri', 'bold');
 
-        const valueText = box.isCount ? String(box.value) : `$${formatAmount(box.value)}`;
+        const valueText = box.isCount ? String(box.value) : `${data.currencySymbol}${formatAmount(box.value)}`;
         doc.text(valueText, x + boxWidth / 2, y + 16, { align: 'center' });
     });
 
@@ -342,8 +346,8 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
         tx.referenceNumber,
         getTypeLabel(tx.type),
         tx.description || '',
-        tx.isIncoming ? `+$${formatAmount(tx.amount)}` : `-$${formatAmount(tx.amount)}`,
-        `$${formatAmount(tx.balance)}`,
+        tx.isIncoming ? `+${data.currencySymbol}${formatAmount(tx.amount)}` : `-${data.currencySymbol}${formatAmount(tx.amount)}`,
+        `${data.currencySymbol}${formatAmount(tx.balance)}`,
     ]);
 
     doc.autoTable({

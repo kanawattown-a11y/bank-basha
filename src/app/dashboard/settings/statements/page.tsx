@@ -15,6 +15,7 @@ export default function StatementsPage() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedCurrency, setSelectedCurrency] = useState<'USD' | 'SYP'>('USD');
 
     const months = [
         { value: 1, label: locale === 'ar' ? 'يناير' : 'January' },
@@ -36,7 +37,7 @@ export default function StatementsPage() {
     const downloadStatement = async () => {
         setIsDownloading(true);
         try {
-            const downloadUrl = `/api/user/statement?month=${selectedMonth}&year=${selectedYear}`;
+            const downloadUrl = `/api/user/statement?month=${selectedMonth}&year=${selectedYear}&currency=${selectedCurrency}`;
 
             // Check if running in Android WebView app
             const isAndroidApp = navigator.userAgent.includes('BankBashaApp');
@@ -57,7 +58,7 @@ export default function StatementsPage() {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `BankBasha_Statement_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.pdf`;
+                a.download = `BankBasha_Statement_${selectedCurrency}_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -113,7 +114,7 @@ export default function StatementsPage() {
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-3 gap-4 mb-6">
                             {/* Month Select */}
                             <div>
                                 <label className="block text-dark-400 text-sm mb-2">
@@ -147,6 +148,21 @@ export default function StatementsPage() {
                                             {year}
                                         </option>
                                     ))}
+                                </select>
+                            </div>
+
+                            {/* Currency Select - NEW */}
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">
+                                    {locale === 'ar' ? 'العملة' : 'Currency'}
+                                </label>
+                                <select
+                                    value={selectedCurrency}
+                                    onChange={(e) => setSelectedCurrency(e.target.value as 'USD' | 'SYP')}
+                                    className="input w-full"
+                                >
+                                    <option value="USD">💵 USD</option>
+                                    <option value="SYP">🇸🇾 SYP</option>
                                 </select>
                             </div>
                         </div>
