@@ -552,7 +552,9 @@ model InternalAccount {
   nameAr          String?
   type            String    // SYSTEM_RESERVE, USERS_LEDGER, MERCHANTS_LEDGER, AGENTS_LEDGER, SETTLEMENTS, FEES, SUSPENSE
   balance         Float     @default(0)
+  balanceSYP      Float     @default(0)
   frozenBalance   Float     @default(0)
+  frozenBalanceSYP Float    @default(0)
   description     String?
   
   isActive        Boolean   @default(true)

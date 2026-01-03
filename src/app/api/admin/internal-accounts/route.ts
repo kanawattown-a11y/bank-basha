@@ -90,15 +90,26 @@ export async function POST(request: NextRequest) {
             prisma.agentProfile.findMany(),
         ]);
 
-        // Calculate actual totals
+        // Calculate actual totals - USD
         const actualUserBalance = allWallets
-            .filter(w => w.user?.userType === 'USER')
+            .filter(w => w.user?.userType === 'USER' && w.currency === 'USD')
             .reduce((sum, w) => sum + w.balance, 0);
 
         const actualAgentCredit = agentProfiles.reduce((sum, a) => sum + a.currentCredit, 0);
 
         const actualMerchantBalance = allWallets
-            .filter(w => w.user?.userType === 'MERCHANT')
+            .filter(w => w.user?.userType === 'MERCHANT' && w.currency === 'USD')
+            .reduce((sum, w) => sum + w.balance, 0);
+
+        // Calculate actual totals - SYP
+        const actualUserBalanceSYP = allWallets
+            .filter(w => w.user?.userType === 'USER' && w.currency === 'SYP')
+            .reduce((sum, w) => sum + w.balance, 0);
+
+        const actualAgentCreditSYP = agentProfiles.reduce((sum, a) => sum + (a.currentCreditSYP || 0), 0);
+
+        const actualMerchantBalanceSYP = allWallets
+            .filter(w => w.user?.userType === 'MERCHANT' && w.currency === 'SYP')
             .reduce((sum, w) => sum + w.balance, 0);
 
         // Get fees from completed transactions
@@ -107,27 +118,27 @@ export async function POST(request: NextRequest) {
             where: { status: 'COMPLETED' },
         });
 
-        // Update internal accounts
+        // Update internal accounts with dual currency
         await prisma.$transaction([
             prisma.internalAccount.upsert({
                 where: { code: 'USR-LEDGER' },
-                update: { balance: actualUserBalance },
-                create: { code: 'USR-LEDGER', name: 'Users Ledger', type: 'USERS_LEDGER', balance: actualUserBalance },
+                update: { balance: actualUserBalance, balanceSYP: actualUserBalanceSYP },
+                create: { code: 'USR-LEDGER', name: 'Users Ledger', nameAr: 'دفتر المستخدمين', type: 'USERS_LEDGER', balance: actualUserBalance, balanceSYP: actualUserBalanceSYP },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'AGT-LEDGER' },
-                update: { balance: actualAgentCredit },
-                create: { code: 'AGT-LEDGER', name: 'Agents Ledger', type: 'AGENTS_LEDGER', balance: actualAgentCredit },
+                update: { balance: actualAgentCredit, balanceSYP: actualAgentCreditSYP },
+                create: { code: 'AGT-LEDGER', name: 'Agents Ledger', nameAr: 'دفتر الوكلاء', type: 'AGENTS_LEDGER', balance: actualAgentCredit, balanceSYP: actualAgentCreditSYP },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'MRC-LEDGER' },
-                update: { balance: actualMerchantBalance },
-                create: { code: 'MRC-LEDGER', name: 'Merchants Ledger', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalance },
+                update: { balance: actualMerchantBalance, balanceSYP: actualMerchantBalanceSYP },
+                create: { code: 'MRC-LEDGER', name: 'Merchants Ledger', nameAr: 'دفتر التجار', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalance, balanceSYP: actualMerchantBalanceSYP },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'FEES-COLLECTED' },
                 update: { balance: totalFees._sum.platformFee || 0 },
-                create: { code: 'FEES-COLLECTED', name: 'Fees Collected', type: 'FEES', balance: totalFees._sum.platformFee || 0 },
+                create: { code: 'FEES-COLLECTED', name: 'Fees Collected', nameAr: 'الرسوم المحصلة', type: 'FEES', balance: totalFees._sum.platformFee || 0 },
             }),
         ]);
 
@@ -135,12 +146,13 @@ export async function POST(request: NextRequest) {
         const allAccounts = await prisma.internalAccount.findMany({
             where: { code: { not: 'SYS-RESERVE' } },
         });
-        const totalOther = allAccounts.reduce((sum, a) => sum + a.balance, 0);
+        const totalOtherUSD = allAccounts.reduce((sum, a) => sum + a.balance, 0);
+        const totalOtherSYP = allAccounts.reduce((sum, a) => sum + (a.balanceSYP || 0), 0);
 
         await prisma.internalAccount.upsert({
             where: { code: 'SYS-RESERVE' },
-            update: { balance: -totalOther },
-            create: { code: 'SYS-RESERVE', name: 'System Reserve', type: 'SYSTEM_RESERVE', balance: -totalOther },
+            update: { balance: -totalOtherUSD, balanceSYP: -totalOtherSYP },
+            create: { code: 'SYS-RESERVE', name: 'System Reserve', nameAr: 'نظام الاحتياطي', type: 'SYSTEM_RESERVE', balance: -totalOtherUSD, balanceSYP: -totalOtherSYP },
         });
 
         // Log the sync
