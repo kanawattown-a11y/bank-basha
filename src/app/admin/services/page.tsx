@@ -58,6 +58,7 @@ interface ServiceRequest {
     description: string;
     descriptionAr: string | null;
     price: number;
+    currency: string; // NEW: Currency field
     category: string;
     categoryAr: string | null;
     imageUrl: string | null;

@@ -253,7 +253,13 @@ export default function AdminUsersPage() {
                                             <div className="flex items-center gap-4 text-sm text-dark-400">
                                                 <span>{user.phone}</span>
                                                 <span>•</span>
-                                                <span>{t('wallet.balance')}: {formatAmount(user.wallet?.balance || 0)} $</span>
+                                                <div className="flex gap-2">
+                                                    {user.wallets?.map((w) => (
+                                                        <span key={w.currency}>
+                                                            {w.currency}: {w.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(w.balance)}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                                 <span>•</span>
                                                 <span>{formatDate(user.createdAt)}</span>
                                             </div>
