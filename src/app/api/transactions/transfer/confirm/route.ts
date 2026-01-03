@@ -134,6 +134,13 @@ export async function POST(request: NextRequest) {
             prisma.user.findUnique({ where: { id: otpRecord.recipientId } }),
         ]);
 
+        // Format amount with correct currency
+        const currency = (otpRecord as unknown as { currency: 'USD' | 'SYP' }).currency || 'USD';
+        const symbol = currency === 'SYP' ? 'ل.س' : '$';
+        const formattedAmount = currency === 'SYP'
+            ? Math.floor(otpRecord.amount).toLocaleString('ar-SY')
+            : otpRecord.amount.toFixed(2);
+
         // Create notifications
         await prisma.notification.createMany({
             data: [
@@ -142,8 +149,8 @@ export async function POST(request: NextRequest) {
                     type: 'TRANSACTION',
                     title: 'Transfer Sent',
                     titleAr: 'تم إرسال التحويل',
-                    message: `You sent ${otpRecord.amount} $ to ${recipient?.fullName}`,
-                    messageAr: `أرسلت ${otpRecord.amount} $ إلى ${recipient?.fullNameAr || recipient?.fullName}`,
+                    message: `You sent ${formattedAmount} ${symbol} to ${recipient?.fullName}`,
+                    messageAr: `أرسلت ${formattedAmount}${symbol} إلى ${recipient?.fullNameAr || recipient?.fullName}`,
                     metadata: JSON.stringify({ transactionId: transferResult.transactionId }),
                 },
                 {
@@ -151,8 +158,8 @@ export async function POST(request: NextRequest) {
                     type: 'TRANSACTION',
                     title: 'Transfer Received',
                     titleAr: 'تم استلام تحويل',
-                    message: `You received ${otpRecord.amount} $`,
-                    messageAr: `استلمت ${otpRecord.amount} $`,
+                    message: `You received ${formattedAmount} ${symbol}`,
+                    messageAr: `استلمت ${formattedAmount}${symbol}`,
                     metadata: JSON.stringify({ transactionId: transferResult.transactionId }),
                 },
             ],
@@ -163,8 +170,8 @@ export async function POST(request: NextRequest) {
             sendPushNotification(
                 sender.fcmToken,
                 '💸 تم إرسال التحويل',
-                `أرسلت $${otpRecord.amount.toFixed(2)} إلى ${recipient?.fullNameAr || recipient?.fullName}`,
-                { type: 'TRANSFER_SENT', amount: otpRecord.amount.toString() }
+                `أرسلت ${formattedAmount}${symbol} إلى ${recipient?.fullNameAr || recipient?.fullName}`,
+                { type: 'TRANSFER_SENT', amount: otpRecord.amount.toString(), currency }
             ).catch(err => console.error('Push send error:', err));
         }
 
@@ -172,8 +179,8 @@ export async function POST(request: NextRequest) {
             sendPushNotification(
                 recipient.fcmToken,
                 '💰 تحويل وارد!',
-                `استلمت $${otpRecord.amount.toFixed(2)} من ${sender?.fullNameAr || sender?.fullName || 'مستخدم'}`,
-                { type: 'TRANSFER_RECEIVED', amount: otpRecord.amount.toString() }
+                `استلمت ${formattedAmount}${symbol} من ${sender?.fullNameAr || sender?.fullName || 'مستخدم'}`,
+                { type: 'TRANSFER_RECEIVED', amount: otpRecord.amount.toString(), currency }
             ).catch(err => console.error('Push receive error:', err));
         }
 

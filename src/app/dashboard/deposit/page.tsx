@@ -10,6 +10,7 @@ import {
     MapPinIcon,
     CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
+import { CurrencyToggle, formatCurrencyAmount, type Currency } from '@/components/CurrencySelector';
 
 interface Agent {
     id: string;
@@ -23,9 +24,12 @@ export default function DepositPage() {
     const router = useRouter();
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [balances, setBalances] = useState<{ USD: number; SYP: number }>({ USD: 0, SYP: 0 });
+    const [currency, setCurrency] = useState<Currency>('USD');
 
     useEffect(() => {
         fetchNearbyAgents();
+        fetchBalance();
     }, []);
 
 
@@ -41,6 +45,21 @@ export default function DepositPage() {
             console.error('Error fetching agents:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchBalance = async () => {
+        try {
+            const res = await fetch('/api/wallet');
+            if (res.ok) {
+                const data = await res.json();
+                setBalances({
+                    USD: data.personalWallets?.USD?.balance || data.wallet?.balance || 0,
+                    SYP: data.personalWallets?.SYP?.balance || 0,
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
         }
     };
 
@@ -70,9 +89,21 @@ export default function DepositPage() {
                             <ArrowDownIcon className="w-8 h-8 text-green-500" />
                         </div>
                         <h2 className="text-xl font-semibold text-white text-center mb-2">{t('transaction.deposit.cashDeposit')}</h2>
-                        <p className="text-dark-400 text-center text-sm">
+                        <p className="text-dark-400 text-center text-sm mb-4">
                             {t('transaction.deposit.description')}
                         </p>
+
+                        {/* Currency Toggle */}
+                        <div className="flex justify-center mb-3">
+                            <CurrencyToggle value={currency} onChange={setCurrency} />
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-dark-700/50 text-center">
+                            <p className="text-dark-400 text-sm">{t('wallet.balance')}</p>
+                            <p className="text-2xl font-bold text-gradient">
+                                {formatCurrencyAmount(balances[currency], currency)}
+                            </p>
+                        </div>
                     </div>
 
                     {/* Steps */}

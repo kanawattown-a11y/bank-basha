@@ -96,15 +96,20 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Create notification for customer
+        // Create notification for customer with correct currency
+        const symbol = currency === 'SYP' ? 'ل.س' : '$';
+        const formattedAmount = currency === 'SYP'
+            ? Math.floor(amount).toLocaleString('ar-SY')
+            : amount.toFixed(2);
+
         await prisma.notification.create({
             data: {
                 userId: customer.id,
                 type: 'TRANSACTION',
                 title: 'Withdrawal Completed',
                 titleAr: 'تم السحب',
-                message: `You withdrew ${amount} $`,
-                messageAr: `تم سحب ${amount} $ من حسابك`,
+                message: `You withdrew ${formattedAmount} ${symbol}`,
+                messageAr: `تم سحب ${formattedAmount}${symbol} من حسابك`,
                 metadata: JSON.stringify({ transactionId: withdrawResult.transactionId }),
             },
         });

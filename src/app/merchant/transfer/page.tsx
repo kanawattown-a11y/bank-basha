@@ -28,11 +28,16 @@ export default function MerchantTransferPage() {
     const [businessBalance, setBusinessBalance] = useState(0);
 
     // Form data
-    const [phone, setPhone] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [formData, setFormData] = useState({
+        phone: '',
+        amount: '',
+        currency: 'USD' as 'USD' | 'SYP', // NEW: Currency selector
+        note: '',
+    });
     const [recipient, setRecipient] = useState<User | null>(null);
-    const [amount, setAmount] = useState('');
     const [pin, setPin] = useState('');
-    const [note, setNote] = useState('');
     const [error, setError] = useState('');
     const [newBalance, setNewBalance] = useState(0);
 
@@ -46,7 +51,9 @@ export default function MerchantTransferPage() {
             const res = await fetch('/api/wallet');
             if (res.ok) {
                 const data = await res.json();
-                setBusinessBalance(data.businessWallet?.balance || 0);
+                // Get business wallet balance for selected currency
+                const balance = data.businessWallets?.[formData.currency]?.balance || data.businessWallet?.balance || 0;
+                setBusinessBalance(balance);
             } else if (res.status === 401 || res.status === 403) {
                 router.push('/login');
             }
@@ -85,7 +92,7 @@ export default function MerchantTransferPage() {
     };
 
     const proceedToPin = () => {
-        const amountNum = parseFloat(amount);
+        const amountNum = parseFloat(formData.amount);
         if (!amountNum || amountNum <= 0) {
             setError('أدخل مبلغ صحيح');
             return;
@@ -112,10 +119,11 @@ export default function MerchantTransferPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    recipientPhone: phone,
-                    amount: parseFloat(amount),
+                    recipientPhone: formData.phone,
+                    amount: parseFloat(formData.amount),
+                    currency: formData.currency, // ✅ Send currency
                     pin,
-                    note: note || undefined,
+                    note: formData.note || undefined,
                 }),
             });
 
@@ -154,12 +162,12 @@ export default function MerchantTransferPage() {
                     <CheckCircleIcon className="w-20 h-20 text-green-500 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-white mb-2">تم التحويل بنجاح!</h1>
                     <p className="text-dark-400 mb-4">
-                        تم إرسال ${formatAmount(parseFloat(amount))} إلى {recipient?.fullName}
+                        تم إرسال {formData.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(parseFloat(formData.amount))} إلى {recipient?.fullName}
                     </p>
 
                     <div className="bg-dark-800 rounded-xl p-4 mb-6">
-                        <p className="text-dark-400 text-sm">رصيد البزنس الجديد</p>
-                        <p className="text-2xl font-bold text-white">${formatAmount(newBalance)}</p>
+                        <p className="text-dark-400 text-sm">رصيد البزنس الجديد ({formData.currency})</p>
+                        <p className="text-2xl font-bold text-white">{formData.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(newBalance)}</p>
                     </div>
 
                     <div className="flex gap-3">
@@ -168,11 +176,9 @@ export default function MerchantTransferPage() {
                         </Link>
                         <button onClick={() => {
                             setStep('search');
-                            setPhone('');
+                            setFormData({ phone: '', amount: '', currency: 'USD', note: '' });
                             setRecipient(null);
-                            setAmount('');
                             setPin('');
-                            setNote('');
                         }} className="btn-primary flex-1">
                             تحويل آخر
                         </button>
@@ -201,8 +207,8 @@ export default function MerchantTransferPage() {
 
                     {/* Business Balance */}
                     <div className="card p-4 text-center">
-                        <p className="text-dark-400 text-sm">رصيد البزنس المتاح</p>
-                        <p className="text-2xl font-bold text-gradient">${formatAmount(businessBalance)}</p>
+                        <p className="text-dark-400 text-sm">رصيد البزنس المتاح ({formData.currency})</p>
+                        <p className="text-2xl font-bold text-gradient">{formData.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(businessBalance)}</p>
                     </div>
 
                     {/* Step: Search */}
@@ -213,8 +219,8 @@ export default function MerchantTransferPage() {
                             <div className="relative">
                                 <input
                                     type="tel"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     className="input pl-4 pr-12 text-left"
                                     placeholder="09xxxxxxxx"
                                     dir="ltr"
@@ -253,16 +259,41 @@ export default function MerchantTransferPage() {
                             </div>
 
                             <div className="card p-6 space-y-4">
+                                {/* Currency Selector */}
                                 <div>
-                                    <label className="block text-dark-400 text-sm mb-2">المبلغ ($)</label>
+                                    <label className="block text-dark-400 text-sm mb-2">العملة</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, currency: 'USD' })}
+                                            className={`p-3 rounded-xl border-2 transition-all ${formData.currency === 'USD'
+                                                ? 'border-primary-500 bg-primary-500/10 text-white'
+                                                : 'border-dark-700 bg-dark-800 text-dark-400'}`}
+                                        >
+                                            💵 USD
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, currency: 'SYP' })}
+                                            className={`p-3 rounded-xl border-2 transition-all ${formData.currency === 'SYP'
+                                                ? 'border-primary-500 bg-primary-500/10 text-white'
+                                                : 'border-dark-700 bg-dark-800 text-dark-400'}`}
+                                        >
+                                            🇸🇾 SYP
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-dark-400 text-sm mb-2">المبلغ ({formData.currency === 'SYP' ? 'ل.س' : '$'})</label>
                                     <input
                                         type="number"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
+                                        value={formData.amount}
+                                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                         className="input text-center text-2xl font-bold"
-                                        placeholder="0.00"
+                                        placeholder={formData.currency === 'SYP' ? '10000' : '0.00'}
                                         min="0.01"
-                                        step="0.01"
+                                        step={formData.currency === 'SYP' ? '100' : '0.01'}
                                     />
                                 </div>
 
@@ -270,8 +301,8 @@ export default function MerchantTransferPage() {
                                     <label className="block text-dark-400 text-sm mb-2">ملاحظة (اختياري)</label>
                                     <input
                                         type="text"
-                                        value={note}
-                                        onChange={(e) => setNote(e.target.value)}
+                                        value={formData.note}
+                                        onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                                         className="input"
                                         placeholder="سبب التحويل..."
                                         maxLength={200}
@@ -305,7 +336,7 @@ export default function MerchantTransferPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-dark-400">المبلغ</span>
-                                    <span className="text-white font-bold">${formatAmount(parseFloat(amount))}</span>
+                                    <span className="text-white font-bold">{formData.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(parseFloat(formData.amount))}</span>
                                 </div>
                             </div>
 
