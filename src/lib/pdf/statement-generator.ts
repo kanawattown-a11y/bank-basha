@@ -218,7 +218,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     // Statement Title
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Amiri', 'normal');
     doc.text(data.labels.title, pageWidth / 2, 25, { align: 'center' });
 
     // Period
@@ -248,7 +248,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     // Left side - User info
     doc.text(data.fullName, margin + 5, y + 10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Amiri', 'normal');
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(9);
     doc.text(`${data.labels.phone}: ${data.phone}`, margin + 5, y + 17);
@@ -311,7 +311,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
         doc.setTextColor(156, 163, 175);
         doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('Amiri', 'normal');
         doc.text(box.label, x + boxWidth / 2, y + 7, { align: 'center' });
 
         doc.setTextColor(box.color[0], box.color[1], box.color[2]);
@@ -417,7 +417,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     doc.setTextColor(156, 163, 175);
     doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Amiri', 'normal');
 
     // Generated date
     const now = new Date();
@@ -435,7 +435,7 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
 
     doc.setTextColor(254, 192, 15);
     doc.setFontSize(60);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Amiri', 'bold');
     doc.setGState(new (doc as any).GState({ opacity: 0.03 }));
     doc.text(data.labels.bankName, pageWidth / 2, pageHeight / 2, {
         align: 'center',
