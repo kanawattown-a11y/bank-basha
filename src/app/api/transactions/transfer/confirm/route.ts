@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
                 `أرسلت ${formattedAmount}${symbol} إلى ${recipient?.fullNameAr || recipient?.fullName}`,
                 {
                     type: 'TRANSFER',
-                    transactionId: result.transaction.id,
+                    transactionId: transferResult.transactionId || '',
                     amount: otpRecord.amount.toString(),
                     currency
                 }
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
                 `استلمت ${formattedAmount}${symbol} من ${sender?.fullNameAr || sender?.fullName || 'مستخدم'}`,
                 {
                     type: 'TRANSFER',
-                    transactionId: result.transaction.id,
+                    transactionId: transferResult.transactionId || '',
                     amount: otpRecord.amount.toString(),
                     currency
                 }
