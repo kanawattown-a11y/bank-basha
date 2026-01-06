@@ -12,13 +12,14 @@ import {
 } from '@heroicons/react/24/outline';
 
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
+import { Currency } from '@/components/CurrencySelector';
 
 interface Transaction {
     id: string;
     referenceNumber: string;
     type: string;
     amount: number;
-    currency: string;
+    currency: Currency;
     fee: number;
     agentFee?: number;
     platformFee?: number;
