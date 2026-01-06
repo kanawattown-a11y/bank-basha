@@ -18,6 +18,7 @@ interface Transaction {
     id: string;
     type: string;
     amount: number;
+    currency: string;
     status: string;
     referenceNumber: string;
     createdAt: string;
@@ -36,7 +37,8 @@ interface ActiveUser {
 
 interface Stats {
     totalToday: number;
-    totalAmount: number;
+    totalAmountUSD: number;
+    totalAmountSYP: number;
     pendingCount: number;
     alertCount: number;
     activeUsersCount: number;
@@ -50,7 +52,7 @@ export default function AdminMonitorPage() {
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
-    const [stats, setStats] = useState<Stats>({ totalToday: 0, totalAmount: 0, pendingCount: 0, alertCount: 0, activeUsersCount: 0 });
+    const [stats, setStats] = useState<Stats>({ totalToday: 0, totalAmountUSD: 0, totalAmountSYP: 0, pendingCount: 0, alertCount: 0, activeUsersCount: 0 });
     const [autoRefresh, setAutoRefresh] = useState(true);
 
     const fetchData = useCallback(async () => {
@@ -65,7 +67,8 @@ export default function AdminMonitorPage() {
                 // Map stats from API to our format
                 setStats({
                     totalToday: data.stats?.totalTransactions || 0,
-                    totalAmount: data.stats?.totalVolume || 0,
+                    totalAmountUSD: data.stats?.totalVolumeUSD || 0,
+                    totalAmountSYP: data.stats?.totalVolumeSYP || 0,
                     pendingCount: data.transactions?.filter((t: Transaction) => t.status === 'PENDING').length || 0,
                     alertCount: 0,
                     activeUsersCount: data.stats?.activeUsersCount || data.activeUsers?.length || 0,
@@ -181,12 +184,19 @@ export default function AdminMonitorPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="card p-4">
-                            <div className="flex items-center gap-3">
+                        <div className="card p-4 col-span-2">
+                            <div className="flex items-center gap-3 mb-3">
                                 <BanknotesIcon className="w-8 h-8 text-green-500" />
-                                <div>
-                                    <p className="text-dark-400 text-xs">{t('admin.monitor.stats.totalVolume')}</p>
-                                    <p className="text-white text-xl font-bold">${formatAmount(stats.totalAmount)}</p>
+                                <p className="text-dark-400 text-xs">{t('admin.monitor.stats.totalVolume')}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-dark-800/50 rounded-xl p-3 text-center">
+                                    <p className="text-dark-500 text-xs mb-1">USD</p>
+                                    <p className="text-green-400 text-lg font-bold">${formatAmount(stats.totalAmountUSD)}</p>
+                                </div>
+                                <div className="bg-dark-800/50 rounded-xl p-3 text-center">
+                                    <p className="text-dark-500 text-xs mb-1">SYP</p>
+                                    <p className="text-blue-400 text-lg font-bold">{formatAmount(stats.totalAmountSYP)} ل.س</p>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +247,9 @@ export default function AdminMonitorPage() {
                                             </div>
                                         </div>
                                         <div className="text-left">
-                                            <p className="text-white font-bold">${formatAmount(tx.amount)}</p>
+                                            <p className="text-white font-bold">
+                                                {formatAmount(tx.amount)} {tx.currency === 'SYP' ? 'ل.س' : '$'}
+                                            </p>
                                             <div className="flex items-center gap-2">
                                                 {getStatusBadge(tx.status)}
                                                 <span className="text-dark-500 text-xs">{formatTime(tx.createdAt)}</span>

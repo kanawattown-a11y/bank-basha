@@ -265,25 +265,47 @@ export default function PayPage() {
                                 <p className="text-dark-400 text-sm">{merchant.merchantCode}</p>
                             </div>
 
+                            {/* Currency Selector */}
                             <div className="mb-6">
-                                <label className="block text-dark-300 text-sm mb-2 text-center">المبلغ ($)</label>
+                                <label className="block text-dark-300 text-sm mb-3 text-center">اختر العملة</label>
+                                <CurrencySelector
+                                    value={currency}
+                                    onChange={setCurrency}
+                                    balances={balances}
+                                    showBalances={true}
+                                    size="sm"
+                                />
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-dark-300 text-sm mb-2 text-center">
+                                    المبلغ ({currency === 'SYP' ? 'ل.س' : '$'})
+                                </label>
                                 <input
                                     type="number"
-                                    step="0.01"
-                                    min="0.01"
+                                    step={currency === 'SYP' ? '1000' : '0.01'}
+                                    min={currency === 'SYP' ? '1000' : '0.01'}
                                     className="input text-center text-3xl font-bold"
-                                    placeholder="0.00"
+                                    placeholder={currency === 'SYP' ? '0' : '0.00'}
                                     value={formData.amount}
                                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                     autoFocus
                                 />
+                                {formData.amount && parseFloat(formData.amount) > 0 && (
+                                    <p className="text-dark-400 text-xs text-center mt-2">
+                                        رصيدك: {formatCurrencyAmount(balances[currency], currency)}
+                                    </p>
+                                )}
+                                {formData.amount && parseFloat(formData.amount) > balances[currency] && (
+                                    <p className="text-red-400 text-sm text-center mt-2">⚠️ رصيدك غير كافٍ</p>
+                                )}
                             </div>
 
                             {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
 
                             <button
                                 onClick={() => setStep('pin')}
-                                disabled={!formData.amount || parseFloat(formData.amount) <= 0}
+                                disabled={!formData.amount || parseFloat(formData.amount) <= 0 || parseFloat(formData.amount) > balances[currency]}
                                 className="btn-primary w-full"
                             >
                                 متابعة
@@ -297,7 +319,7 @@ export default function PayPage() {
                             <div className="text-center mb-6">
                                 <h2 className="text-white font-semibold text-lg mb-2">تأكيد الدفع</h2>
                                 <p className="text-dark-400">{merchant.businessNameAr || merchant.businessName}</p>
-                                <p className="text-primary-500 text-3xl font-bold mt-2">${formatAmount(formData.amount)}</p>
+                                <p className="text-primary-500 text-3xl font-bold mt-2">{formatCurrencyAmount(parseFloat(formData.amount), currency)}</p>
                             </div>
 
                             <div className="mb-6">
@@ -334,7 +356,7 @@ export default function PayPage() {
                             </div>
                             <h2 className="text-2xl font-bold text-white mb-2">تم الدفع بنجاح!</h2>
                             <p className="text-dark-400 mb-4">
-                                تم دفع ${formatAmount(formData.amount)} إلى {merchant?.businessNameAr || merchant?.businessName}
+                                تم دفع {formatCurrencyAmount(parseFloat(formData.amount), currency)} إلى {merchant?.businessNameAr || merchant?.businessName}
                             </p>
                             <p className="text-dark-500 text-sm">جاري التحويل للصفحة الرئيسية...</p>
                         </div>

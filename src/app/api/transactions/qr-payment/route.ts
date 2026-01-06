@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
         // Calculate fees
         const { calculateCommission } = await import('@/lib/ledger/ledger');
-        const { platformFee, totalFee } = await calculateCommission(amount, 'QR_PAYMENT');
+        const { platformFee, totalFee } = await calculateCommission(amount, 'QR_PAYMENT', currency as 'USD' | 'SYP');
 
         // Check balance
         if (senderWallet.balance < amount + totalFee) {

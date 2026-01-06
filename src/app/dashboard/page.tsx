@@ -19,7 +19,7 @@ import {
     ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
 import usePushNotifications from '@/hooks/usePushNotifications';
-import { DualBalanceDisplay } from '@/components/CurrencySelector';
+import { DualBalanceDisplay, formatCurrencyAmount, CurrencyToggle, type Currency } from '@/components/CurrencySelector';
 
 import TransactionDetailsModal from '@/components/TransactionDetailsModal';
 
@@ -52,6 +52,7 @@ interface Transaction {
     createdAt: string;
     isOutgoing: boolean;
     counterparty: string;
+    currency: Currency;
     senderName?: string;
     receiverName?: string;
 }
@@ -241,7 +242,7 @@ export default function UserDashboard() {
                             {wallet && wallet.frozenBalance > 0 && (
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 text-sm mb-4">
                                     <ExclamationCircleIcon className="w-4 h-4" />
-                                    <span>{t('wallet.frozen')}: {formatAmount(wallet.frozenBalance)} {t('common.currencySymbol')}</span>
+                                    <span>{t('wallet.frozen')}: {formatCurrencyAmount(wallet.frozenBalance, 'USD')}</span>
                                 </div>
                             )}
 
@@ -293,11 +294,11 @@ export default function UserDashboard() {
 
                                     {/* Balance */}
                                     <div className="bg-dark-800/50 rounded-xl p-4 mb-4">
-                                        <p className="text-dark-400 text-xs mb-1">الرصيد المتاح</p>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-3xl font-bold text-emerald-400">{formatAmount(businessWallet.balance)}</span>
-                                            <span className="text-lg text-dark-400">{t('common.currencySymbol')}</span>
-                                        </div>
+                                        <p className="text-dark-400 text-xs mb-3">الرصيد المتاح</p>
+                                        <DualBalanceDisplay
+                                            balances={businessBalances || { USD: 0, SYP: 0 }}
+                                            variant="compact"
+                                        />
                                     </div>
 
                                     {/* Footer */}
@@ -390,7 +391,7 @@ export default function UserDashboard() {
                                             </span>
                                             <span className="text-end block flex-shrink-0">
                                                 <span className={`font-semibold block ${tx.isOutgoing ? 'text-red-500' : 'text-green-500'}`}>
-                                                    {tx.isOutgoing ? '-' : '+'}{formatAmount(tx.amount)} {t('common.currencySymbol')}
+                                                    {tx.isOutgoing ? '-' : '+'}{formatCurrencyAmount(tx.amount, tx.currency || 'USD')}
                                                 </span>
                                                 <span className="flex items-center gap-1 justify-end mt-0.5">
                                                     <CheckCircleIcon className="w-4 h-4 text-green-500" />
@@ -432,6 +433,7 @@ function TransferModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
         recipientPhone: '',
         amount: '',
         note: '',
+        currency: 'USD' as Currency,
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -446,6 +448,7 @@ function TransferModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
                 body: JSON.stringify({
                     recipientPhone: formData.recipientPhone,
                     amount: parseFloat(formData.amount),
+                    currency: formData.currency,
                     note: formData.note || undefined,
                 }),
             });
@@ -517,16 +520,22 @@ function TransferModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
 
                         <div>
                             <label className="label">{t('transaction.transfer.amount')}</label>
-                            <input
-                                type="number"
-                                className="input"
-                                placeholder="0"
-                                dir="ltr"
-                                min="1"
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                required
-                            />
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    className="input flex-1"
+                                    placeholder="0"
+                                    dir="ltr"
+                                    min="1"
+                                    value={formData.amount}
+                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                    required
+                                />
+                                <CurrencyToggle
+                                    value={formData.currency}
+                                    onChange={(c) => setFormData({ ...formData, currency: c })}
+                                />
+                            </div>
                         </div>
 
                         <div>

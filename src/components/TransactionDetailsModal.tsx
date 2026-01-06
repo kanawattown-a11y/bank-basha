@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { XMarkIcon, ArrowDownTrayIcon, ShareIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { useTranslations } from 'next-intl';
 import html2canvas from 'html2canvas';
+import { Currency, formatCurrencyAmount } from './CurrencySelector';
 
 interface TransactionDetails {
     id: string;
     referenceNumber: string;
     type: string;
     amount: number;
+    currency: Currency;
     fee?: number;
     netAmount?: number;
     platformFee?: number;
@@ -67,7 +69,7 @@ export default function TransactionDetailsModal({
     };
 
     const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+        return formatCurrencyAmount(amount, transaction.currency || 'USD');
     };
 
     const getStatusColor = (status: string) => {
@@ -100,7 +102,7 @@ export default function TransactionDetailsModal({
                 logging: false,
                 useCORS: true,
                 allowTaint: true,
-                onclone: (clonedDoc) => {
+                onclone: (clonedDoc: Document) => {
                     const clonedElement = clonedDoc.querySelector('[data-receipt-container]') as HTMLElement;
                     if (clonedElement) {
                         // Critical fixes for accurate text rendering
@@ -215,8 +217,8 @@ export default function TransactionDetailsModal({
                                 <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold mb-4 ${getStatusColor(transaction.status)}`}>
                                     {t(`transaction.status.${transaction.status.toLowerCase()}`)}
                                 </div>
-                                <div className="text-5xl font-bold text-white mb-2 tracking-tight">
-                                    {formatAmount(transaction.amount)} <span className="text-2xl text-primary-500">$</span>
+                                <div className="text-4xl font-bold text-white mb-2 tracking-tight">
+                                    {formatAmount(transaction.amount)}
                                 </div>
                                 <div className="text-dark-300 font-medium">
                                     {getTransactionTitle(transaction.type)}
@@ -263,7 +265,7 @@ export default function TransactionDetailsModal({
                                 {transaction.fee !== undefined && transaction.fee > 0 && (
                                     <div className="flex justify-between items-center gap-4 py-1">
                                         <span className="text-dark-400 text-sm font-medium whitespace-nowrap">{t('transaction.fee')}</span>
-                                        <span className="text-red-400 text-sm">-{formatAmount(transaction.fee)} $</span>
+                                        <span className="text-red-400 text-sm">-{formatAmount(transaction.fee)}</span>
                                     </div>
                                 )}
 
@@ -272,7 +274,7 @@ export default function TransactionDetailsModal({
                                         <div className="my-2 border-b border-dark-700/50" />
                                         <div className="flex justify-between items-center py-1">
                                             <span className="text-dark-400 text-sm font-medium">{t('agent.settlement.commission')}</span>
-                                            <span className="text-green-500 text-sm font-bold">+{formatAmount(transaction.agentFee)} $</span>
+                                            <span className="text-green-500 text-sm font-bold">+{formatAmount(transaction.agentFee)}</span>
                                         </div>
                                     </>
                                 )}
@@ -317,7 +319,7 @@ export default function TransactionDetailsModal({
                                     title: t('transaction.receipt.title'),
                                     text: `${t('transaction.receipt.title')}\n\n` +
                                         `${t('transaction.reference')}: ${transaction.referenceNumber}\n` +
-                                        `${t('common.amount')}: ${formatAmount(transaction.amount)} $\n` +
+                                        `${t('common.amount')}: ${formatAmount(transaction.amount)}\n` +
                                         `${t('common.date')}: ${formatDate(transaction.createdAt)}\n` +
                                         `${t('transaction.status')}: ${t('transaction.status.' + transaction.status.toLowerCase())}`
                                 };

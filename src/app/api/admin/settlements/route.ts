@@ -100,14 +100,15 @@ export async function POST(request: NextRequest) {
                 });
 
                 // Notify agent
+                const symbol = currency === 'SYP' ? 'ل.س' : '$';
                 await prisma.notification.create({
                     data: {
                         userId: settlement.agent.userId,
                         type: 'SYSTEM',
                         title: 'Settlement Approved',
                         titleAr: 'تمت الموافقة على التسوية',
-                        message: `Your cash to credit settlement of $${settlement.requestedAmount} has been approved. You received $${settlement.amountDue} credit.`,
-                        messageAr: `تمت الموافقة على تحويل $${settlement.requestedAmount} نقد إلى رصيد. حصلت على $${settlement.amountDue} رصيد.`,
+                        message: `Your cash to credit settlement of ${symbol}${settlement.requestedAmount?.toLocaleString()} has been approved. You received ${symbol}${settlement.amountDue?.toLocaleString()} credit.`,
+                        messageAr: `تمت الموافقة على تحويل ${symbol}${settlement.requestedAmount?.toLocaleString()} نقد إلى رصيد. حصلت على ${symbol}${settlement.amountDue?.toLocaleString()} رصيد.`,
                     },
                 });
             }
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
                         where: { id: settlement.agentId },
                         data: {
                             currentCreditSYP: { increment: settlement.creditGiven! },
-                            pendingDebt: { increment: settlement.creditGiven! },
+                            pendingDebtSYP: { increment: settlement.creditGiven! },
                             totalSettlements: { increment: 1 },
                             lastSettlement: new Date(),
                         },
@@ -226,6 +227,7 @@ export async function POST(request: NextRequest) {
 
                 const deliveryMsg = deliveryMessages[deliveryMethod];
 
+                const symbol = currency === 'SYP' ? 'ل.س' : '$';
                 // Notify requesting agent
                 await prisma.notification.create({
                     data: {
@@ -233,8 +235,8 @@ export async function POST(request: NextRequest) {
                         type: 'SYSTEM',
                         title: 'Cash Request Approved',
                         titleAr: 'تمت الموافقة على طلب النقد',
-                        message: `Your cash request of $${settlement.cashToReceive} has been approved. ${deliveryMsg.en}.`,
-                        messageAr: `تمت الموافقة على طلب نقد بقيمة $${settlement.cashToReceive}. ${deliveryMsg.ar}.`,
+                        message: `Your cash request of ${symbol}${settlement.cashToReceive?.toLocaleString()} has been approved. ${deliveryMsg.en}.`,
+                        messageAr: `تمت الموافقة على طلب نقد بقيمة ${symbol}${settlement.cashToReceive?.toLocaleString()}. ${deliveryMsg.ar}.`,
                     },
                 });
             }
@@ -309,6 +311,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
+            const symbol = currency === 'SYP' ? 'ل.س' : '$';
             // Notify agent
             await prisma.notification.create({
                 data: {
@@ -316,8 +319,8 @@ export async function POST(request: NextRequest) {
                     type: 'SYSTEM',
                     title: 'Cash Delivered',
                     titleAr: 'تم تسليم النقد',
-                    message: `Cash of $${settlement.cashToReceive} has been delivered to you.`,
-                    messageAr: `تم تسليمك نقد بقيمة $${settlement.cashToReceive}.`,
+                    message: `Cash of ${symbol}${settlement.cashToReceive?.toLocaleString()} has been delivered to you.`,
+                    messageAr: `تم تسليمك نقد بقيمة ${symbol}${settlement.cashToReceive?.toLocaleString()}.`,
                 },
             });
         }

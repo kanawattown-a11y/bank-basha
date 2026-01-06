@@ -171,9 +171,9 @@ export default function MyOrdersPage() {
                         </div>
                         <div className="card p-4 text-center">
                             <p className="text-2xl font-bold text-primary-400">
-                                {stats.totalEarnings >= 0 ? `$${stats.totalEarnings.toFixed(2)}` : 'ل.س0'}
+                                {stats.totalEarnings > 0 ? stats.totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '0'}
                             </p>
-                            <p className="text-dark-400 text-xs">الأرباح</p>
+                            <p className="text-dark-400 text-xs">الأرباح (الإجمالي)</p>
                         </div>
                     </div>
 

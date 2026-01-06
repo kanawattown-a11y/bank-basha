@@ -31,6 +31,7 @@ export interface TransactionRiskContext {
     userId: string;
     amount: number;
     type: string;
+    currency?: 'USD' | 'SYP';
     ipAddress?: string;
     deviceId?: string;
     userAgent?: string;
@@ -55,18 +56,26 @@ async function getAdvancedSettings() {
 // ============================================
 
 /**
- * Check if amount exceeds threshold
+ * Check if amount exceeds threshold (Currency-Aware)
  */
 async function checkHighAmount(
     amount: number,
-    settings: Awaited<ReturnType<typeof getAdvancedSettings>>
+    settings: Awaited<ReturnType<typeof getAdvancedSettings>>,
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<RiskAlertData | null> {
-    if (amount >= settings.riskHighAmountThreshold) {
+    // Select threshold based on currency
+    const threshold = currency === 'SYP'
+        ? settings.riskHighAmountThresholdSYP
+        : settings.riskHighAmountThreshold;
+
+    const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
+
+    if (amount >= threshold) {
         return {
             type: 'HIGH_AMOUNT',
-            score: Math.min(100, (amount / settings.riskHighAmountThreshold) * 30),
-            reason: `Transaction amount $${amount} exceeds threshold $${settings.riskHighAmountThreshold}`,
-            reasonAr: `مبلغ المعاملة $${amount} يتجاوز الحد $${settings.riskHighAmountThreshold}`,
+            score: Math.min(100, (amount / threshold) * 30),
+            reason: `Transaction amount ${currencySymbol}${amount} exceeds threshold ${currencySymbol}${threshold}`,
+            reasonAr: `مبلغ المعاملة ${currencySymbol}${amount} يتجاوز الحد ${currencySymbol}${threshold}`,
         };
     }
     return null;
@@ -192,12 +201,13 @@ async function checkSuspiciousIP(
 }
 
 /**
- * Check daily/weekly/monthly limits
+ * Check daily/weekly/monthly limits (Currency-Aware)
  */
 async function checkTransactionLimits(
     userId: string,
     amount: number,
-    settings: Awaited<ReturnType<typeof getAdvancedSettings>>
+    settings: Awaited<ReturnType<typeof getAdvancedSettings>>,
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<RiskAlertData | null> {
     // Get or create user limits record
     let limits = await prisma.userTransactionLimit.findUnique({
@@ -212,6 +222,30 @@ async function checkTransactionLimits(
         });
     }
 
+    // Currency-specific field names
+    const dailySpentField = currency === 'USD' ? 'dailySpentUSD' : 'dailySpentSYP';
+    const weeklySpentField = currency === 'USD' ? 'weeklySpentUSD' : 'weeklySpentSYP';
+    const monthlySpentField = currency === 'USD' ? 'monthlySpentUSD' : 'monthlySpentSYP';
+    const dailyCountField = currency === 'USD' ? 'dailyCountUSD' : 'dailyCountSYP';
+
+    // Get current spent values
+    const dailySpent = currency === 'USD' ? limits.dailySpentUSD : limits.dailySpentSYP;
+    const weeklySpent = currency === 'USD' ? limits.weeklySpentUSD : limits.weeklySpentSYP;
+    const monthlySpent = currency === 'USD' ? limits.monthlySpentUSD : limits.monthlySpentSYP;
+
+    // Get currency-specific limits from settings
+    const dailyLimit = currency === 'SYP'
+        ? (settings.userDailyLimitSYP || settings.userDailyLimit * 15000)
+        : settings.userDailyLimit;
+    const weeklyLimit = currency === 'SYP'
+        ? (settings.userWeeklyLimitSYP || settings.userWeeklyLimit * 15000)
+        : settings.userWeeklyLimit;
+    const monthlyLimit = currency === 'SYP'
+        ? (settings.userMonthlyLimitSYP || settings.userMonthlyLimit * 15000)
+        : settings.userMonthlyLimit;
+
+    const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
+
     // Reset counters if needed
     const dailyReset = new Date(limits.dailyResetAt);
     const weeklyReset = new Date(limits.weeklyResetAt);
@@ -219,46 +253,52 @@ async function checkTransactionLimits(
 
     const updates: any = {};
 
+    // Daily limit check
     if (now.getTime() - dailyReset.getTime() > 24 * 60 * 60 * 1000) {
-        updates.dailySpent = amount;
-        updates.dailyCount = 1;
+        updates[dailySpentField] = amount;
+        updates[dailyCountField] = 1;
         updates.dailyResetAt = now;
     } else {
-        if (limits.dailySpent + amount > settings.userDailyLimit) {
+        if (dailySpent + amount > dailyLimit) {
             return {
                 type: 'LIMIT_EXCEEDED',
                 score: 60,
-                reason: `Daily limit exceeded: $${limits.dailySpent + amount} > $${settings.userDailyLimit}`,
-                reasonAr: `تجاوز الحد اليومي: $${limits.dailySpent + amount} > $${settings.userDailyLimit}`,
+                reason: `Daily limit exceeded (${currency}): ${currencySymbol}${dailySpent + amount} > ${currencySymbol}${dailyLimit}`,
+                reasonAr: `تجاوز الحد اليومي (${currency}): ${currencySymbol}${dailySpent + amount} > ${currencySymbol}${dailyLimit}`,
             };
         }
-        updates.dailySpent = { increment: amount };
-        updates.dailyCount = { increment: 1 };
+        updates[dailySpentField] = { increment: amount };
+        updates[dailyCountField] = { increment: 1 };
     }
 
-    // Similar checks for weekly and monthly...
+    // Weekly limit check
     if (now.getTime() - weeklyReset.getTime() > 7 * 24 * 60 * 60 * 1000) {
-        updates.weeklySpent = amount;
+        updates[weeklySpentField] = amount;
         updates.weeklyResetAt = now;
-    } else if (limits.weeklySpent + amount > settings.userWeeklyLimit) {
+    } else if (weeklySpent + amount > weeklyLimit) {
         return {
             type: 'LIMIT_EXCEEDED',
             score: 70,
-            reason: `Weekly limit exceeded: $${limits.weeklySpent + amount} > $${settings.userWeeklyLimit}`,
-            reasonAr: `تجاوز الحد الأسبوعي: $${limits.weeklySpent + amount} > $${settings.userWeeklyLimit}`,
+            reason: `Weekly limit exceeded (${currency}): ${currencySymbol}${weeklySpent + amount} > ${currencySymbol}${weeklyLimit}`,
+            reasonAr: `تجاوز الحد الأسبوعي (${currency}): ${currencySymbol}${weeklySpent + amount} > ${currencySymbol}${weeklyLimit}`,
         };
+    } else {
+        updates[weeklySpentField] = { increment: amount };
     }
 
+    // Monthly limit check
     if (now.getTime() - monthlyReset.getTime() > 30 * 24 * 60 * 60 * 1000) {
-        updates.monthlySpent = amount;
+        updates[monthlySpentField] = amount;
         updates.monthlyResetAt = now;
-    } else if (limits.monthlySpent + amount > settings.userMonthlyLimit) {
+    } else if (monthlySpent + amount > monthlyLimit) {
         return {
             type: 'LIMIT_EXCEEDED',
             score: 80,
-            reason: `Monthly limit exceeded: $${limits.monthlySpent + amount} > $${settings.userMonthlyLimit}`,
-            reasonAr: `تجاوز الحد الشهري: $${limits.monthlySpent + amount} > $${settings.userMonthlyLimit}`,
+            reason: `Monthly limit exceeded (${currency}): ${currencySymbol}${monthlySpent + amount} > ${currencySymbol}${monthlyLimit}`,
+            reasonAr: `تجاوز الحد الشهري (${currency}): ${currencySymbol}${monthlySpent + amount} > ${currencySymbol}${monthlyLimit}`,
         };
+    } else {
+        updates[monthlySpentField] = { increment: amount };
     }
 
     // Update limits
@@ -285,11 +325,11 @@ export async function checkTransactionRisk(
 
     // Run all checks
     const checks = await Promise.all([
-        checkHighAmount(context.amount, settings),
+        checkHighAmount(context.amount, settings, context.currency || 'USD'),
         checkRapidTransactions(context.userId, settings),
         checkNewDevice(context.userId, context.deviceId, settings),
         checkSuspiciousIP(context.userId, context.ipAddress),
-        checkTransactionLimits(context.userId, context.amount, settings),
+        checkTransactionLimits(context.userId, context.amount, settings, context.currency || 'USD'),
     ]);
 
     for (const result of checks) {

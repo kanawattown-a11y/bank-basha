@@ -59,11 +59,21 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        // Get pending settlement amount
-        const pendingSettlements = await prisma.settlement.aggregate({
+        // Get pending settlement amount - separated by currency
+        const pendingSettlementsUSD = await prisma.settlement.aggregate({
             where: {
                 agentId: agent.agentProfile.id,
                 status: 'PENDING',
+                currency: 'USD',
+            },
+            _sum: { amountDue: true },
+        });
+
+        const pendingSettlementsSYP = await prisma.settlement.aggregate({
+            where: {
+                agentId: agent.agentProfile.id,
+                status: 'PENDING',
+                currency: 'SYP',
             },
             _sum: { amountDue: true },
         });
@@ -101,8 +111,16 @@ export async function GET(request: NextRequest) {
                 },
 
                 todayTransactions,
-                pendingSettlement: pendingSettlements._sum.amountDue || 0,
-                pendingDebt: agent.agentProfile.pendingDebt || 0,
+                // Dual currency pending settlements
+                pendingSettlement: {
+                    USD: pendingSettlementsUSD._sum.amountDue || 0,
+                    SYP: pendingSettlementsSYP._sum.amountDue || 0,
+                },
+                // Dual currency pending debt
+                pendingDebt: {
+                    USD: agent.agentProfile.pendingDebt || 0,
+                    SYP: agent.agentProfile.pendingDebtSYP || 0,
+                },
                 agentCode: agent.agentProfile.agentCode,
                 businessName: agent.agentProfile.businessName,
                 businessNameAr: agent.agentProfile.businessNameAr,

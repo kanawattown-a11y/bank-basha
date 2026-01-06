@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const settingsSchema = z.object({
+    // USD Fee Settings
     depositFeePercent: z.number().min(0).max(100).optional(),
     depositFeeFixed: z.number().min(0).optional(),
     withdrawalFeePercent: z.number().min(0).max(100).optional(),
@@ -16,6 +17,19 @@ const settingsSchema = z.object({
     serviceFeePercent: z.number().min(0).max(100).optional(),
     serviceFeeFixed: z.number().min(0).optional(),
     agentCommissionPercent: z.number().min(0).max(100).optional(),
+    // SYP Fee Settings
+    depositFeePercentSYP: z.number().min(0).max(100).optional(),
+    depositFeeFixedSYP: z.number().min(0).optional(),
+    withdrawalFeePercentSYP: z.number().min(0).max(100).optional(),
+    withdrawalFeeFixedSYP: z.number().min(0).optional(),
+    transferFeePercentSYP: z.number().min(0).max(100).optional(),
+    transferFeeFixedSYP: z.number().min(0).optional(),
+    qrPaymentFeePercentSYP: z.number().min(0).max(100).optional(),
+    qrPaymentFeeFixedSYP: z.number().min(0).optional(),
+    serviceFeePercentSYP: z.number().min(0).max(100).optional(),
+    serviceFeeFixedSYP: z.number().min(0).optional(),
+    agentCommissionPercentSYP: z.number().min(0).max(100).optional(),
+    // Settlement & Limits
     settlementPlatformCommission: z.number().min(0).max(100).optional(),
     settlementAgentCommission: z.number().min(0).max(100).optional(),
     dailyTransactionLimit: z.number().positive().optional(),

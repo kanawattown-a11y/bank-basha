@@ -44,25 +44,13 @@ export default function TransferPage() {
     useEffect(() => {
         setMounted(true);
         fetchBalance();
-        fetchFeeSettings();
     }, []);
 
-    // Auto-fill OTP from push notification
     useEffect(() => {
-        if (notification?.data?.type === 'TRANSFER_OTP' && notification?.data?.otp) {
-            setOtp(notification.data.otp);
+        if (mounted) {
+            fetchFeeSettings();
         }
-    }, [notification]);
-
-    // OTP Timer
-    useEffect(() => {
-        if (step === 'otp' && otpExpiresIn > 0) {
-            const timer = setInterval(() => {
-                setOtpExpiresIn(prev => prev - 1);
-            }, 1000);
-            return () => clearInterval(timer);
-        }
-    }, [step, otpExpiresIn]);
+    }, [currency, mounted]);
 
     const fetchBalance = async () => {
         try {
@@ -81,7 +69,7 @@ export default function TransferPage() {
 
     const fetchFeeSettings = async () => {
         try {
-            const res = await fetch('/api/fees');
+            const res = await fetch(`/api/fees?currency=${currency}`);
             if (res.ok) {
                 const data = await res.json();
                 setFeePercent(data.transferFeePercent || 0.5);
@@ -309,21 +297,21 @@ export default function TransferPage() {
                                 <div className="bg-dark-800/50 rounded-xl p-4 mb-6 space-y-2">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-dark-400">المبلغ المُحوّل</span>
-                                        <span className="text-white font-semibold">${formatAmount(parseFloat(amount))}</span>
+                                        <span className="text-white font-semibold">{formatCurrencyAmount(parseFloat(amount), currency)}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-dark-400">
                                             عمولة المنصة
                                             <span className="text-dark-500 text-xs mr-1">
-                                                ({feePercent}%{feeFixed > 0 ? ` + ${formatAmount(feeFixed)}$` : ''})
+                                                ({feePercent}%{feeFixed > 0 ? ` + ${formatCurrencyAmount(feeFixed, currency)}` : ''})
                                             </span>
                                         </span>
-                                        <span className="text-yellow-400">${formatAmount(fee)}</span>
+                                        <span className="text-yellow-400">{formatCurrencyAmount(fee, currency)}</span>
                                     </div>
                                     <div className="border-t border-dark-700 pt-2 mt-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-white font-semibold">الإجمالي المخصوم</span>
-                                            <span className="text-primary-500 font-bold text-lg">${formatAmount(totalAmount)}</span>
+                                            <span className="text-primary-500 font-bold text-lg">{formatCurrencyAmount(totalAmount, currency)}</span>
                                         </div>
                                     </div>
                                     {totalAmount > currentBalance && (
@@ -355,7 +343,7 @@ export default function TransferPage() {
                                 </div>
                                 <h2 className="text-white font-semibold text-lg mb-2">أدخل رمز التأكيد</h2>
                                 <p className="text-dark-400 text-sm mb-2">تم إرسال رمز التحقق إلى تطبيقك</p>
-                                <p className="text-primary-500 text-3xl font-bold mt-2">${formatAmount(parseFloat(amount))}</p>
+                                <p className="text-primary-500 text-3xl font-bold mt-2">{formatCurrencyAmount(parseFloat(amount), currency)}</p>
                                 <p className="text-dark-400 text-sm">إلى: {recipient.fullNameAr || recipient.fullName}</p>
                             </div>
 
@@ -410,7 +398,7 @@ export default function TransferPage() {
                             <CheckCircleIcon className="w-20 h-20 text-green-400 mx-auto mb-4" />
                             <h2 className="text-2xl font-bold text-white mb-2">تم التحويل بنجاح!</h2>
                             <p className="text-dark-400 mb-6">
-                                تم تحويل ${formatAmount(parseFloat(amount))} إلى {recipient?.fullNameAr || recipient?.fullName}
+                                تم تحويل {formatCurrencyAmount(parseFloat(amount), currency)} إلى {recipient?.fullNameAr || recipient?.fullName}
                             </p>
                             <Link href="/dashboard" className="btn-primary inline-block">
                                 العودة للرئيسية

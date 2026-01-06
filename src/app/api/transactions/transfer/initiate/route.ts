@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
             userId: userId,
             amount,
             type: 'TRANSFER',
+            currency: currency as 'USD' | 'SYP',
             ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
         });
 

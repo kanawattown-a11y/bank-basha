@@ -5,8 +5,11 @@ import { getSecurityHeaders } from '@/lib/auth/security';
 export const dynamic = 'force-dynamic';
 
 // GET - Get fee settings (public for calculation preview)
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const currency = searchParams.get('currency') || 'USD';
+
         const settings = await prisma.systemSettings.findFirst();
 
         if (!settings) {
@@ -20,6 +23,19 @@ export async function GET() {
                 depositFeeFixed: 0,
                 withdrawalFeePercent: 1.5,
                 withdrawalFeeFixed: 0,
+            }, { status: 200, headers: getSecurityHeaders() });
+        }
+
+        if (currency === 'SYP') {
+            return NextResponse.json({
+                transferFeePercent: settings.transferFeePercentSYP,
+                transferFeeFixed: settings.transferFeeFixedSYP,
+                qrPaymentFeePercent: settings.qrPaymentFeePercentSYP,
+                qrPaymentFeeFixed: settings.qrPaymentFeeFixedSYP,
+                depositFeePercent: settings.depositFeePercentSYP,
+                depositFeeFixed: settings.depositFeeFixedSYP,
+                withdrawalFeePercent: settings.withdrawalFeePercentSYP,
+                withdrawalFeeFixed: settings.withdrawalFeeFixedSYP,
             }, { status: 200, headers: getSecurityHeaders() });
         }
 

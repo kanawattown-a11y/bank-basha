@@ -84,17 +84,27 @@ export default function AdminAgentsPage() {
             <main className="pt-24 pb-8 px-4">
                 <div className="max-w-6xl mx-auto">
 
-                    {/* Search */}
+                    {/* Search with Button */}
                     <div className="card p-4 mb-6">
-                        <div className="relative">
-                            <MagnifyingGlassIcon className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-dark-400" />
-                            <input
-                                type="text"
-                                className="input pr-10"
-                                placeholder={t('admin.agents.searchPlaceholder')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <MagnifyingGlassIcon className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-dark-400" />
+                                <input
+                                    type="text"
+                                    className="input pr-10 w-full"
+                                    placeholder={t('admin.agents.searchPlaceholder')}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && fetchAgents()}
+                                />
+                            </div>
+                            <button
+                                onClick={fetchAgents}
+                                className="btn-primary px-6 flex items-center gap-2 whitespace-nowrap"
+                            >
+                                <MagnifyingGlassIcon className="w-5 h-5" />
+                                <span className="hidden sm:inline">بحث</span>
+                            </button>
                         </div>
                     </div>
 
@@ -106,8 +116,8 @@ export default function AdminAgentsPage() {
                                 <button
                                     onClick={() => setCurrency('USD')}
                                     className={`px-4 py-2 rounded-lg font-medium transition-all ${currency === 'USD'
-                                            ? 'bg-primary-500 text-white'
-                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                         }`}
                                 >
                                     💵 USD
@@ -115,8 +125,8 @@ export default function AdminAgentsPage() {
                                 <button
                                     onClick={() => setCurrency('SYP')}
                                     className={`px-4 py-2 rounded-lg font-medium transition-all ${currency === 'SYP'
-                                            ? 'bg-primary-500 text-white'
-                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                         }`}
                                 >
                                     🇸🇾 SYP

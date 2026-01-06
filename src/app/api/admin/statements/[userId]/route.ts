@@ -185,8 +185,8 @@ export async function GET(
             totalFees,
             transactionCount: transactions.length,
 
-            currency: 'USD', // Default to USD for now
-            currencySymbol: '$', // Default to USD symbol
+            currency: transactions.length > 0 ? transactions[0].currency : 'USD',
+            currencySymbol: transactions.length > 0 && transactions[0].currency === 'SYP' ? 'ل.س' : '$',
 
             labels: enMessages.pdf,
         };

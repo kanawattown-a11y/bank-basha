@@ -81,53 +81,67 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Recalculate balances from actual data
-        const [allWallets, agentProfiles] = await Promise.all([
-            prisma.wallet.findMany({
-                where: { userId: { not: undefined } },
-                include: { user: { select: { userType: true } } },
+        // Recalculate balances using optimized aggregation (no memory overflow)
+        const [userBalanceUSD, agentCreditUSD, merchantBalanceUSD, totalFeesUSD] = await Promise.all([
+            // User balances (USD)
+            prisma.wallet.aggregate({
+                _sum: { balance: true },
+                where: {
+                    user: { userType: 'USER' },
+                    currency: 'USD',
+                    walletType: 'PERSONAL'
+                }
             }),
-            prisma.agentProfile.findMany(),
+            // Agent credit (USD)
+            prisma.agentProfile.aggregate({
+                _sum: { currentCredit: true }
+            }),
+            // Merchant balances (USD)
+            prisma.wallet.aggregate({
+                _sum: { balance: true },
+                where: {
+                    user: { userType: 'MERCHANT' },
+                    currency: 'USD',
+                    walletType: 'BUSINESS'
+                }
+            }),
+            // Platform fees (USD only for now)
+            prisma.transaction.aggregate({
+                _sum: { platformFee: true },
+                where: {
+                    status: 'COMPLETED',
+                    currency: 'USD'
+                }
+            })
         ]);
 
-        // Calculate actual totals
-        const actualUserBalance = allWallets
-            .filter(w => w.user?.userType === 'USER')
-            .reduce((sum, w) => sum + w.balance, 0);
-
-        const actualAgentCredit = agentProfiles.reduce((sum, a) => sum + a.currentCredit, 0);
-
-        const actualMerchantBalance = allWallets
-            .filter(w => w.user?.userType === 'MERCHANT')
-            .reduce((sum, w) => sum + w.balance, 0);
-
-        // Get fees from completed transactions
-        const totalFees = await prisma.transaction.aggregate({
-            _sum: { platformFee: true },
-            where: { status: 'COMPLETED' },
-        });
+        // Extract values
+        const actualUserBalance = userBalanceUSD._sum.balance || 0;
+        const actualAgentCredit = agentCreditUSD._sum.currentCredit || 0;
+        const actualMerchantBalance = merchantBalanceUSD._sum.balance || 0;
+        const actualFees = totalFeesUSD._sum.platformFee || 0;
 
         // Update internal accounts
         await prisma.$transaction([
             prisma.internalAccount.upsert({
                 where: { code: 'USR-LEDGER' },
                 update: { balance: actualUserBalance },
-                create: { code: 'USR-LEDGER', name: 'Users Ledger', type: 'USERS_LEDGER', balance: actualUserBalance },
+                create: { code: 'USR-LEDGER', name: 'Users Ledger', nameAr: 'دفتر المستخدمين', type: 'USERS_LEDGER', balance: actualUserBalance },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'AGT-LEDGER' },
                 update: { balance: actualAgentCredit },
-                create: { code: 'AGT-LEDGER', name: 'Agents Ledger', type: 'AGENTS_LEDGER', balance: actualAgentCredit },
+                create: { code: 'AGT-LEDGER', name: 'Agents Ledger', nameAr: 'دفتر الوكلاء', type: 'AGENTS_LEDGER', balance: actualAgentCredit },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'MRC-LEDGER' },
                 update: { balance: actualMerchantBalance },
-                create: { code: 'MRC-LEDGER', name: 'Merchants Ledger', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalance },
+                create: { code: 'MRC-LEDGER', name: 'Merchants Ledger', nameAr: 'دفتر التجار', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalance },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'FEES-COLLECTED' },
-                update: { balance: totalFees._sum.platformFee || 0 },
-                create: { code: 'FEES-COLLECTED', name: 'Fees Collected', type: 'FEES', balance: totalFees._sum.platformFee || 0 },
+                update: { balance: actualFees },
+                create: { code: 'FEES-COLLECTED', name: 'Fees Collected', nameAr: 'الرسوم المحصلة', type: 'FEES', balance: actualFees },
             }),
         ]);
 
@@ -153,7 +167,7 @@ export async function POST(request: NextRequest) {
                     userBalance: actualUserBalance,
                     agentCredit: actualAgentCredit,
                     merchantBalance: actualMerchantBalance,
-                    fees: totalFees._sum.platformFee,
+                    fees: actualFees,
                     systemReserve: -totalOther,
                 }),
             },
@@ -166,7 +180,7 @@ export async function POST(request: NextRequest) {
                     userBalance: actualUserBalance,
                     agentCredit: actualAgentCredit,
                     merchantBalance: actualMerchantBalance,
-                    fees: totalFees._sum.platformFee || 0,
+                    fees: actualFees,
                     systemReserve: -totalOther,
                 },
             },

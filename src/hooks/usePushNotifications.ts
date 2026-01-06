@@ -78,14 +78,68 @@ export function usePushNotifications() {
                     icon: '/icons/icon-192x192.png',
                     badge: '/icons/badge-72x72.png',
                     tag: 'bank-basha-notification',
+                    data: payload.data, // Pass data for deep linking
                     requireInteraction: true, // Stay until user interacts
                 });
 
                 // Close notification after 10 seconds
                 setTimeout(() => browserNotification.close(), 10000);
 
-                // Handle click
+                // Handle click - Navigate to specific page based on type
                 browserNotification.onclick = () => {
+                    const data = payload.data || {};
+                    const notificationType = data.type;
+
+                    // Determine navigation URL
+                    let targetUrl = '/dashboard';
+
+                    switch (notificationType) {
+                        case 'TRANSFER':
+                        case 'TRANSFER_OTP':
+                        case 'TRANSACTION':
+                            targetUrl = '/dashboard/transactions';
+                            break;
+                        case 'DEPOSIT':
+                            targetUrl = '/dashboard/deposit';
+                            break;
+                        case 'WITHDRAW':
+                            targetUrl = '/dashboard/withdraw';
+                            break;
+                        case 'QR_PAYMENT':
+                            targetUrl = '/dashboard/transactions';
+                            break;
+                        case 'SERVICE_PURCHASE':
+                        case 'SERVICE_ORDER':
+                            targetUrl = '/dashboard/services';
+                            break;
+                        case 'KYC_UPDATE':
+                        case 'KYC_APPROVED':
+                        case 'KYC_REJECTED':
+                            targetUrl = '/dashboard/settings';
+                            break;
+                        case 'MERCHANT_PAYMENT':
+                            targetUrl = '/merchant';
+                            break;
+                        case 'AGENT_SETTLEMENT':
+                        case 'AGENT_CREDIT':
+                            targetUrl = '/agent';
+                            break;
+                        case 'SUPPORT_TICKET':
+                            targetUrl = '/dashboard/support';
+                            break;
+                    }
+
+                    // Add query params if available
+                    if (data.transactionId) {
+                        targetUrl += `?id=${data.transactionId}`;
+                    } else if (data.orderId) {
+                        targetUrl += `?orderId=${data.orderId}`;
+                    } else if (data.ticketId) {
+                        targetUrl += `?ticketId=${data.ticketId}`;
+                    }
+
+                    // Navigate
+                    window.location.href = targetUrl;
                     window.focus();
                     browserNotification.close();
                 };

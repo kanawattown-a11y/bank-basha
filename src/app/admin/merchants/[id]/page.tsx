@@ -50,6 +50,7 @@ interface Transaction {
     referenceNumber: string;
     type: string;
     amount: number;
+    currency: string;
     status: string;
     createdAt: string;
     isIncoming: boolean;
@@ -288,7 +289,7 @@ export default function MerchantDetailsPage() {
                                             </div>
                                         </div>
                                         <span className={tx.isIncoming ? 'text-green-500' : 'text-red-500'}>
-                                            {tx.isIncoming ? '+' : '-'}${formatAmount(tx.amount)}
+                                            {tx.isIncoming ? '+' : '-'}{formatAmount(tx.amount)} {tx.currency === 'SYP' ? 'ل.س' : '$'}
                                         </span>
                                     </div>
                                 ))}

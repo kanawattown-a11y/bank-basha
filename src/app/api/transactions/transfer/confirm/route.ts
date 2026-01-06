@@ -171,7 +171,12 @@ export async function POST(request: NextRequest) {
                 sender.fcmToken,
                 '💸 تم إرسال التحويل',
                 `أرسلت ${formattedAmount}${symbol} إلى ${recipient?.fullNameAr || recipient?.fullName}`,
-                { type: 'TRANSFER_SENT', amount: otpRecord.amount.toString(), currency }
+                {
+                    type: 'TRANSFER',
+                    transactionId: result.transaction.id,
+                    amount: otpRecord.amount.toString(),
+                    currency
+                }
             ).catch(err => console.error('Push send error:', err));
         }
 
@@ -180,7 +185,12 @@ export async function POST(request: NextRequest) {
                 recipient.fcmToken,
                 '💰 تحويل وارد!',
                 `استلمت ${formattedAmount}${symbol} من ${sender?.fullNameAr || sender?.fullName || 'مستخدم'}`,
-                { type: 'TRANSFER_RECEIVED', amount: otpRecord.amount.toString(), currency }
+                {
+                    type: 'TRANSFER',
+                    transactionId: result.transaction.id,
+                    amount: otpRecord.amount.toString(),
+                    currency
+                }
             ).catch(err => console.error('Push receive error:', err));
         }
 

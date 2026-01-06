@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
         // Calculate fees
         const { calculateCommission } = await import('@/lib/ledger/ledger');
-        const commission = await calculateCommission(amount, 'SERVICE_PURCHASE');
+        const commission = await calculateCommission(amount, 'SERVICE_PURCHASE', currency);
 
         // Total logic:
         // We assume Input Amount is the gross amount deducted from user wallet.
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
                     platformFee: commission.platformFee,
                     agentFee: commission.agentFee,
                     netAmount: commission.netAmount, // What seller gets
-                    currency: 'USD',
+                    currency: currency, // Use selected currency
                     description: `Purchase service: ${service.name}`,
                     descriptionAr: `شراء خدمة: ${service.nameAr || service.name}`,
                     metadata: JSON.stringify({ serviceId: service.id, phoneNumber }),

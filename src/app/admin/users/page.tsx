@@ -150,16 +150,26 @@ export default function AdminUsersPage() {
                     {/* Search and Filters */}
                     <div className="card p-4 mb-6">
                         <div className="flex flex-col gap-4">
-                            {/* Search */}
-                            <div className="relative">
-                                <MagnifyingGlassIcon className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-dark-400" />
-                                <input
-                                    type="text"
-                                    className="input pr-10"
-                                    placeholder={t('admin.users.searchPlaceholder')}
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+                            {/* Search with Button */}
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <MagnifyingGlassIcon className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-dark-400" />
+                                    <input
+                                        type="text"
+                                        className="input pr-10 w-full"
+                                        placeholder={t('admin.users.searchPlaceholder')}
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
+                                    />
+                                </div>
+                                <button
+                                    onClick={fetchUsers}
+                                    className="btn-primary px-6 flex items-center gap-2 whitespace-nowrap"
+                                >
+                                    <MagnifyingGlassIcon className="w-5 h-5" />
+                                    <span className="hidden sm:inline">بحث</span>
+                                </button>
                             </div>
 
                             {/* Filters Row */}
@@ -250,7 +260,7 @@ export default function AdminUsersPage() {
                                                     {user.isActive ? `✓ ${t('common.active')}` : `✗ ${t('common.inactive')}`}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-dark-400">
+                                            <div className="flex items-center gap-4 text-sm text-dark-400 flex-wrap">
                                                 <span>{user.phone}</span>
                                                 <span>•</span>
                                                 <div className="flex gap-2">

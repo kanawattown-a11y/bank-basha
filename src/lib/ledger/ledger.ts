@@ -27,6 +27,7 @@ export interface LedgerEntryData {
         credit?: number;
     }>;
     createdBy?: string;
+    currency?: 'USD' | 'SYP'; // Add currency for balance field selection
 }
 
 export interface TransactionResult {
@@ -123,12 +124,14 @@ export async function createLedgerEntry(data: LedgerEntryData): Promise<string> 
         },
     });
 
-    // Update account balances
+    // Update account balances - select field based on currency
+    const balanceField = data.currency === 'SYP' ? 'balanceSYP' : 'balance';
+
     for (const line of data.lines) {
         await prisma.ledgerAccount.update({
             where: { code: line.accountCode },
             data: {
-                balance: {
+                [balanceField]: {
                     increment: (line.debit || 0) - (line.credit || 0),
                 },
             },
@@ -143,38 +146,74 @@ export async function createLedgerEntry(data: LedgerEntryData): Promise<string> 
  */
 export async function calculateCommission(
     amount: number,
-    type: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER' | 'QR_PAYMENT' | 'SERVICE_PURCHASE'
+    type: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER' | 'QR_PAYMENT' | 'SERVICE_PURCHASE',
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<{ platformFee: number; agentFee: number; totalFee: number; netAmount: number }> {
     const settings = await getSystemSettings();
 
     let feePercent = 0;
     let feeFixed = 0;
-    let agentCommissionPercent = settings.agentCommissionPercent;
+    let agentCommissionPercent = 0;
 
-    switch (type) {
-        case 'DEPOSIT':
-            feePercent = settings.depositFeePercent;
-            feeFixed = settings.depositFeeFixed;
-            break;
-        case 'WITHDRAW':
-            feePercent = settings.withdrawalFeePercent;
-            feeFixed = settings.withdrawalFeeFixed;
-            break;
-        case 'TRANSFER':
-            feePercent = settings.transferFeePercent;
-            feeFixed = settings.transferFeeFixed;
-            agentCommissionPercent = 0; // No agent commission for transfers
-            break;
-        case 'QR_PAYMENT':
-            feePercent = settings.qrPaymentFeePercent;
-            feeFixed = settings.qrPaymentFeeFixed;
-            agentCommissionPercent = 0; // No agent commission for QR payments
-            break;
-        case 'SERVICE_PURCHASE':
-            feePercent = settings.serviceFeePercent;
-            feeFixed = settings.serviceFeeFixed;
-            agentCommissionPercent = 0; // Usually 0 for services, or could be configured
-            break;
+    // Select fee settings based on currency
+    if (currency === 'SYP') {
+        // SYP Settings - Admin controlled
+        agentCommissionPercent = settings.agentCommissionPercentSYP || settings.agentCommissionPercent;
+
+        switch (type) {
+            case 'DEPOSIT':
+                feePercent = settings.depositFeePercentSYP || settings.depositFeePercent;
+                feeFixed = settings.depositFeeFixedSYP || settings.depositFeeFixed;
+                break;
+            case 'WITHDRAW':
+                feePercent = settings.withdrawalFeePercentSYP || settings.withdrawalFeePercent;
+                feeFixed = settings.withdrawalFeeFixedSYP || settings.withdrawalFeeFixed;
+                break;
+            case 'TRANSFER':
+                feePercent = settings.transferFeePercentSYP || settings.transferFeePercent;
+                feeFixed = settings.transferFeeFixedSYP || settings.transferFeeFixed;
+                agentCommissionPercent = 0;
+                break;
+            case 'QR_PAYMENT':
+                feePercent = settings.qrPaymentFeePercentSYP || settings.qrPaymentFeePercent;
+                feeFixed = settings.qrPaymentFeeFixedSYP || settings.qrPaymentFeeFixed;
+                agentCommissionPercent = 0;
+                break;
+            case 'SERVICE_PURCHASE':
+                feePercent = settings.serviceFeePercentSYP || settings.serviceFeePercent;
+                feeFixed = settings.serviceFeeFixedSYP || settings.serviceFeeFixed;
+                agentCommissionPercent = 0;
+                break;
+        }
+    } else {
+        // USD Settings
+        agentCommissionPercent = settings.agentCommissionPercent;
+
+        switch (type) {
+            case 'DEPOSIT':
+                feePercent = settings.depositFeePercent;
+                feeFixed = settings.depositFeeFixed;
+                break;
+            case 'WITHDRAW':
+                feePercent = settings.withdrawalFeePercent;
+                feeFixed = settings.withdrawalFeeFixed;
+                break;
+            case 'TRANSFER':
+                feePercent = settings.transferFeePercent;
+                feeFixed = settings.transferFeeFixed;
+                agentCommissionPercent = 0;
+                break;
+            case 'QR_PAYMENT':
+                feePercent = settings.qrPaymentFeePercent;
+                feeFixed = settings.qrPaymentFeeFixed;
+                agentCommissionPercent = 0;
+                break;
+            case 'SERVICE_PURCHASE':
+                feePercent = settings.serviceFeePercent;
+                feeFixed = settings.serviceFeeFixed;
+                agentCommissionPercent = 0;
+                break;
+        }
     }
 
     const percentageFee = Math.round(amount * (feePercent / 100) * 100) / 100;
@@ -259,7 +298,7 @@ export async function processDeposit(
             }
 
             // Calculate commission from system settings
-            const { platformFee, agentFee, totalFee, netAmount } = await calculateCommission(amount, 'DEPOSIT');
+            const { platformFee, agentFee, totalFee, netAmount } = await calculateCommission(amount, 'DEPOSIT', currency);
 
             // Create reference number
             const referenceNumber = generateReferenceNumber('DEP');
@@ -395,15 +434,10 @@ export async function processWithdrawal(
             }
 
             // ═══════════════════════════════════════════════════════════════
-            // VALIDATIONS - NO NEGATIVE BALANCES
+            // VALIDATIONS - NO NEGATIVE BALANCES (ATOMIC)
             // ═══════════════════════════════════════════════════════════════
 
-            // 1. User must have sufficient balance
-            if (userWallet.balance < amount) {
-                return { success: false, error: `رصيد غير كافي. المتاح: ${currencySymbol}${userWallet.balance.toLocaleString()}` };
-            }
-
-            // 2. Agent must have sufficient cash to give (based on currency)
+            // Check agent has sufficient cash to give (based on currency)
             const agentCash = currency === 'SYP'
                 ? agent.agentProfile.cashCollectedSYP
                 : agent.agentProfile.cashCollected;
@@ -413,19 +447,27 @@ export async function processWithdrawal(
             }
 
             // Calculate commission from system settings
-            const { platformFee, agentFee, totalFee, netAmount } = await calculateCommission(amount, 'WITHDRAW');
+            const { platformFee, agentFee, totalFee, netAmount } = await calculateCommission(amount, 'WITHDRAW', currency);
 
             const referenceNumber = generateReferenceNumber('WTH');
 
             // ═══════════════════════════════════════════════════════════════
-            // DOUBLE-ENTRY ACCOUNTING
+            // ATOMIC BALANCE CHECK - Prevents Race Condition
             // ═══════════════════════════════════════════════════════════════
 
-            // 1. User wallet DECREASES (gives up digital balance)
-            await tx.wallet.update({
-                where: { id: userWallet.id },
+            // Atomic update with balance check
+            const userUpdate = await tx.wallet.updateMany({
+                where: {
+                    id: userWallet.id,
+                    balance: { gte: amount } // Only update if balance is sufficient
+                },
                 data: { balance: { decrement: amount } },
             });
+
+            // If no rows updated, balance was insufficient
+            if (userUpdate.count === 0) {
+                return { success: false, error: `رصيد غير كافي. المتاح: ${currencySymbol}${userWallet.balance.toLocaleString()}` };
+            }
 
             // 2. Agent credit INCREASES, cash DECREASES - based on currency
             if (currency === 'SYP') {
@@ -530,25 +572,31 @@ export async function processTransfer(
                 return { success: false, error: `المستلم ليس لديه محفظة بـ${currencyName}` };
             }
 
-            const { platformFee, totalFee } = await calculateCommission(amount, 'TRANSFER');
+            const { platformFee, totalFee } = await calculateCommission(amount, 'TRANSFER', currency);
 
-            // Validation: Sender cannot go negative
+            // ═══════════════════════════════════════════════════════════════
+            // ATOMIC BALANCE CHECK - Prevents Race Condition
+            // ═══════════════════════════════════════════════════════════════
             const requiredBalance = amount + totalFee;
-            if (senderWallet.balance < requiredBalance) {
+            const referenceNumber = generateReferenceNumber('TRF');
+
+            // Atomic update with balance check - prevents negative balance
+            const senderUpdate = await tx.wallet.updateMany({
+                where: {
+                    id: senderWallet.id,
+                    balance: { gte: requiredBalance } // Only update if balance is sufficient
+                },
+                data: { balance: { decrement: amount + totalFee } },
+            });
+
+            // If no rows updated, balance was insufficient
+            if (senderUpdate.count === 0) {
                 const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
                 return {
                     success: false,
-                    error: `رصيد غير كافي. المتاح: ${currencySymbol}${senderWallet.balance.toLocaleString()}, المطلوب: ${currencySymbol}${requiredBalance.toLocaleString()}`
+                    error: `رصيد غير كافٍ. المتاح: ${currencySymbol}${senderWallet.balance.toLocaleString()}, المطلوب: ${currencySymbol}${requiredBalance.toLocaleString()}`
                 };
             }
-
-            const referenceNumber = generateReferenceNumber('TRF');
-
-            // Deduct from sender (amount + fee)
-            await tx.wallet.update({
-                where: { id: senderWallet.id },
-                data: { balance: { decrement: amount + totalFee } },
-            });
 
             // Add to receiver
             await tx.wallet.update({
@@ -594,7 +642,8 @@ export async function processQRPayment(
     payerId: string,
     merchantId: string,
     amount: number,
-    note?: string
+    note?: string,
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<TransactionResult> {
     try {
         return await prisma.$transaction(async (tx) => {
@@ -607,12 +656,12 @@ export async function processQRPayment(
                 include: { wallets: true, merchantProfile: true },
             });
 
-            // Get USD personal wallet for payer and USD business wallet for merchant
+            // Get wallets based on selected currency
             const payerWallet = (payer?.wallets as any[])?.find(
-                (w: { walletType: string; currency: string }) => w.walletType === 'PERSONAL' && w.currency === 'USD'
+                (w: { walletType: string; currency: string }) => w.walletType === 'PERSONAL' && w.currency === currency
             );
             const merchantWallet = (merchant?.wallets as any[])?.find(
-                (w: { walletType: string; currency: string }) => w.walletType === 'BUSINESS' && w.currency === 'USD'
+                (w: { walletType: string; currency: string }) => w.walletType === 'BUSINESS' && w.currency === currency
             );
 
             if (!payer || !payerWallet) {
@@ -622,32 +671,50 @@ export async function processQRPayment(
                 return { success: false, error: 'Merchant not found' };
             }
 
-            // Validation: Payer cannot go negative
-            if (payerWallet.balance < amount) {
-                return { success: false, error: `Insufficient balance. Available: $${payerWallet.balance.toFixed(2)}` };
-            }
-
             const referenceNumber = generateReferenceNumber('QRP');
 
-            // QR payments have no fee (can be configured)
-            await tx.wallet.update({
-                where: { id: payerWallet.id },
+            // ═══════════════════════════════════════════════════════════════
+            // ATOMIC BALANCE CHECK - Prevents Race Condition
+            // ═══════════════════════════════════════════════════════════════
+
+            // Atomic update with balance check
+            const payerUpdate = await tx.wallet.updateMany({
+                where: {
+                    id: payerWallet.id,
+                    balance: { gte: amount } // Only update if balance is sufficient
+                },
                 data: { balance: { decrement: amount } },
             });
+
+            // If no rows updated, balance was insufficient
+            if (payerUpdate.count === 0) {
+                const currencySymbol = currency === 'SYP' ? 'ل.س' : '$';
+                return { success: false, error: `Insufficient balance. Available: ${currencySymbol}${payerWallet.balance.toLocaleString()}` };
+            }
 
             await tx.wallet.update({
                 where: { id: merchantWallet.id },
                 data: { balance: { increment: amount } },
             });
 
-            // Update merchant stats
-            await tx.merchantProfile.update({
-                where: { id: merchant.merchantProfile.id },
-                data: {
-                    totalSales: { increment: amount },
-                    totalTransactions: { increment: 1 },
-                },
-            });
+            // Update merchant stats based on currency
+            if (currency === 'SYP') {
+                await tx.merchantProfile.update({
+                    where: { id: merchant.merchantProfile.id },
+                    data: {
+                        totalSalesSYP: { increment: amount },
+                        totalTransactionsSYP: { increment: 1 },
+                    },
+                });
+            } else {
+                await tx.merchantProfile.update({
+                    where: { id: merchant.merchantProfile.id },
+                    data: {
+                        totalSales: { increment: amount },
+                        totalTransactions: { increment: 1 },
+                    },
+                });
+            }
 
             const transaction = await tx.transaction.create({
                 data: {
@@ -661,6 +728,7 @@ export async function processQRPayment(
                     platformFee: 0,
                     agentFee: 0,
                     netAmount: amount,
+                    currency, // Use selected currency
                     description: note || `Payment to ${merchant.merchantProfile.businessName}`,
                     descriptionAr: note || `دفع إلى ${merchant.merchantProfile.businessNameAr || merchant.merchantProfile.businessName}`,
                     completedAt: new Date(),

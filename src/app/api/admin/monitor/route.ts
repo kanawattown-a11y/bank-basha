@@ -56,10 +56,11 @@ export async function GET(request: NextRequest) {
             take: 50,
         });
 
-        // Calculate stats
+        // Calculate stats - separate by currency
         const stats = {
             totalTransactions: transactions.length,
-            totalVolume: transactions.reduce((sum, tx) => sum + tx.amount, 0),
+            totalVolumeUSD: transactions.filter(tx => tx.currency === 'USD').reduce((sum, tx) => sum + tx.amount, 0),
+            totalVolumeSYP: transactions.filter(tx => tx.currency === 'SYP').reduce((sum, tx) => sum + tx.amount, 0),
             totalDeposits: transactions.filter(tx => tx.type === 'DEPOSIT').reduce((sum, tx) => sum + tx.amount, 0),
             totalWithdrawals: transactions.filter(tx => tx.type === 'WITHDRAW').reduce((sum, tx) => sum + tx.amount, 0),
             totalTransfers: transactions.filter(tx => tx.type === 'TRANSFER').reduce((sum, tx) => sum + tx.amount, 0),
@@ -74,6 +75,7 @@ export async function GET(request: NextRequest) {
                     referenceNumber: tx.referenceNumber,
                     type: tx.type,
                     amount: tx.amount,
+                    currency: tx.currency,
                     fee: tx.fee,
                     status: tx.status,
                     senderName: tx.sender?.fullNameAr || tx.sender?.fullName || 'نظام',

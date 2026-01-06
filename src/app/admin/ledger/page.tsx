@@ -162,7 +162,7 @@ export default function AdminLedgerPage() {
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-3 pt-3 border-t border-dark-800">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-dark-800">
                                         <div>
                                             <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.amount')}</p>
                                             <p className="text-white font-medium">

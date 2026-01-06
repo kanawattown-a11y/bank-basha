@@ -25,6 +25,7 @@ interface RiskAlert {
     reasonAr: string;
     status: string;
     amount: number | null;
+    currency?: string;
     ipAddress: string | null;
     createdAt: string;
     user: {
@@ -40,12 +41,14 @@ interface HeldTransaction {
     reason: string;
     reasonAr: string;
     holdAmount: number;
+    currency?: string;
     status: string;
     createdAt: string;
     transaction: {
         referenceNumber: string;
         type: string;
         amount: number;
+        currency?: string;
         sender: { fullName: string; phone: string } | null;
         receiver: { fullName: string; phone: string } | null;
     };
@@ -233,7 +236,7 @@ export default function RiskManagementPage() {
                                         <div className="flex items-center gap-4 text-sm text-dark-400">
                                             <span>المستخدم: {alert.user?.fullName}</span>
                                             <span>الهاتف: {alert.user?.phone}</span>
-                                            {alert.amount && <span>المبلغ: ${alert.amount}</span>}
+                                            {alert.amount && <span>المبلغ: {alert.amount.toLocaleString()} {alert.currency === 'SYP' ? 'ل.س' : '$'}</span>}
                                         </div>
                                         <p className="text-dark-500 text-xs mt-2">
                                             {new Date(alert.createdAt).toLocaleString('ar-SA')}
@@ -282,7 +285,7 @@ export default function RiskManagementPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
                                             <span className="text-orange-500 font-semibold">
-                                                ${held.holdAmount.toFixed(2)}
+                                                {held.holdAmount.toLocaleString()} {held.transaction?.currency === 'SYP' ? 'ل.س' : '$'}
                                             </span>
                                             <span className="text-dark-500 text-sm">
                                                 {held.transaction?.referenceNumber}
