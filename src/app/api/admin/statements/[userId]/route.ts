@@ -185,7 +185,8 @@ export async function GET(
             totalFees,
             transactionCount: transactions.length,
 
-            currency: transactions.length > 0 ? transactions[0].currency : 'USD',
+
+            currency: (transactions.length > 0 ? transactions[0].currency : 'USD') as 'USD' | 'SYP',
             currencySymbol: transactions.length > 0 && transactions[0].currency === 'SYP' ? 'ل.س' : '$',
 
             labels: enMessages.pdf,
