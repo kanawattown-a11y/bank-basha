@@ -107,12 +107,13 @@ export async function POST(request: NextRequest) {
         }
 
         // OTP is valid - Process the transfer with the stored currency
+        const currency = (otpRecord.currency || 'USD') as 'USD' | 'SYP';
         const transferResult = await processTransfer(
             payload.userId,
             otpRecord.recipientId,
             otpRecord.amount,
             otpRecord.note ?? undefined,
-            (otpRecord as unknown as { currency: 'USD' | 'SYP' }).currency || 'USD'
+            currency
         );
 
         if (!transferResult.success) {
@@ -135,7 +136,6 @@ export async function POST(request: NextRequest) {
         ]);
 
         // Format amount with correct currency
-        const currency = (otpRecord as unknown as { currency: 'USD' | 'SYP' }).currency || 'USD';
         const symbol = currency === 'SYP' ? 'ل.س' : '$';
         const formattedAmount = currency === 'SYP'
             ? Math.floor(otpRecord.amount).toLocaleString('ar-SY')
