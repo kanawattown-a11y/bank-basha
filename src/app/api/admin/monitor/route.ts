@@ -56,15 +56,27 @@ export async function GET(request: NextRequest) {
             take: 50,
         });
 
-        // Calculate stats - separate by currency
+        // Calculate stats - separate ALL stats by currency
+        const usdTransactions = transactions.filter(tx => tx.currency === 'USD');
+        const sypTransactions = transactions.filter(tx => tx.currency === 'SYP');
+
         const stats = {
             totalTransactions: transactions.length,
-            totalVolumeUSD: transactions.filter(tx => tx.currency === 'USD').reduce((sum, tx) => sum + tx.amount, 0),
-            totalVolumeSYP: transactions.filter(tx => tx.currency === 'SYP').reduce((sum, tx) => sum + tx.amount, 0),
-            totalDeposits: transactions.filter(tx => tx.type === 'DEPOSIT').reduce((sum, tx) => sum + tx.amount, 0),
-            totalWithdrawals: transactions.filter(tx => tx.type === 'WITHDRAW').reduce((sum, tx) => sum + tx.amount, 0),
-            totalTransfers: transactions.filter(tx => tx.type === 'TRANSFER').reduce((sum, tx) => sum + tx.amount, 0),
-            totalPayments: transactions.filter(tx => tx.type === 'QR_PAYMENT').reduce((sum, tx) => sum + tx.amount, 0),
+            // Volume by currency
+            totalVolumeUSD: usdTransactions.reduce((sum, tx) => sum + tx.amount, 0),
+            totalVolumeSYP: sypTransactions.reduce((sum, tx) => sum + tx.amount, 0),
+            // Deposits by currency
+            totalDepositsUSD: usdTransactions.filter(tx => tx.type === 'DEPOSIT').reduce((sum, tx) => sum + tx.amount, 0),
+            totalDepositsSYP: sypTransactions.filter(tx => tx.type === 'DEPOSIT').reduce((sum, tx) => sum + tx.amount, 0),
+            // Withdrawals by currency
+            totalWithdrawalsUSD: usdTransactions.filter(tx => tx.type === 'WITHDRAW').reduce((sum, tx) => sum + tx.amount, 0),
+            totalWithdrawalsSYP: sypTransactions.filter(tx => tx.type === 'WITHDRAW').reduce((sum, tx) => sum + tx.amount, 0),
+            // Transfers by currency
+            totalTransfersUSD: usdTransactions.filter(tx => tx.type === 'TRANSFER').reduce((sum, tx) => sum + tx.amount, 0),
+            totalTransfersSYP: sypTransactions.filter(tx => tx.type === 'TRANSFER').reduce((sum, tx) => sum + tx.amount, 0),
+            // Payments by currency
+            totalPaymentsUSD: usdTransactions.filter(tx => tx.type === 'QR_PAYMENT').reduce((sum, tx) => sum + tx.amount, 0),
+            totalPaymentsSYP: sypTransactions.filter(tx => tx.type === 'QR_PAYMENT').reduce((sum, tx) => sum + tx.amount, 0),
             activeUsersCount: activeUsers.length,
         };
 

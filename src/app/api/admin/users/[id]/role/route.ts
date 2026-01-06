@@ -83,7 +83,18 @@ export async function POST(
                         businessName: user.fullName,
                         businessNameAr: user.fullName,
                         businessAddress: user.address || 'السويداء',
+                        // USD Credit (Default)
+                        creditLimit: 0,
                         currentCredit: 0,
+                        cashCollected: 0,
+                        totalDeposits: 0,
+                        totalWithdrawals: 0,
+                        // SYP Credit (Dual Currency)
+                        creditLimitSYP: 0,
+                        currentCreditSYP: 0,
+                        cashCollectedSYP: 0,
+                        totalDepositsSYP: 0,
+                        totalWithdrawalsSYP: 0,
                     },
                 });
             }
@@ -92,6 +103,27 @@ export async function POST(
             if (userType === 'MERCHANT' && user.userType !== 'MERCHANT') {
                 const merchantCode = `MC${Date.now().toString().slice(-8)}`;
                 const qrCode = generateMerchantQR(merchantCode);
+
+                // Create Business Wallets (USD & SYP)
+                await tx.wallet.create({
+                    data: {
+                        userId,
+                        balance: 0,
+                        walletType: 'BUSINESS',
+                        currency: 'USD',
+                    },
+                });
+
+                await tx.wallet.create({
+                    data: {
+                        userId,
+                        balance: 0,
+                        walletType: 'BUSINESS',
+                        currency: 'SYP',
+                    },
+                });
+
+                // Create Profile with Dual Currency Stats
                 await tx.merchantProfile.create({
                     data: {
                         userId,
@@ -101,6 +133,12 @@ export async function POST(
                         businessType: 'RETAIL',
                         businessAddress: user.address || 'السويداء',
                         qrCode,
+                        // USD Stats
+                        totalSales: 0,
+                        totalTransactions: 0,
+                        // SYP Stats
+                        totalSalesSYP: 0,
+                        totalTransactionsSYP: 0,
                     },
                 });
             }

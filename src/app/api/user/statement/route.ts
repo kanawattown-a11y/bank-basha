@@ -147,6 +147,11 @@ export async function GET(request: NextRequest) {
         if (user.merchantProfile) userType = 'MERCHANT';
         if (user.agentProfile) userType = 'AGENT';
 
+        // Detect locale from cookies (NEXT_LOCALE) or default to 'ar'
+        const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
+        const locale = localeCookie === 'en' ? 'en' : 'ar';
+        const pdfLabels = locale === 'ar' ? arMessages.pdf : enMessages.pdf;
+
         // Prepare statement data
         const statementData: StatementData = {
             userId: user.id,
@@ -174,10 +179,10 @@ export async function GET(request: NextRequest) {
             totalFees,
             transactionCount: transactions.length,
 
-            currency: currency, // NEW: Currency for PDF
-            currencySymbol: currency === 'USD' ? '$' : 'ل.س', // NEW: Symbol for display
+            currency: currency, // Currency for PDF
+            currencySymbol: currency === 'USD' ? '$' : 'ل.س', // Symbol for display
 
-            labels: enMessages.pdf,
+            labels: pdfLabels, // Use locale-aware labels
         };
 
         // Generate PDF

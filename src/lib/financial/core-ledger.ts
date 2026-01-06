@@ -28,6 +28,7 @@ export interface LedgerEntryInput {
     transactionId?: string;
     lines: LedgerLine[];
     createdBy?: string;
+    currency?: 'USD' | 'SYP';  // Currency for balance field selection
 }
 
 export interface TransactionContext {
@@ -226,9 +227,12 @@ export async function createLedgerEntry(input: LedgerEntryInput): Promise<string
                     ? (line.debit || 0) - (line.credit || 0)
                     : (line.credit || 0) - (line.debit || 0);
 
+            // Select balance field based on currency
+            const balanceField = input.currency === 'SYP' ? 'balanceSYP' : 'balance';
+
             await tx.ledgerAccount.update({
                 where: { id: account.id },
-                data: { balance: { increment: balanceChange } },
+                data: { [balanceField]: { increment: balanceChange } },
             });
         }
 
@@ -346,17 +350,20 @@ export async function createReversalEntry(
 // ============================================
 
 /**
- * Update internal account balance
+ * Update internal account balance (Currency-Aware)
  */
 export async function updateInternalAccount(
     accountCode: string,
     amount: number,
-    operation: 'INCREMENT' | 'DECREMENT'
+    operation: 'INCREMENT' | 'DECREMENT',
+    currency: 'USD' | 'SYP' = 'USD'
 ): Promise<void> {
+    const balanceField = currency === 'SYP' ? 'balanceSYP' : 'balance';
+
     await prisma.internalAccount.update({
         where: { code: accountCode },
         data: {
-            balance: operation === 'INCREMENT'
+            [balanceField]: operation === 'INCREMENT'
                 ? { increment: amount }
                 : { decrement: amount },
         },
@@ -364,43 +371,63 @@ export async function updateInternalAccount(
 }
 
 /**
- * Get all internal account balances
+ * Get all internal account balances (Dual Currency)
  */
-export async function getInternalAccountBalances(): Promise<Record<string, number>> {
+export async function getInternalAccountBalances(): Promise<Record<string, { USD: number; SYP: number }>> {
     const accounts = await prisma.internalAccount.findMany();
-    const balances: Record<string, number> = {};
+    const balances: Record<string, { USD: number; SYP: number }> = {};
 
     for (const acc of accounts) {
-        balances[acc.code] = acc.balance;
+        balances[acc.code] = {
+            USD: acc.balance,
+            SYP: acc.balanceSYP,
+        };
     }
 
     return balances;
 }
 
 /**
- * Verify system balance integrity
- * System Reserve (negative) + All other accounts should = 0
+ * Verify system balance integrity (Dual Currency)
+ * Checks USD and SYP separately - no cross-currency mixing
  */
 export async function verifySystemBalance(): Promise<{
     isBalanced: boolean;
-    systemReserve: number;
-    totalOther: number;
-    difference: number;
+    USD: { systemReserve: number; totalOther: number; difference: number; isBalanced: boolean };
+    SYP: { systemReserve: number; totalOther: number; difference: number; isBalanced: boolean };
 }> {
     const balances = await getInternalAccountBalances();
 
-    const systemReserve = balances[INTERNAL_ACCOUNTS.SYSTEM_RESERVE] || 0;
-    const totalOther = Object.entries(balances)
+    // USD Check
+    const systemReserveUSD = balances[INTERNAL_ACCOUNTS.SYSTEM_RESERVE]?.USD || 0;
+    const totalOtherUSD = Object.entries(balances)
         .filter(([code]) => code !== INTERNAL_ACCOUNTS.SYSTEM_RESERVE)
-        .reduce((sum, [, balance]) => sum + balance, 0);
+        .reduce((sum, [, bal]) => sum + bal.USD, 0);
+    const differenceUSD = systemReserveUSD + totalOtherUSD;
+    const isBalancedUSD = Math.abs(differenceUSD) < 0.01;
 
-    const difference = systemReserve + totalOther;
+    // SYP Check
+    const systemReserveSYP = balances[INTERNAL_ACCOUNTS.SYSTEM_RESERVE]?.SYP || 0;
+    const totalOtherSYP = Object.entries(balances)
+        .filter(([code]) => code !== INTERNAL_ACCOUNTS.SYSTEM_RESERVE)
+        .reduce((sum, [, bal]) => sum + bal.SYP, 0);
+    const differenceSYP = systemReserveSYP + totalOtherSYP;
+    const isBalancedSYP = Math.abs(differenceSYP) < 0.01;
 
     return {
-        isBalanced: Math.abs(difference) < 0.01,
-        systemReserve,
-        totalOther,
-        difference,
+        isBalanced: isBalancedUSD && isBalancedSYP,
+        USD: {
+            systemReserve: systemReserveUSD,
+            totalOther: totalOtherUSD,
+            difference: differenceUSD,
+            isBalanced: isBalancedUSD,
+        },
+        SYP: {
+            systemReserve: systemReserveSYP,
+            totalOther: totalOtherSYP,
+            difference: differenceSYP,
+            isBalanced: isBalancedSYP,
+        },
     };
 }
 
@@ -415,3 +442,4 @@ const coreLedger = {
 };
 
 export default coreLedger;
+

@@ -227,14 +227,20 @@ export async function POST(request: NextRequest) {
         const notesText = notes ? `\nNote: ${notes}` : '';
         const notesTextAr = notes ? `\nملاحظة: ${notes}` : '';
 
+        // Currency-aware formatting
+        const symbol = currency === 'SYP' ? 'ل.س' : '$';
+        const formattedAmount = currency === 'SYP'
+            ? Math.floor(amount).toLocaleString('ar-SY')
+            : amount.toFixed(2);
+
         await prisma.notification.createMany({
             data: admins.map(admin => ({
                 userId: admin.id,
                 type: 'SYSTEM',
                 title: `New ${typeLabel.en} Request`,
                 titleAr: `طلب ${typeLabel.ar} جديد`,
-                message: `Agent ${agentProfile.businessName} requested ${typeLabel.en.toLowerCase()} of $${amount}${notesText}`,
-                messageAr: `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} ${typeLabel.ar} بقيمة $${amount}${notesTextAr}`,
+                message: `Agent ${agentProfile.businessName} requested ${typeLabel.en.toLowerCase()} of ${formattedAmount}${symbol}${notesText}`,
+                messageAr: `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} ${typeLabel.ar} بقيمة ${formattedAmount}${symbol}${notesTextAr}`,
             })),
         });
 
@@ -245,7 +251,7 @@ export async function POST(request: NextRequest) {
                 sendPushNotification(
                     admin.fcmToken,
                     `💰 طلب ${typeLabel.ar} جديد`,
-                    `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} ${typeLabel.ar} بقيمة $${amount}`,
+                    `طلب الوكيل ${agentProfile.businessNameAr || agentProfile.businessName} ${typeLabel.ar} بقيمة ${formattedAmount}${symbol}`,
                     { type: 'SETTLEMENT_REQUEST', url: '/admin/settlements' }
                 ).catch(err => console.error('Push notification error:', err));
             }

@@ -145,6 +145,24 @@ export async function POST(request: NextRequest) {
                 },
             });
 
+            // Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `QR Payment: ${referenceNumber}`,
+                descriptionAr: `دفع QR: ${referenceNumber}`,
+                transactionId: newTransaction.id,
+                createdBy: payload.userId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit User Ledger (User pays)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount + totalFee, credit: 0 },
+                    // Credit Merchant Ledger (Merchant receives)
+                    { accountCode: INTERNAL_ACCOUNTS.MERCHANTS_LEDGER, debit: 0, credit: amount },
+                    // Credit Fees
+                    { accountCode: INTERNAL_ACCOUNTS.FEES, debit: 0, credit: totalFee },
+                ],
+            });
+
             return newTransaction;
         });
 

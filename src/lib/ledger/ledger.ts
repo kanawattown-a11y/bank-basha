@@ -355,6 +355,24 @@ export async function processDeposit(
                 },
             });
 
+            // 4. Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `Deposit: ${referenceNumber}`,
+                descriptionAr: `إيداع: ${referenceNumber}`,
+                transactionId: transaction.id,
+                createdBy: agentId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit Agent Ledger (Agent gives credit)
+                    { accountCode: INTERNAL_ACCOUNTS.AGENTS_LEDGER, debit: amount, credit: 0 },
+                    // Credit User Ledger (User receives balance)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: 0, credit: netAmount },
+                    // Credit Fees (Platform receives fees)
+                    { accountCode: INTERNAL_ACCOUNTS.FEES, debit: 0, credit: totalFee },
+                ],
+            });
+
             return {
                 success: true,
                 transactionId: transaction.id,
@@ -511,6 +529,24 @@ export async function processWithdrawal(
                 },
             });
 
+            // 4. Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `Withdrawal: ${referenceNumber}`,
+                descriptionAr: `سحب: ${referenceNumber}`,
+                transactionId: transaction.id,
+                createdBy: agentId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit User Ledger (User gives up balance)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount, credit: 0 },
+                    // Credit Agent Ledger (Agent receives credit back)
+                    { accountCode: INTERNAL_ACCOUNTS.AGENTS_LEDGER, debit: 0, credit: netAmount },
+                    // Credit Fees (Platform receives fees)
+                    { accountCode: INTERNAL_ACCOUNTS.FEES, debit: 0, credit: totalFee },
+                ],
+            });
+
             return {
                 success: true,
                 transactionId: transaction.id,
@@ -623,6 +659,24 @@ export async function processTransfer(
                 },
             });
 
+            // Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `Transfer: ${referenceNumber}`,
+                descriptionAr: `تحويل: ${referenceNumber}`,
+                transactionId: transaction.id,
+                createdBy: senderId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit Sender (gives up balance)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount + totalFee, credit: 0 },
+                    // Credit Receiver (receives balance)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: 0, credit: amount },
+                    // Credit Fees
+                    { accountCode: INTERNAL_ACCOUNTS.FEES, debit: 0, credit: totalFee },
+                ],
+            });
+
             return {
                 success: true,
                 transactionId: transaction.id,
@@ -733,6 +787,22 @@ export async function processQRPayment(
                     descriptionAr: note || `دفع إلى ${merchant.merchantProfile.businessNameAr || merchant.merchantProfile.businessName}`,
                     completedAt: new Date(),
                 },
+            });
+
+            // Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `QR Payment: ${referenceNumber}`,
+                descriptionAr: `دفع QR: ${referenceNumber}`,
+                transactionId: transaction.id,
+                createdBy: payerId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit User Ledger (User pays)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount, credit: 0 },
+                    // Credit Merchant Ledger (Merchant receives)
+                    { accountCode: INTERNAL_ACCOUNTS.MERCHANTS_LEDGER, debit: 0, credit: amount },
+                ],
             });
 
             return {

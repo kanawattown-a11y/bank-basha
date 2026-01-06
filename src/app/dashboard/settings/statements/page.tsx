@@ -18,18 +18,18 @@ export default function StatementsPage() {
     const [selectedCurrency, setSelectedCurrency] = useState<'USD' | 'SYP'>('USD');
 
     const months = [
-        { value: 1, label: locale === 'ar' ? 'يناير' : 'January' },
-        { value: 2, label: locale === 'ar' ? 'فبراير' : 'February' },
-        { value: 3, label: locale === 'ar' ? 'مارس' : 'March' },
-        { value: 4, label: locale === 'ar' ? 'أبريل' : 'April' },
-        { value: 5, label: locale === 'ar' ? 'مايو' : 'May' },
-        { value: 6, label: locale === 'ar' ? 'يونيو' : 'June' },
-        { value: 7, label: locale === 'ar' ? 'يوليو' : 'July' },
-        { value: 8, label: locale === 'ar' ? 'أغسطس' : 'August' },
-        { value: 9, label: locale === 'ar' ? 'سبتمبر' : 'September' },
-        { value: 10, label: locale === 'ar' ? 'أكتوبر' : 'October' },
-        { value: 11, label: locale === 'ar' ? 'نوفمبر' : 'November' },
-        { value: 12, label: locale === 'ar' ? 'ديسمبر' : 'December' },
+        { value: 1, label: t('settings.statements.months.january') },
+        { value: 2, label: t('settings.statements.months.february') },
+        { value: 3, label: t('settings.statements.months.march') },
+        { value: 4, label: t('settings.statements.months.april') },
+        { value: 5, label: t('settings.statements.months.may') },
+        { value: 6, label: t('settings.statements.months.june') },
+        { value: 7, label: t('settings.statements.months.july') },
+        { value: 8, label: t('settings.statements.months.august') },
+        { value: 9, label: t('settings.statements.months.september') },
+        { value: 10, label: t('settings.statements.months.october') },
+        { value: 11, label: t('settings.statements.months.november') },
+        { value: 12, label: t('settings.statements.months.december') },
     ];
 
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
@@ -66,7 +66,7 @@ export default function StatementsPage() {
             }
         } catch (error) {
             console.error('Download error:', error);
-            alert(locale === 'ar' ? 'حدث خطأ أثناء التحميل' : 'Error downloading statement');
+            alert(t('settings.statements.downloadError'));
         } finally {
             setIsDownloading(false);
         }
@@ -81,7 +81,7 @@ export default function StatementsPage() {
                             <ArrowLeftIcon className="w-5 h-5" />
                         </Link>
                         <h1 className="text-lg font-semibold text-white">
-                            📄 {locale === 'ar' ? 'كشف الحساب' : 'Account Statement'}
+                            📄 {t('settings.statements.title')}
                         </h1>
                     </div>
                 </div>
@@ -96,12 +96,10 @@ export default function StatementsPage() {
                             <DocumentArrowDownIcon className="w-8 h-8 text-primary-500" />
                         </div>
                         <h2 className="text-xl font-bold text-white text-center mb-2">
-                            {locale === 'ar' ? 'تحميل كشف الحساب' : 'Download Statement'}
+                            {t('settings.statements.downloadTitle')}
                         </h2>
                         <p className="text-dark-400 text-center text-sm">
-                            {locale === 'ar'
-                                ? 'اختر الشهر والسنة لتحميل كشف حسابك الشهري بصيغة PDF'
-                                : 'Select month and year to download your monthly statement as PDF'}
+                            {t('settings.statements.description')}
                         </p>
                     </div>
 
@@ -110,7 +108,7 @@ export default function StatementsPage() {
                         <div className="flex items-center gap-2 mb-4">
                             <CalendarIcon className="w-5 h-5 text-primary-500" />
                             <span className="text-white font-medium">
-                                {locale === 'ar' ? 'اختر الفترة' : 'Select Period'}
+                                {t('settings.statements.selectMonth')}
                             </span>
                         </div>
 
@@ -118,7 +116,7 @@ export default function StatementsPage() {
                             {/* Month Select */}
                             <div>
                                 <label className="block text-dark-400 text-sm mb-2">
-                                    {locale === 'ar' ? 'الشهر' : 'Month'}
+                                    {t('settings.statements.selectMonth')}
                                 </label>
                                 <select
                                     value={selectedMonth}
@@ -136,7 +134,7 @@ export default function StatementsPage() {
                             {/* Year Select */}
                             <div>
                                 <label className="block text-dark-400 text-sm mb-2">
-                                    {locale === 'ar' ? 'السنة' : 'Year'}
+                                    {t('settings.statements.selectYear')}
                                 </label>
                                 <select
                                     value={selectedYear}
@@ -154,7 +152,7 @@ export default function StatementsPage() {
                             {/* Currency Select - NEW */}
                             <div>
                                 <label className="block text-dark-400 text-sm mb-2">
-                                    {locale === 'ar' ? 'العملة' : 'Currency'}
+                                    {t('settings.statements.selectCurrency')}
                                 </label>
                                 <select
                                     value={selectedCurrency}
@@ -176,12 +174,12 @@ export default function StatementsPage() {
                             {isDownloading ? (
                                 <>
                                     <div className="spinner w-5 h-5"></div>
-                                    <span>{locale === 'ar' ? 'جاري التحميل...' : 'Downloading...'}</span>
+                                    <span>{t('settings.statements.downloading')}</span>
                                 </>
                             ) : (
                                 <>
                                     <DocumentArrowDownIcon className="w-5 h-5" />
-                                    <span>{locale === 'ar' ? 'تحميل PDF' : 'Download PDF'}</span>
+                                    <span>{t('settings.statements.download')}</span>
                                 </>
                             )}
                         </button>
@@ -190,9 +188,7 @@ export default function StatementsPage() {
                     {/* Note */}
                     <div className="mt-4 p-4 rounded-xl bg-dark-800/50 text-center">
                         <p className="text-dark-400 text-xs">
-                            {locale === 'ar'
-                                ? 'كشف الحساب يشمل جميع المعاملات المكتملة للشهر المحدد'
-                                : 'Statement includes all completed transactions for the selected month'}
+                            {t('settings.statements.note')}
                         </p>
                     </div>
                 </div>

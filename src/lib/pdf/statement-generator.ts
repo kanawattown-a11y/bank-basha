@@ -176,9 +176,11 @@ export async function generateStatement(data: StatementData): Promise<Uint8Array
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
 
-    // Helper functions
-    const formatAmount = (amount: number) =>
-        new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    // Helper functions - Currency-aware formatting
+    const formatAmount = (amount: number, currency: 'USD' | 'SYP' = data.currency) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+    };
 
     const formatDate = (date: Date) =>
         new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });

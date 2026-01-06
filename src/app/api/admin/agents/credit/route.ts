@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             }
 
             // 3. Create transaction record
-            await tx.transaction.create({
+            const transaction = await tx.transaction.create({
                 data: {
                     referenceNumber: generateReferenceNumber('CRD'),
                     type: 'CREDIT_GRANT',
@@ -116,6 +116,22 @@ export async function POST(request: NextRequest) {
                     descriptionAr: `منح رصيد من الإدارة (${currency})`,
                     completedAt: new Date(),
                 },
+            });
+
+            // 4. Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `Credit Grant: ${transaction.referenceNumber}`,
+                descriptionAr: `منح رصيد: ${transaction.referenceNumber}`,
+                transactionId: transaction.id,
+                createdBy: payload.userId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit System Reserve (source of all money)
+                    { accountCode: INTERNAL_ACCOUNTS.SYSTEM_RESERVE, debit: amount, credit: 0 },
+                    // Credit Agent Ledger (Agent receives credit)
+                    { accountCode: INTERNAL_ACCOUNTS.AGENTS_LEDGER, debit: 0, credit: amount },
+                ],
             });
         });
 

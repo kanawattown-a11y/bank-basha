@@ -197,6 +197,7 @@ export async function POST(request: NextRequest) {
                     descriptionAr: `شراء خدمة: ${service.nameAr || service.name}`,
                     transactionId: transaction.id,
                     createdBy: payload.userId,
+                    currency, // Pass currency for correct balance field
                     lines: [
                         // Debit User (Asset/Liability decrease depending on view, but here User Wallet is Liability from Bank perspective)
                         // Actually, User Wallet = Liability. Debit Liability = Decrease Balance. Correct.
@@ -225,6 +226,11 @@ export async function POST(request: NextRequest) {
         });
 
         // Create notifications
+        const symbol = currency === 'SYP' ? 'ل.س' : '$';
+        const formattedAmount = currency === 'SYP'
+            ? Math.floor(amount).toLocaleString('ar-SY')
+            : amount.toFixed(2);
+
         if (service.sellerId) {
             // Database Notification for Seller
             await prisma.notification.create({
@@ -233,8 +239,8 @@ export async function POST(request: NextRequest) {
                     type: 'SERVICE',
                     title: '📦 طلب خدمة جديد',
                     titleAr: '📦 طلب خدمة جديد',
-                    message: `طلب تعبئة $${amount} للرقم ${phoneNumber}`,
-                    messageAr: `طلب تعبئة $${amount} للرقم ${phoneNumber}`,
+                    message: `طلب تعبئة ${formattedAmount}${symbol} للرقم ${phoneNumber}`,
+                    messageAr: `طلب تعبئة ${formattedAmount}${symbol} للرقم ${phoneNumber}`,
                     metadata: JSON.stringify({ purchaseId: purchase.id }),
                 },
             });
@@ -245,7 +251,7 @@ export async function POST(request: NextRequest) {
                 await sendPushNotification(
                     service.seller.fcmToken,
                     '📦 طلب خدمة جديد',
-                    `طلب تعبئة $${amount} للرقم ${phoneNumber}`,
+                    `طلب تعبئة ${formattedAmount}${symbol} للرقم ${phoneNumber}`,
                     { type: 'SERVICE_ORDER', purchaseId: purchase.id }
                 ).catch(err => console.error('Push seller error:', err));
             }
@@ -259,10 +265,10 @@ export async function POST(request: NextRequest) {
                 title: needsApproval ? '⏳ تم إرسال طلبك' : '✅ تم شراء الخدمة',
                 titleAr: needsApproval ? '⏳ تم إرسال طلبك' : '✅ تم شراء الخدمة',
                 message: needsApproval
-                    ? `طلب تعبئة $${amount} قيد الانتظار`
+                    ? `طلب تعبئة ${formattedAmount}${symbol} قيد الانتظار`
                     : `تم شراء ${service.nameAr || service.name} بنجاح`,
                 messageAr: needsApproval
-                    ? `طلب تعبئة $${amount} قيد الانتظار`
+                    ? `طلب تعبئة ${formattedAmount}${symbol} قيد الانتظار`
                     : `تم شراء ${service.nameAr || service.name} بنجاح`,
                 metadata: JSON.stringify({ purchaseId: purchase.id }),
             },

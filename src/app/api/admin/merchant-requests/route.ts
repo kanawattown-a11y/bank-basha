@@ -160,6 +160,12 @@ export async function POST(request: NextRequest) {
                     businessType: merchantRequest.businessType,
                     businessAddress: merchantRequest.businessAddress,
                     qrCode,
+                    // USD Stats
+                    totalSales: 0,
+                    totalTransactions: 0,
+                    // SYP Stats
+                    totalSalesSYP: 0,
+                    totalTransactionsSYP: 0,
                 },
             });
 

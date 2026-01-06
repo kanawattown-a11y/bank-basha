@@ -166,6 +166,7 @@ export async function POST(request: NextRequest) {
                     referenceNumber,
                     type: 'MERCHANT_TRANSFER',
                     status: 'COMPLETED',
+                    currency, // Include currency in transaction
                     description: note || `تحويل من ${user.merchantProfile?.businessName || 'حساب بزنس'}`,
                     metadata: JSON.stringify({
                         fromBusinessWallet: true,
@@ -175,8 +176,30 @@ export async function POST(request: NextRequest) {
                 },
             });
 
+            // Create Double-Entry Ledger Entry
+            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+            await createLedgerEntry({
+                description: `Merchant Transfer: ${referenceNumber}`,
+                descriptionAr: `تحويل تاجر: ${referenceNumber}`,
+                transactionId: txn.id,
+                createdBy: userId,
+                currency, // Pass currency for correct balance field
+                lines: [
+                    // Debit Merchant Ledger (Business wallet decreases)
+                    { accountCode: INTERNAL_ACCOUNTS.MERCHANTS_LEDGER, debit: amount, credit: 0 },
+                    // Credit User Ledger (Recipient receives)
+                    { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: 0, credit: amount },
+                ],
+            });
+
             return txn;
         });
+
+        // Format amount with currency
+        const symbol = currency === 'SYP' ? 'ل.س' : '$';
+        const formattedAmount = currency === 'SYP'
+            ? Math.floor(amount).toLocaleString('ar-SY')
+            : amount.toFixed(2);
 
         // Create notifications
         await prisma.notification.createMany({
@@ -186,8 +209,8 @@ export async function POST(request: NextRequest) {
                     type: 'TRANSACTION',
                     title: 'Transfer Sent',
                     titleAr: 'تم إرسال التحويل',
-                    message: `Sent $${amount} from business to ${recipient.fullName}`,
-                    messageAr: `أرسلت $${amount} من البزنس إلى ${recipient.fullNameAr || recipient.fullName}`,
+                    message: `Sent ${formattedAmount}${symbol} from business to ${recipient.fullName}`,
+                    messageAr: `أرسلت ${formattedAmount}${symbol} من البزنس إلى ${recipient.fullNameAr || recipient.fullName}`,
                     metadata: JSON.stringify({ transactionId: transaction.id }),
                 },
                 {
@@ -195,8 +218,8 @@ export async function POST(request: NextRequest) {
                     type: 'TRANSACTION',
                     title: 'Transfer Received',
                     titleAr: 'تحويل وارد',
-                    message: `Received $${amount} from ${user.merchantProfile?.businessName || 'Business'}`,
-                    messageAr: `استلمت $${amount} من ${user.merchantProfile?.businessName || 'حساب بزنس'}`,
+                    message: `Received ${formattedAmount}${symbol} from ${user.merchantProfile?.businessName || 'Business'}`,
+                    messageAr: `استلمت ${formattedAmount}${symbol} من ${user.merchantProfile?.businessName || 'حساب بزنس'}`,
                     metadata: JSON.stringify({ transactionId: transaction.id }),
                 },
             ],
@@ -207,8 +230,8 @@ export async function POST(request: NextRequest) {
             sendPushNotification(
                 recipient.fcmToken,
                 '💰 تحويل وارد!',
-                `استلمت $${amount.toFixed(2)} من ${user.merchantProfile?.businessName || 'حساب بزنس'}`,
-                { type: 'MERCHANT_TRANSFER_RECEIVED', amount: amount.toString() }
+                `استلمت ${formattedAmount}${symbol} من ${user.merchantProfile?.businessName || 'حساب بزنس'}`,
+                { type: 'MERCHANT_TRANSFER_RECEIVED', amount: amount.toString(), currency }
             ).catch(err => console.error('Push error:', err));
         }
 
