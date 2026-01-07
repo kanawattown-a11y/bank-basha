@@ -25,6 +25,7 @@ import {
     LanguageIcon,
     TrashIcon,
     TicketIcon,
+    ClockIcon,
 } from '@heroicons/react/24/outline';
 
 interface AdminStats {
@@ -155,6 +156,7 @@ export default function AdminDashboard() {
         { id: 'password-requests', icon: ShieldExclamationIcon, label: t('admin.passwordRequests.title'), link: '/admin/password-requests' },
         { id: 'ledger', icon: ChartBarIcon, label: t('admin.ledger.title'), link: '/admin/ledger' },
         { id: 'audit-logs', icon: DocumentTextIcon, label: 'سجل النشاطات', link: '/admin/audit-logs' },
+        { id: 'hourly-snapshots', icon: ClockIcon, label: 'النسخ الاحتياطي', link: '/admin/hourly-snapshots' },
         { id: 'contracts', icon: DocumentDuplicateIcon, label: t('admin.contracts.title'), link: '/admin/contracts' },
         { id: 'advanced-settings', icon: ExclamationTriangleIcon, label: t('admin.settings.advancedSettings'), link: '/admin/advanced-settings' },
         { id: 'bin', icon: TrashIcon, label: t('admin.bin.title'), link: '/admin/bin' },

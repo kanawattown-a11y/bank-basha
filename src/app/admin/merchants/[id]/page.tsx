@@ -186,32 +186,68 @@ export default function MerchantDetailsPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="card p-4 text-center">
-                            <CurrencyDollarIcon className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                            <p className="text-dark-400 text-xs">الرصيد</p>
-                            <p className="text-white font-bold">${formatAmount(merchant.balances?.USD || merchant.balance)}</p>
-                            {merchant.balances?.SYP !== undefined && merchant.balances.SYP > 0 && (
-                                <p className="text-blue-400 text-sm">{formatAmount(merchant.balances.SYP, 'SYP')} ل.س</p>
-                            )}
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Balance Card */}
+                        <div className="card p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <CurrencyDollarIcon className="w-6 h-6 text-green-500" />
+                                <p className="text-dark-400 text-sm">الرصيد</p>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/10">
+                                    <span className="text-green-400 text-xs">USD</span>
+                                    <span className="text-white font-bold">${formatAmount(merchant.balances?.USD || merchant.balance || 0)}</span>
+                                </div>
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-blue-500/10">
+                                    <span className="text-blue-400 text-xs">SYP</span>
+                                    <span className="text-white font-bold">{formatAmount(merchant.balances?.SYP || 0, 'SYP')} ل.س</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="card p-4 text-center">
-                            <p className="text-2xl mb-2">💰</p>
-                            <p className="text-dark-400 text-xs">إجمالي المبيعات</p>
-                            <p className="text-green-500 font-bold">${formatAmount(merchant.totalSales)}</p>
-                            {merchant.totalSalesSYP !== undefined && merchant.totalSalesSYP > 0 && (
-                                <p className="text-blue-400 text-sm">{formatAmount(merchant.totalSalesSYP, 'SYP')} ل.س</p>
-                            )}
+
+                        {/* Total Sales Card */}
+                        <div className="card p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xl">💰</span>
+                                <p className="text-dark-400 text-sm">إجمالي المبيعات</p>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/10">
+                                    <span className="text-green-400 text-xs">USD</span>
+                                    <span className="text-green-400 font-bold">${formatAmount(merchant.totalSales || 0)}</span>
+                                </div>
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-blue-500/10">
+                                    <span className="text-blue-400 text-xs">SYP</span>
+                                    <span className="text-blue-400 font-bold">{formatAmount(merchant.totalSalesSYP || 0, 'SYP')} ل.س</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="card p-4 text-center">
-                            <QrCodeIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                            <p className="text-dark-400 text-xs">المعاملات</p>
-                            <p className="text-white font-bold">{merchant.totalTransactions}</p>
+
+                        {/* Transactions Card */}
+                        <div className="card p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <QrCodeIcon className="w-6 h-6 text-purple-500" />
+                                <p className="text-dark-400 text-sm">المعاملات</p>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/10">
+                                    <span className="text-green-400 text-xs">USD</span>
+                                    <span className="text-white font-bold">{merchant.totalTransactions || 0}</span>
+                                </div>
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-blue-500/10">
+                                    <span className="text-blue-400 text-xs">SYP</span>
+                                    <span className="text-white font-bold">{merchant.totalTransactionsSYP || 0}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="card p-4 text-center">
-                            <p className="text-2xl mb-2">📅</p>
-                            <p className="text-dark-400 text-xs">تاريخ الانضمام</p>
-                            <p className="text-white font-bold text-sm">{formatDate(merchant.createdAt)}</p>
+
+                        {/* Join Date Card */}
+                        <div className="card p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xl">📅</span>
+                                <p className="text-dark-400 text-sm">تاريخ الانضمام</p>
+                            </div>
+                            <p className="text-white font-bold text-lg mt-4">{formatDate(merchant.createdAt)}</p>
                         </div>
                     </div>
 
