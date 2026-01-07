@@ -46,13 +46,13 @@ interface Contract {
     createdAt: string;
     updatedAt: string;
     createdBy: string;
-    agent: {
+    agent?: {
         id: string;
         agentCode: string;
         businessName: string;
         businessNameAr: string | null;
         businessAddress: string;
-        user: {
+        user?: {
             id: string;
             fullName: string;
             fullNameAr: string | null;
@@ -351,24 +351,24 @@ export default function ContractDetailPage() {
                             <div className="space-y-3">
                                 <div>
                                     <p className="text-dark-400 text-sm">الاسم</p>
-                                    <p className="text-white font-medium">{contract.agent.user.fullNameAr || contract.agent.user.fullName}</p>
+                                    <p className="text-white font-medium">{contract.agent?.user?.fullNameAr || contract.agent?.user?.fullName || 'غير متوفر'}</p>
                                 </div>
                                 <div>
                                     <p className="text-dark-400 text-sm">النشاط التجاري</p>
-                                    <p className="text-white">{contract.agent.businessNameAr || contract.agent.businessName}</p>
+                                    <p className="text-white">{contract.agent?.businessNameAr || contract.agent?.businessName || 'غير متوفر'}</p>
                                 </div>
                                 <div>
                                     <p className="text-dark-400 text-sm">كود الوكيل</p>
-                                    <p className="text-white font-mono">{contract.agent.agentCode}</p>
+                                    <p className="text-white font-mono">{contract.agent?.agentCode || 'غير متوفر'}</p>
                                 </div>
                                 <div>
                                     <p className="text-dark-400 text-sm">الهاتف</p>
-                                    <p className="text-white font-mono">{contract.agent.user.phone}</p>
+                                    <p className="text-white font-mono">{contract.agent?.user?.phone || 'غير متوفر'}</p>
                                 </div>
-                                {contract.agent.user.city && (
+                                {contract.agent?.user?.city && (
                                     <div>
                                         <p className="text-dark-400 text-sm">المدينة</p>
-                                        <p className="text-white">{contract.agent.user.city}</p>
+                                        <p className="text-white">{contract.agent?.user?.city}</p>
                                     </div>
                                 )}
                             </div>
