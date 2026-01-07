@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         ]);
 
         // Get user names for display
-        const userIds = [...new Set(logs.map(l => l.userId).filter(Boolean))];
+        const userIds = Array.from(new Set(logs.map(l => l.userId).filter(Boolean))) as string[];
         const users = await prisma.user.findMany({
             where: { id: { in: userIds as string[] } },
             select: { id: true, fullName: true, fullNameAr: true, phone: true },
