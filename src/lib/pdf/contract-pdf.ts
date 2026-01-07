@@ -1,5 +1,6 @@
 'use client';
 
+import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 interface ContractData {
@@ -38,16 +39,6 @@ interface Clause {
     contentAr: string;
 }
 
-const getTypeLabel = (type: string): string => {
-    const labels: Record<string, string> = {
-        AGENT_AGREEMENT: 'Agent Agreement',
-        NDA: 'Non-Disclosure Agreement',
-        SERVICE_AGREEMENT: 'Service Agreement',
-        AMENDMENT: 'Contract Amendment',
-    };
-    return labels[type] || type;
-};
-
 const getTypeLabelAr = (type: string): string => {
     const labels: Record<string, string> = {
         AGENT_AGREEMENT: 'عقد وكالة',
@@ -62,252 +53,22 @@ const formatDateAr = (dateString: string): string => {
     const date = new Date(dateString);
     const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
         'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}م`;
 };
 
-const formatDateEn = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
-};
-
-// Bank Basha Brand Colors
+// Bank Basha Brand Colors (from tailwind.config.ts)
 const BRAND = {
-    primary: [59, 130, 246] as [number, number, number],      // #3B82F6 - Blue
-    primaryDark: [37, 99, 235] as [number, number, number],   // #2563EB
-    dark: [15, 23, 42] as [number, number, number],           // #0F172A - Dark background
-    darkCard: [30, 41, 59] as [number, number, number],       // #1E293B
-    gray: [100, 116, 139] as [number, number, number],        // #64748B
-    white: [255, 255, 255] as [number, number, number],
-    green: [16, 185, 129] as [number, number, number],        // #10B981
-    gold: [245, 158, 11] as [number, number, number],         // #F59E0B
+    primary: '#FEC00F',      // Main yellow/gold
+    primaryDark: '#E5AD0E',
+    dark: '#0d0d0d',
+    darkCard: '#1a1a1a',
+    gray: '#888888',
+    white: '#ffffff',
+    green: '#10B981',
 };
 
 export async function generateContractPDF(contract: ContractData): Promise<void> {
-    // Create PDF document (A4 size)
-    const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-    });
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    const contentWidth = pageWidth - margin * 2;
-    let y = margin;
-
-    // Helper function to add new page if needed
-    const checkNewPage = (requiredSpace: number) => {
-        if (y + requiredSpace > pageHeight - margin - 15) {
-            // Add footer before new page
-            addFooter();
-            doc.addPage();
-            y = margin + 10;
-            addHeader();
-            return true;
-        }
-        return false;
-    };
-
-    // Add header to each page
-    const addHeader = () => {
-        // Top gradient bar
-        doc.setFillColor(...BRAND.primary);
-        doc.rect(0, 0, pageWidth, 8, 'F');
-
-        // Bank name on top right
-        doc.setFontSize(10);
-        doc.setTextColor(...BRAND.gray);
-        doc.text('Bank Basha', pageWidth - margin, 15, { align: 'right' });
-    };
-
-    // Add footer to each page
-    const addFooter = () => {
-        const footerY = pageHeight - 10;
-        doc.setDrawColor(...BRAND.gray);
-        doc.setLineWidth(0.3);
-        doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
-
-        doc.setFontSize(8);
-        doc.setTextColor(...BRAND.gray);
-        doc.text(`Bank Basha | Contract #${contract.contractNumber}`, margin, footerY);
-        doc.text(`Page ${doc.getCurrentPageInfo().pageNumber}`, pageWidth - margin, footerY, { align: 'right' });
-    };
-
-    // =====================
-    // COVER PAGE
-    // =====================
-
-    // Top gradient bar
-    doc.setFillColor(...BRAND.primary);
-    doc.rect(0, 0, pageWidth, 50, 'F');
-
-    // Logo / Brand Name
-    doc.setFontSize(36);
-    doc.setTextColor(...BRAND.white);
-    doc.text('Bank Basha', pageWidth / 2, 30, { align: 'center' });
-
-    doc.setFontSize(12);
-    doc.text('Digital Banking Platform', pageWidth / 2, 40, { align: 'center' });
-
-    y = 70;
-
-    // Contract Type Badge
-    doc.setFillColor(...BRAND.darkCard);
-    doc.roundedRect(pageWidth / 2 - 40, y, 80, 12, 6, 6, 'F');
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND.primary);
-    doc.text(getTypeLabel(contract.type), pageWidth / 2, y + 8, { align: 'center' });
-    y += 25;
-
-    // Contract Title (Arabic)
-    const titleAr = contract.titleAr || getTypeLabelAr(contract.type);
-    doc.setFontSize(24);
-    doc.setTextColor(...BRAND.dark);
-    doc.text(titleAr, pageWidth / 2, y, { align: 'center' });
-    y += 12;
-
-    // Contract Title (English)
-    const titleEn = contract.title || getTypeLabel(contract.type);
-    doc.setFontSize(14);
-    doc.setTextColor(...BRAND.gray);
-    doc.text(titleEn, pageWidth / 2, y, { align: 'center' });
-    y += 25;
-
-    // Contract Number Box
-    doc.setFillColor(...BRAND.primary);
-    doc.roundedRect(pageWidth / 2 - 35, y, 70, 10, 3, 3, 'F');
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND.white);
-    doc.text(`#${contract.contractNumber}`, pageWidth / 2, y + 7, { align: 'center' });
-    y += 25;
-
-    // =====================
-    // PARTIES SECTION
-    // =====================
-
-    // Section header
-    doc.setFillColor(...BRAND.darkCard);
-    doc.roundedRect(margin, y, contentWidth, 10, 3, 3, 'F');
-    doc.setFontSize(11);
-    doc.setTextColor(...BRAND.white);
-    doc.text('PARTIES | Taraflar', margin + 5, y + 7);
-    y += 18;
-
-    // First Party Box
-    doc.setDrawColor(...BRAND.primary);
-    doc.setLineWidth(1);
-    doc.roundedRect(margin, y, contentWidth / 2 - 5, 35, 3, 3, 'S');
-
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.primary);
-    doc.text('FIRST PARTY', margin + 5, y + 8);
-    doc.setTextColor(...BRAND.gray);
-    doc.text('Taraf al-Awwal', margin + 35, y + 8);
-
-    doc.setFontSize(12);
-    doc.setTextColor(...BRAND.dark);
-    doc.text('Bank Basha', margin + 5, y + 20);
-
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.gray);
-    doc.text('Digital Banking Platform', margin + 5, y + 28);
-
-    // Second Party Box
-    const secondBoxX = margin + contentWidth / 2 + 5;
-    doc.setDrawColor(...BRAND.gold);
-    doc.roundedRect(secondBoxX, y, contentWidth / 2 - 5, 35, 3, 3, 'S');
-
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.gold);
-    doc.text('SECOND PARTY', secondBoxX + 5, y + 8);
-    doc.setTextColor(...BRAND.gray);
-    doc.text('Taraf al-Thani', secondBoxX + 42, y + 8);
-
-    doc.setFontSize(12);
-    doc.setTextColor(...BRAND.dark);
-    const agentName = contract.agent?.user?.fullNameAr || contract.agent?.user?.fullName || 'Agent';
-    doc.text(agentName, secondBoxX + 5, y + 20);
-
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.gray);
-    const businessName = contract.agent?.businessNameAr || contract.agent?.businessName || '';
-    doc.text(`${businessName} | ${contract.agent?.agentCode || ''}`, secondBoxX + 5, y + 28);
-
-    y += 45;
-
-    // =====================
-    // CONTRACT DETAILS
-    // =====================
-
-    // Section header
-    doc.setFillColor(...BRAND.darkCard);
-    doc.roundedRect(margin, y, contentWidth, 10, 3, 3, 'F');
-    doc.setFontSize(11);
-    doc.setTextColor(...BRAND.white);
-    doc.text('CONTRACT DETAILS | Tafasil al-Aqd', margin + 5, y + 7);
-    y += 18;
-
-    // Details Grid
-    const detailsData = [
-        { label: 'Contract Date', labelAr: 'Tarikh al-Aqd', value: formatDateEn(contract.startDate), valueAr: formatDateAr(contract.startDate) },
-        { label: 'Expiry Date', labelAr: 'Tarikh al-Intihaa', value: contract.endDate ? formatDateEn(contract.endDate) : 'Open-ended', valueAr: contract.endDate ? formatDateAr(contract.endDate) : 'Maftuh' },
-    ];
-
-    detailsData.forEach((detail, idx) => {
-        const boxX = margin + (idx % 2) * (contentWidth / 2);
-        const boxWidth = contentWidth / 2 - 5;
-
-        doc.setFillColor(245, 247, 250);
-        doc.roundedRect(boxX, y, boxWidth, 18, 2, 2, 'F');
-
-        doc.setFontSize(8);
-        doc.setTextColor(...BRAND.gray);
-        doc.text(`${detail.label} | ${detail.labelAr}`, boxX + 5, y + 6);
-
-        doc.setFontSize(11);
-        doc.setTextColor(...BRAND.dark);
-        doc.text(detail.value, boxX + 5, y + 14);
-    });
-
-    y += 25;
-
-    // Financial Terms (if any)
-    if (contract.depositCommission !== null || contract.withdrawCommission !== null || contract.creditLimit !== null) {
-        doc.setFillColor(236, 253, 245); // Light green
-        doc.roundedRect(margin, y, contentWidth, 25, 3, 3, 'F');
-
-        doc.setFontSize(9);
-        doc.setTextColor(...BRAND.green);
-        doc.text('FINANCIAL TERMS | Shurut Maliya', margin + 5, y + 8);
-
-        doc.setFontSize(10);
-        doc.setTextColor(...BRAND.dark);
-
-        let finX = margin + 5;
-        if (contract.depositCommission !== null) {
-            doc.text(`Deposit: ${contract.depositCommission}%`, finX, y + 18);
-            finX += 45;
-        }
-        if (contract.withdrawCommission !== null) {
-            doc.text(`Withdraw: ${contract.withdrawCommission}%`, finX, y + 18);
-            finX += 50;
-        }
-        if (contract.creditLimit !== null) {
-            doc.text(`Credit Limit: $${contract.creditLimit.toLocaleString()}`, finX, y + 18);
-        }
-
-        y += 32;
-    }
-
-    // =====================
-    // CLAUSES
-    // =====================
-
+    // Parse clauses
     let clauses: Clause[] = [];
     if (contract.clauses) {
         try {
@@ -317,146 +78,477 @@ export async function generateContractPDF(contract: ContractData): Promise<void>
         }
     }
 
-    if (clauses.length > 0) {
-        checkNewPage(40);
+    const agentName = contract.agent?.user?.fullNameAr || contract.agent?.user?.fullName || 'الوكيل';
+    const businessName = contract.agent?.businessNameAr || contract.agent?.businessName || '';
+    const titleAr = contract.titleAr || getTypeLabelAr(contract.type);
 
-        // Section header
-        doc.setFillColor(...BRAND.darkCard);
-        doc.roundedRect(margin, y, contentWidth, 10, 3, 3, 'F');
-        doc.setFontSize(11);
-        doc.setTextColor(...BRAND.white);
-        doc.text('CONTRACT CLAUSES | Bunud al-Aqd', margin + 5, y + 7);
-        y += 18;
+    // Create HTML content
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'Cairo', 'Tahoma', sans-serif;
+                background: ${BRAND.dark};
+                color: ${BRAND.white};
+                direction: rtl;
+                padding: 0;
+            }
+            .page {
+                width: 210mm;
+                min-height: 297mm;
+                padding: 15mm;
+                background: ${BRAND.dark};
+                margin: 0 auto;
+            }
+            .header {
+                background: linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.primaryDark} 100%);
+                padding: 30px;
+                border-radius: 16px;
+                text-align: center;
+                margin-bottom: 25px;
+            }
+            .logo {
+                font-size: 36px;
+                font-weight: 800;
+                color: ${BRAND.dark};
+                margin-bottom: 5px;
+            }
+            .logo-sub {
+                font-size: 14px;
+                color: ${BRAND.dark};
+                opacity: 0.8;
+            }
+            .contract-title {
+                background: ${BRAND.darkCard};
+                padding: 20px;
+                border-radius: 12px;
+                text-align: center;
+                margin-bottom: 25px;
+                border: 1px solid #333;
+            }
+            .contract-title h1 {
+                font-size: 28px;
+                font-weight: 700;
+                color: ${BRAND.primary};
+                margin-bottom: 8px;
+            }
+            .contract-title .type {
+                font-size: 14px;
+                color: ${BRAND.gray};
+            }
+            .contract-number {
+                display: inline-block;
+                background: ${BRAND.primary};
+                color: ${BRAND.dark};
+                padding: 8px 24px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 600;
+                margin-top: 10px;
+            }
+            .section {
+                background: ${BRAND.darkCard};
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 20px;
+                border: 1px solid #333;
+            }
+            .section-title {
+                font-size: 16px;
+                font-weight: 700;
+                color: ${BRAND.primary};
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid ${BRAND.primary};
+            }
+            .parties-grid {
+                display: flex;
+                gap: 20px;
+            }
+            .party-box {
+                flex: 1;
+                background: ${BRAND.dark};
+                border-radius: 10px;
+                padding: 15px;
+                border: 2px solid;
+            }
+            .party-box.first {
+                border-color: ${BRAND.primary};
+            }
+            .party-box.second {
+                border-color: ${BRAND.green};
+            }
+            .party-label {
+                font-size: 12px;
+                margin-bottom: 8px;
+            }
+            .party-box.first .party-label {
+                color: ${BRAND.primary};
+            }
+            .party-box.second .party-label {
+                color: ${BRAND.green};
+            }
+            .party-name {
+                font-size: 18px;
+                font-weight: 700;
+                color: ${BRAND.white};
+                margin-bottom: 5px;
+            }
+            .party-detail {
+                font-size: 13px;
+                color: ${BRAND.gray};
+            }
+            .details-grid {
+                display: flex;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+            .detail-item {
+                flex: 1;
+                min-width: 150px;
+                background: ${BRAND.dark};
+                padding: 12px;
+                border-radius: 8px;
+            }
+            .detail-label {
+                font-size: 11px;
+                color: ${BRAND.gray};
+                margin-bottom: 5px;
+            }
+            .detail-value {
+                font-size: 14px;
+                color: ${BRAND.white};
+                font-weight: 600;
+            }
+            .financial-box {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+                border: 1px solid ${BRAND.green};
+                border-radius: 10px;
+                padding: 15px;
+                margin-top: 15px;
+            }
+            .financial-title {
+                color: ${BRAND.green};
+                font-size: 13px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+            .financial-grid {
+                display: flex;
+                gap: 20px;
+            }
+            .financial-item {
+                text-align: center;
+            }
+            .financial-value {
+                font-size: 20px;
+                font-weight: 700;
+                color: ${BRAND.white};
+            }
+            .financial-label {
+                font-size: 11px;
+                color: ${BRAND.gray};
+            }
+            .clause {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #333;
+            }
+            .clause:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+            .clause-number {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                background: ${BRAND.primary};
+                color: ${BRAND.dark};
+                border-radius: 50%;
+                font-weight: 700;
+                font-size: 14px;
+                margin-left: 10px;
+            }
+            .clause-title {
+                font-size: 15px;
+                font-weight: 700;
+                color: ${BRAND.white};
+                display: inline;
+            }
+            .clause-content {
+                font-size: 13px;
+                color: ${BRAND.gray};
+                line-height: 1.8;
+                margin-top: 10px;
+                padding-right: 38px;
+            }
+            .signatures-grid {
+                display: flex;
+                gap: 20px;
+            }
+            .signature-box {
+                flex: 1;
+                background: ${BRAND.dark};
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                border: 2px solid;
+            }
+            .signature-box.first {
+                border-color: ${BRAND.primary};
+            }
+            .signature-box.second {
+                border-color: ${BRAND.green};
+            }
+            .signature-party {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+            .signature-box.first .signature-party {
+                color: ${BRAND.primary};
+            }
+            .signature-box.second .signature-party {
+                color: ${BRAND.green};
+            }
+            .signature-name {
+                font-size: 16px;
+                font-weight: 700;
+                color: ${BRAND.white};
+                margin-bottom: 15px;
+            }
+            .signature-line {
+                border-top: 1px dashed ${BRAND.gray};
+                padding-top: 10px;
+                margin-top: 20px;
+            }
+            .signed-badge {
+                display: inline-block;
+                background: ${BRAND.green};
+                color: ${BRAND.dark};
+                padding: 8px 20px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+            .pending-badge {
+                color: ${BRAND.gray};
+                font-size: 12px;
+            }
+            .signature-date {
+                font-size: 11px;
+                color: ${BRAND.gray};
+                margin-top: 8px;
+            }
+            .footer {
+                text-align: center;
+                padding-top: 20px;
+                margin-top: 20px;
+                border-top: 1px solid #333;
+            }
+            .footer-text {
+                font-size: 11px;
+                color: ${BRAND.gray};
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page" id="contract-page">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">بنك باشا</div>
+                <div class="logo-sub">Bank Basha - منصة الخدمات المصرفية الرقمية</div>
+            </div>
 
-        clauses.forEach((clause, index) => {
-            checkNewPage(35);
+            <!-- Contract Title -->
+            <div class="contract-title">
+                <h1>${titleAr}</h1>
+                <div class="type">${getTypeLabelAr(contract.type)}</div>
+                <div class="contract-number">رقم العقد: ${contract.contractNumber}</div>
+            </div>
 
-            // Clause number badge
-            doc.setFillColor(...BRAND.primary);
-            doc.circle(margin + 5, y + 3, 4, 'F');
-            doc.setFontSize(8);
-            doc.setTextColor(...BRAND.white);
-            doc.text(`${index + 1}`, margin + 5, y + 4.5, { align: 'center' });
+            <!-- Parties Section -->
+            <div class="section">
+                <div class="section-title">أطراف العقد</div>
+                <div class="parties-grid">
+                    <div class="party-box first">
+                        <div class="party-label">الطرف الأول</div>
+                        <div class="party-name">بنك باشا</div>
+                        <div class="party-detail">منصة الخدمات المصرفية الرقمية</div>
+                    </div>
+                    <div class="party-box second">
+                        <div class="party-label">الطرف الثاني (الوكيل)</div>
+                        <div class="party-name">${agentName}</div>
+                        <div class="party-detail">${businessName} | ${contract.agent?.agentCode || ''}</div>
+                    </div>
+                </div>
+            </div>
 
-            // Clause title
-            doc.setFontSize(11);
-            doc.setTextColor(...BRAND.dark);
-            const clauseTitle = clause.titleAr || clause.title;
-            doc.text(clauseTitle, margin + 12, y + 5);
-            y += 10;
+            <!-- Contract Details -->
+            <div class="section">
+                <div class="section-title">تفاصيل العقد</div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ بداية العقد</div>
+                        <div class="detail-value">${formatDateAr(contract.startDate)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ انتهاء العقد</div>
+                        <div class="detail-value">${contract.endDate ? formatDateAr(contract.endDate) : 'غير محدد (مفتوح)'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ التحرير</div>
+                        <div class="detail-value">${formatDateAr(contract.createdAt)}</div>
+                    </div>
+                </div>
+                ${(contract.depositCommission !== null || contract.withdrawCommission !== null || contract.creditLimit !== null) ? `
+                <div class="financial-box">
+                    <div class="financial-title">الشروط المالية</div>
+                    <div class="financial-grid">
+                        ${contract.depositCommission !== null ? `
+                        <div class="financial-item">
+                            <div class="financial-value">${contract.depositCommission}%</div>
+                            <div class="financial-label">عمولة الإيداع</div>
+                        </div>
+                        ` : ''}
+                        ${contract.withdrawCommission !== null ? `
+                        <div class="financial-item">
+                            <div class="financial-value">${contract.withdrawCommission}%</div>
+                            <div class="financial-label">عمولة السحب</div>
+                        </div>
+                        ` : ''}
+                        ${contract.creditLimit !== null ? `
+                        <div class="financial-item">
+                            <div class="financial-value">$${contract.creditLimit.toLocaleString()}</div>
+                            <div class="financial-label">حد الائتمان</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
 
-            // Clause content
-            doc.setFontSize(9);
-            doc.setTextColor(...BRAND.gray);
+            ${clauses.length > 0 ? `
+            <!-- Clauses -->
+            <div class="section">
+                <div class="section-title">بنود وشروط العقد</div>
+                ${clauses.map((clause, index) => `
+                <div class="clause">
+                    <span class="clause-number">${index + 1}</span>
+                    <span class="clause-title">${clause.titleAr || clause.title}</span>
+                    <div class="clause-content">${clause.contentAr || clause.content}</div>
+                </div>
+                `).join('')}
+            </div>
+            ` : ''}
 
-            const content = clause.contentAr || clause.content || '';
-            const lines = doc.splitTextToSize(content, contentWidth - 15);
+            <!-- Signatures -->
+            <div class="section">
+                <div class="section-title">التوقيعات</div>
+                <div class="signatures-grid">
+                    <div class="signature-box first">
+                        <div class="signature-party">الطرف الأول</div>
+                        <div class="signature-name">بنك باشا</div>
+                        ${contract.signedByAdmin ? `
+                        <div class="signed-badge">✓ تم التوقيع</div>
+                        ${contract.adminSignedAt ? `<div class="signature-date">${formatDateAr(contract.adminSignedAt)}</div>` : ''}
+                        ` : `
+                        <div class="signature-line">
+                            <div class="pending-badge">بانتظار التوقيع</div>
+                        </div>
+                        `}
+                    </div>
+                    <div class="signature-box second">
+                        <div class="signature-party">الطرف الثاني</div>
+                        <div class="signature-name">${agentName}</div>
+                        ${contract.signedByAgent ? `
+                        <div class="signed-badge">✓ تم التوقيع</div>
+                        ${contract.agentSignedAt ? `<div class="signature-date">${formatDateAr(contract.agentSignedAt)}</div>` : ''}
+                        ` : `
+                        <div class="signature-line">
+                            <div class="pending-badge">بانتظار التوقيع</div>
+                        </div>
+                        `}
+                    </div>
+                </div>
+            </div>
 
-            lines.forEach((line: string) => {
-                if (checkNewPage(8)) {
-                    y += 3;
-                }
-                doc.text(line, margin + 12, y);
-                y += 5;
-            });
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-text">تم إنشاء هذا العقد بواسطة منصة بنك باشا الرقمية | Bank Basha Digital Platform</div>
+                <div class="footer-text">العقد رقم: ${contract.contractNumber}</div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
 
-            y += 8;
+    // Create a hidden container
+    const container = document.createElement('div');
+    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 210mm;';
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+
+    // Wait for fonts to load
+    await document.fonts.ready;
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+        const element = container.querySelector('#contract-page') as HTMLElement;
+
+        // Create canvas from HTML
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: BRAND.dark,
         });
-    }
 
-    // =====================
-    // SIGNATURES
-    // =====================
+        // Create PDF
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+        });
 
-    // Make sure signatures are at bottom or on new page
-    if (y > pageHeight - 80) {
-        addFooter();
-        doc.addPage();
-        y = margin + 10;
-        addHeader();
-    }
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    y = Math.max(y + 10, pageHeight - 75);
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
 
-    // Section header
-    doc.setFillColor(...BRAND.darkCard);
-    doc.roundedRect(margin, y, contentWidth, 10, 3, 3, 'F');
-    doc.setFontSize(11);
-    doc.setTextColor(...BRAND.white);
-    doc.text('SIGNATURES | Tawqiat', margin + 5, y + 7);
-    y += 18;
+        const ratio = pdfWidth / (imgWidth / 2); // /2 because scale is 2
+        const scaledHeight = (imgHeight / 2) * ratio;
 
-    // Signature boxes
-    const sigBoxWidth = (contentWidth - 10) / 2;
-
-    // Bank Signature
-    doc.setDrawColor(...BRAND.primary);
-    doc.setLineWidth(1.5);
-    doc.roundedRect(margin, y, sigBoxWidth, 45, 3, 3, 'S');
-
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND.primary);
-    doc.text('Bank Basha', margin + 5, y + 10);
-    doc.setFontSize(8);
-    doc.setTextColor(...BRAND.gray);
-    doc.text('First Party | Taraf al-Awwal', margin + 5, y + 17);
-
-    if (contract.signedByAdmin) {
-        doc.setFillColor(...BRAND.green);
-        doc.roundedRect(margin + 5, y + 25, 40, 8, 2, 2, 'F');
-        doc.setFontSize(9);
-        doc.setTextColor(...BRAND.white);
-        doc.text('SIGNED', margin + 25, y + 30.5, { align: 'center' });
-        if (contract.adminSignedAt) {
-            doc.setFontSize(7);
-            doc.setTextColor(...BRAND.gray);
-            doc.text(formatDateEn(contract.adminSignedAt), margin + 5, y + 40);
+        // Add pages as needed
+        let yOffset = 0;
+        while (yOffset < scaledHeight) {
+            if (yOffset > 0) {
+                pdf.addPage();
+            }
+            pdf.addImage(imgData, 'JPEG', 0, -yOffset, pdfWidth, scaledHeight);
+            yOffset += pdfHeight;
         }
-    } else {
-        doc.setDrawColor(...BRAND.gray);
-        doc.setLineWidth(0.5);
-        doc.line(margin + 10, y + 35, margin + sigBoxWidth - 10, y + 35);
-        doc.setFontSize(8);
-        doc.setTextColor(...BRAND.gray);
-        doc.text('Signature pending...', margin + sigBoxWidth / 2, y + 42, { align: 'center' });
+
+        // Save PDF
+        const fileName = `عقد_${contract.contractNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
+
+    } finally {
+        // Clean up
+        document.body.removeChild(container);
     }
-
-    // Agent Signature
-    const agentBoxX = margin + sigBoxWidth + 10;
-    doc.setDrawColor(...BRAND.gold);
-    doc.roundedRect(agentBoxX, y, sigBoxWidth, 45, 3, 3, 'S');
-
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND.gold);
-    doc.text(agentName, agentBoxX + 5, y + 10);
-    doc.setFontSize(8);
-    doc.setTextColor(...BRAND.gray);
-    doc.text('Second Party | Taraf al-Thani', agentBoxX + 5, y + 17);
-
-    if (contract.signedByAgent) {
-        doc.setFillColor(...BRAND.green);
-        doc.roundedRect(agentBoxX + 5, y + 25, 40, 8, 2, 2, 'F');
-        doc.setFontSize(9);
-        doc.setTextColor(...BRAND.white);
-        doc.text('SIGNED', agentBoxX + 25, y + 30.5, { align: 'center' });
-        if (contract.agentSignedAt) {
-            doc.setFontSize(7);
-            doc.setTextColor(...BRAND.gray);
-            doc.text(formatDateEn(contract.agentSignedAt), agentBoxX + 5, y + 40);
-        }
-    } else {
-        doc.setDrawColor(...BRAND.gray);
-        doc.setLineWidth(0.5);
-        doc.line(agentBoxX + 10, y + 35, agentBoxX + sigBoxWidth - 10, y + 35);
-        doc.setFontSize(8);
-        doc.setTextColor(...BRAND.gray);
-        doc.text('Signature pending...', agentBoxX + sigBoxWidth / 2, y + 42, { align: 'center' });
-    }
-
-    // Final footer
-    addFooter();
-
-    // Save the PDF
-    const fileName = `Contract_${contract.contractNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(fileName);
 }
