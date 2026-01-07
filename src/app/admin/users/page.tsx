@@ -81,8 +81,9 @@ export default function AdminUsersPage() {
         }
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
     };
 
     const formatDate = (dateString: string) => {
@@ -266,7 +267,7 @@ export default function AdminUsersPage() {
                                                 <div className="flex gap-2">
                                                     {user.wallets?.map((w) => (
                                                         <span key={w.currency}>
-                                                            {w.currency}: {w.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(w.balance)}
+                                                            {w.currency}: {w.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(w.balance, w.currency)}
                                                         </span>
                                                     ))}
                                                 </div>

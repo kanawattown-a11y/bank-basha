@@ -213,8 +213,9 @@ export default function AgentSettlementPage() {
         }
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, cur?: string) => {
+        const decimals = cur === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
     };
 
     const formatDate = (dateString: string) => {

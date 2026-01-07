@@ -92,8 +92,10 @@ export default function MerchantDetailsPage() {
         }
     };
 
-    const formatAmount = (amount: number) =>
-        new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+    };
 
     const formatDate = (dateString: string) =>
         new Date(dateString).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
@@ -190,7 +192,7 @@ export default function MerchantDetailsPage() {
                             <p className="text-dark-400 text-xs">الرصيد</p>
                             <p className="text-white font-bold">${formatAmount(merchant.balances?.USD || merchant.balance)}</p>
                             {merchant.balances?.SYP !== undefined && merchant.balances.SYP > 0 && (
-                                <p className="text-blue-400 text-sm">{formatAmount(merchant.balances.SYP)} ل.س</p>
+                                <p className="text-blue-400 text-sm">{formatAmount(merchant.balances.SYP, 'SYP')} ل.س</p>
                             )}
                         </div>
                         <div className="card p-4 text-center">
@@ -198,7 +200,7 @@ export default function MerchantDetailsPage() {
                             <p className="text-dark-400 text-xs">إجمالي المبيعات</p>
                             <p className="text-green-500 font-bold">${formatAmount(merchant.totalSales)}</p>
                             {merchant.totalSalesSYP !== undefined && merchant.totalSalesSYP > 0 && (
-                                <p className="text-blue-400 text-sm">{formatAmount(merchant.totalSalesSYP)} ل.س</p>
+                                <p className="text-blue-400 text-sm">{formatAmount(merchant.totalSalesSYP, 'SYP')} ل.س</p>
                             )}
                         </div>
                         <div className="card p-4 text-center">

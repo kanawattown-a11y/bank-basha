@@ -64,8 +64,9 @@ export default function AdminLedgerPage() {
         }
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
     };
 
     const formatDate = (dateString: string) => {
@@ -166,21 +167,21 @@ export default function AdminLedgerPage() {
                                         <div>
                                             <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.amount')}</p>
                                             <p className="text-white font-medium">
-                                                {formatAmount(entry.totalDebit)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
+                                                {formatAmount(entry.totalDebit, entry.currency)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
                                             </p>
                                         </div>
                                         {entry.fee > 0 && (
                                             <div>
                                                 <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.fee')}</p>
                                                 <p className="text-red-500 font-medium">
-                                                    {formatAmount(entry.fee)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
+                                                    {formatAmount(entry.fee, entry.currency)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
                                                 </p>
                                             </div>
                                         )}
                                         <div>
                                             <p className="text-dark-400 text-xs mb-1">{t('admin.ledger.net')}</p>
                                             <p className="text-green-500 font-medium">
-                                                {formatAmount(entry.totalCredit)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
+                                                {formatAmount(entry.totalCredit, entry.currency)} {entry.currency === 'SYP' ? 'ل.س' : '$'}
                                             </p>
                                         </div>
                                     </div>

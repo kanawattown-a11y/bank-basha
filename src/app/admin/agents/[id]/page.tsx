@@ -136,8 +136,9 @@ export default function AdminAgentDetailPage() {
         }
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
     };
 
     const formatDate = (dateString: string) => {
@@ -256,7 +257,7 @@ export default function AdminAgentDetailPage() {
                             <p className="text-dark-400 text-sm mb-1">{t('admin.agentDetails.stats.digitalBalance')}</p>
                             <p className="text-xl font-bold text-primary-400">${formatAmount(agent.agentProfile.currentCredit)}</p>
                             {agent.agentProfile.currentCreditSYP !== undefined && agent.agentProfile.currentCreditSYP > 0 && (
-                                <p className="text-sm text-blue-400">{formatAmount(agent.agentProfile.currentCreditSYP)} ل.س</p>
+                                <p className="text-sm text-blue-400">{formatAmount(agent.agentProfile.currentCreditSYP, 'SYP')} ل.س</p>
                             )}
                         </div>
 
@@ -264,7 +265,7 @@ export default function AdminAgentDetailPage() {
                             <p className="text-dark-400 text-sm mb-1">{t('admin.agentDetails.stats.cashCollected')}</p>
                             <p className="text-xl font-bold text-green-400">${formatAmount(agent.agentProfile.cashCollected)}</p>
                             {agent.agentProfile.cashCollectedSYP !== undefined && agent.agentProfile.cashCollectedSYP > 0 && (
-                                <p className="text-sm text-blue-400">{formatAmount(agent.agentProfile.cashCollectedSYP)} ل.س</p>
+                                <p className="text-sm text-blue-400">{formatAmount(agent.agentProfile.cashCollectedSYP, 'SYP')} ل.س</p>
                             )}
                         </div>
 
@@ -272,7 +273,7 @@ export default function AdminAgentDetailPage() {
                             <p className="text-dark-400 text-sm mb-1">{t('admin.agentDetails.stats.walletBalance')}</p>
                             <p className="text-xl font-bold text-white">${formatAmount(agent.wallets?.USD?.balance || agent.wallet?.balance || 0)}</p>
                             {agent.wallets?.SYP?.balance !== undefined && agent.wallets.SYP.balance > 0 && (
-                                <p className="text-sm text-blue-400">{formatAmount(agent.wallets.SYP.balance)} ل.س</p>
+                                <p className="text-sm text-blue-400">{formatAmount(agent.wallets.SYP.balance, 'SYP')} ل.س</p>
                             )}
                         </div>
                     </div>
@@ -395,14 +396,14 @@ export default function AdminAgentDetailPage() {
                                         <p className="text-dark-400 text-sm mb-2">{t('admin.agentDetails.stats.totalDeposits')}</p>
                                         <p className="text-2xl font-bold text-green-400">${formatAmount(agent.agentProfile.totalDeposits)}</p>
                                         {agent.agentProfile.totalDepositsSYP !== undefined && agent.agentProfile.totalDepositsSYP > 0 && (
-                                            <p className="text-lg text-blue-400">{formatAmount(agent.agentProfile.totalDepositsSYP)} ل.س</p>
+                                            <p className="text-lg text-blue-400">{formatAmount(agent.agentProfile.totalDepositsSYP, 'SYP')} ل.س</p>
                                         )}
                                     </div>
                                     <div>
                                         <p className="text-dark-400 text-sm mb-2">{t('admin.agentDetails.stats.totalWithdrawals')}</p>
                                         <p className="text-2xl font-bold text-red-400">${formatAmount(agent.agentProfile.totalWithdrawals)}</p>
                                         {agent.agentProfile.totalWithdrawalsSYP !== undefined && agent.agentProfile.totalWithdrawalsSYP > 0 && (
-                                            <p className="text-lg text-blue-400">{formatAmount(agent.agentProfile.totalWithdrawalsSYP)} ل.س</p>
+                                            <p className="text-lg text-blue-400">{formatAmount(agent.agentProfile.totalWithdrawalsSYP, 'SYP')} ل.س</p>
                                         )}
                                     </div>
                                 </div>

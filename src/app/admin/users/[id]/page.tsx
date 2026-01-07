@@ -208,8 +208,9 @@ export default function AdminUserDetailPage() {
         });
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat(currentLocale === 'ar' ? 'ar-SA' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat(currentLocale === 'ar' ? 'ar-SA' : 'en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
     };
 
     const getKYCBadge = (status: string) => {
@@ -318,10 +319,10 @@ export default function AdminUserDetailPage() {
                                 <p className="text-dark-400 text-sm mb-2">{t('admin.userDetails.info.balance')}</p>
                                 <div className="space-y-1">
                                     <p className="text-white font-mono dir-ltr text-end">
-                                        ${(user.wallets?.USD?.balance || user.wallet?.balance || 0).toFixed(2)} USD
+                                        ${formatAmount(user.wallets?.USD?.balance || user.wallet?.balance || 0, 'USD')} USD
                                     </p>
                                     <p className="text-dark-300 font-mono dir-ltr text-end text-sm">
-                                        {(user.wallets?.SYP?.balance || 0).toLocaleString()} ل.س
+                                        {formatAmount(user.wallets?.SYP?.balance || 0, 'SYP')} ل.س
                                     </p>
                                 </div>
                             </div>

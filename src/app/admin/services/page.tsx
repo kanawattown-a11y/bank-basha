@@ -161,6 +161,11 @@ export default function AdminServicesPage() {
         }
     };
 
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+    };
+
     const handleDelete = async (id: string) => {
         if (!confirm(t('admin.services.deleteConfirm'))) return;
         try {
@@ -362,7 +367,7 @@ export default function AdminServicesPage() {
                                                     </p>
                                                     <div className="flex items-center gap-4 text-sm">
                                                         <span className="text-primary-500 font-bold">
-                                                            {service.price} $
+                                                            {service.currency === 'SYP' ? '' : '$'}{formatAmount(service.price, service.currency)} {service.currency === 'SYP' ? 'ل.س' : ''}
                                                         </span>
                                                         <span className="text-dark-500">
                                                             {t(`services.categories.${service.category.toLowerCase()}`)}
@@ -426,7 +431,7 @@ export default function AdminServicesPage() {
                                                                 </p>
                                                             </div>
                                                             <p className="text-primary-500 font-bold">
-                                                                {request.currency === 'SYP' ? 'ل.س' : '$'}{request.price.toFixed(request.currency === 'SYP' ? 0 : 2)}
+                                                                {request.currency === 'SYP' ? '' : '$'}{formatAmount(request.price, request.currency)} {request.currency === 'SYP' ? 'ل.س' : ''}
                                                             </p>
                                                         </div>
                                                         <button

@@ -47,10 +47,11 @@ export default function CentralBankPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
 
-    const formatAmount = (amount: number) => {
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
         return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
         }).format(amount);
     };
 

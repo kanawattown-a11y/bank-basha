@@ -133,6 +133,11 @@ export default function RiskManagementPage() {
         return t(`admin.riskManagement.alertTypes.${type}`) || type;
     };
 
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+    };
+
     return (
         <div className="p-6 max-w-7xl mx-auto">
             {/* Header */}
@@ -236,7 +241,7 @@ export default function RiskManagementPage() {
                                         <div className="flex items-center gap-4 text-sm text-dark-400">
                                             <span>المستخدم: {alert.user?.fullName}</span>
                                             <span>الهاتف: {alert.user?.phone}</span>
-                                            {alert.amount && <span>المبلغ: {alert.amount.toLocaleString()} {alert.currency === 'SYP' ? 'ل.س' : '$'}</span>}
+                                            {alert.amount && <span>المبلغ: {alert.currency === 'SYP' ? '' : '$'}{formatAmount(alert.amount, alert.currency)} {alert.currency === 'SYP' ? 'ل.س' : ''}</span>}
                                         </div>
                                         <p className="text-dark-500 text-xs mt-2">
                                             {new Date(alert.createdAt).toLocaleString('ar-SA')}

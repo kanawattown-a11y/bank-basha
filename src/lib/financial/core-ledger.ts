@@ -58,6 +58,31 @@ export const INTERNAL_ACCOUNTS = {
 // ============================================
 
 /**
+ * Initialize LedgerAccount table (required for double-entry ledger)
+ * This MUST be run before any transactions - these are the GL accounts
+ */
+export async function initializeLedgerAccounts(): Promise<void> {
+    const accounts = [
+        { code: INTERNAL_ACCOUNTS.SYSTEM_RESERVE, name: 'System Reserve', nameAr: 'احتياطي النظام', type: 'LIABILITY' },
+        { code: INTERNAL_ACCOUNTS.USERS_LEDGER, name: 'Users Ledger', nameAr: 'سجل المستخدمين', type: 'LIABILITY' },
+        { code: INTERNAL_ACCOUNTS.MERCHANTS_LEDGER, name: 'Merchants Ledger', nameAr: 'سجل التجار', type: 'LIABILITY' },
+        { code: INTERNAL_ACCOUNTS.AGENTS_LEDGER, name: 'Agents Ledger', nameAr: 'سجل الوكلاء', type: 'LIABILITY' },
+        { code: INTERNAL_ACCOUNTS.SETTLEMENTS, name: 'Settlements', nameAr: 'التسويات', type: 'LIABILITY' },
+        { code: INTERNAL_ACCOUNTS.FEES, name: 'Fees Collected', nameAr: 'الرسوم', type: 'REVENUE' },
+        { code: INTERNAL_ACCOUNTS.SUSPENSE, name: 'Suspense', nameAr: 'معلق', type: 'LIABILITY' },
+    ];
+
+    for (const acc of accounts) {
+        await prisma.ledgerAccount.upsert({
+            where: { code: acc.code },
+            update: {},
+            create: { ...acc, balance: 0, balanceSYP: 0, isSystem: true },
+        });
+    }
+    console.log('✅ LedgerAccount table initialized');
+}
+
+/**
  * Initialize internal accounts (run once at setup)
  */
 export async function initializeInternalAccounts(): Promise<void> {
@@ -121,7 +146,16 @@ export async function initializeInternalAccounts(): Promise<void> {
         });
     }
 
-    console.log('✅ Internal accounts initialized');
+    console.log('✅ InternalAccount table initialized');
+}
+
+/**
+ * Initialize ALL required accounts (call this at app startup)
+ */
+export async function initializeAllAccounts(): Promise<void> {
+    await initializeLedgerAccounts();
+    await initializeInternalAccounts();
+    console.log('✅ All financial accounts ready');
 }
 
 // ============================================

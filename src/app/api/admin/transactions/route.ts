@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
                     referenceNumber: tx.referenceNumber,
                     type: tx.type,
                     amount: tx.amount,
+                    currency: tx.currency,
                     status: tx.status,
                     senderName: tx.sender?.fullNameAr || tx.sender?.fullName || 'نظام',
                     receiverName: tx.receiver?.fullNameAr || tx.receiver?.fullName || 'نظام',

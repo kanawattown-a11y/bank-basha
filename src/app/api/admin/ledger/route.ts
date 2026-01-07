@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
                     fee: tx.fee,
                     platformFee: tx.platformFee,
                     agentFee: tx.agentFee,
+                    currency: tx.currency,
                 })),
             },
             { status: 200, headers: getSecurityHeaders() }

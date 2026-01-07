@@ -132,11 +132,12 @@ export default function UserDashboard() {
         router.push('/login');
     };
 
-    const formatAmount = (amount: number) => {
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
         return new Intl.NumberFormat('en-US', {
             style: 'decimal',
             minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
+            maximumFractionDigits: decimals,
         }).format(amount);
     };
 

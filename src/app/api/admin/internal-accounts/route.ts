@@ -81,9 +81,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Recalculate balances using optimized aggregation (no memory overflow)
+        // Recalculate balances using optimized aggregation - USD
         const [userBalanceUSD, agentCreditUSD, merchantBalanceUSD, totalFeesUSD] = await Promise.all([
-            // User balances (USD)
             prisma.wallet.aggregate({
                 _sum: { balance: true },
                 where: {
@@ -92,11 +91,9 @@ export async function POST(request: NextRequest) {
                     walletType: 'PERSONAL'
                 }
             }),
-            // Agent credit (USD)
             prisma.agentProfile.aggregate({
                 _sum: { currentCredit: true }
             }),
-            // Merchant balances (USD)
             prisma.wallet.aggregate({
                 _sum: { balance: true },
                 where: {
@@ -105,7 +102,6 @@ export async function POST(request: NextRequest) {
                     walletType: 'BUSINESS'
                 }
             }),
-            // Platform fees (USD only for now)
             prisma.transaction.aggregate({
                 _sum: { platformFee: true },
                 where: {
@@ -115,33 +111,92 @@ export async function POST(request: NextRequest) {
             })
         ]);
 
-        // Extract values
-        const actualUserBalance = userBalanceUSD._sum.balance || 0;
-        const actualAgentCredit = agentCreditUSD._sum.currentCredit || 0;
-        const actualMerchantBalance = merchantBalanceUSD._sum.balance || 0;
-        const actualFees = totalFeesUSD._sum.platformFee || 0;
+        // Recalculate SYP balances - Wallets and Fees
+        const [userBalanceSYP, merchantBalanceSYP, totalFeesSYP] = await Promise.all([
+            prisma.wallet.aggregate({
+                _sum: { balance: true },
+                where: {
+                    user: { userType: 'USER' },
+                    currency: 'SYP',
+                    walletType: 'PERSONAL'
+                }
+            }),
+            prisma.wallet.aggregate({
+                _sum: { balance: true },
+                where: {
+                    user: { userType: 'MERCHANT' },
+                    currency: 'SYP',
+                    walletType: 'BUSINESS'
+                }
+            }),
+            prisma.transaction.aggregate({
+                _sum: { platformFee: true },
+                where: {
+                    status: 'COMPLETED',
+                    currency: 'SYP'
+                }
+            })
+        ]);
 
-        // Update internal accounts
+        // Get SYP agent credit using raw query to avoid type issues
+        const agentCreditsSYP = await prisma.$queryRaw<{ total: number }[]>`
+            SELECT COALESCE(SUM("currentCreditSYP"), 0) as total FROM "AgentProfile"
+        `;
+
+        // Extract USD values
+        const actualUserBalanceUSD = userBalanceUSD._sum.balance || 0;
+        const actualAgentCreditUSD = agentCreditUSD._sum.currentCredit || 0;
+        const actualMerchantBalanceUSD = merchantBalanceUSD._sum.balance || 0;
+        const actualFeesUSD = totalFeesUSD._sum.platformFee || 0;
+
+        // Extract SYP values
+        const actualUserBalanceSYP = userBalanceSYP._sum.balance || 0;
+        const actualAgentCreditSYP = Number(agentCreditsSYP[0]?.total) || 0;
+        const actualMerchantBalanceSYP = merchantBalanceSYP._sum.balance || 0;
+        const actualFeesSYP = totalFeesSYP._sum.platformFee || 0;
+
+        // Update internal accounts - USD
         await prisma.$transaction([
             prisma.internalAccount.upsert({
                 where: { code: 'USR-LEDGER' },
-                update: { balance: actualUserBalance },
-                create: { code: 'USR-LEDGER', name: 'Users Ledger', nameAr: 'دفتر المستخدمين', type: 'USERS_LEDGER', balance: actualUserBalance },
+                update: { balance: actualUserBalanceUSD },
+                create: { code: 'USR-LEDGER', name: 'Users Ledger (USD)', nameAr: 'دفتر المستخدمين (دولار)', type: 'USERS_LEDGER', balance: actualUserBalanceUSD },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'AGT-LEDGER' },
-                update: { balance: actualAgentCredit },
-                create: { code: 'AGT-LEDGER', name: 'Agents Ledger', nameAr: 'دفتر الوكلاء', type: 'AGENTS_LEDGER', balance: actualAgentCredit },
+                update: { balance: actualAgentCreditUSD },
+                create: { code: 'AGT-LEDGER', name: 'Agents Ledger (USD)', nameAr: 'دفتر الوكلاء (دولار)', type: 'AGENTS_LEDGER', balance: actualAgentCreditUSD },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'MRC-LEDGER' },
-                update: { balance: actualMerchantBalance },
-                create: { code: 'MRC-LEDGER', name: 'Merchants Ledger', nameAr: 'دفتر التجار', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalance },
+                update: { balance: actualMerchantBalanceUSD },
+                create: { code: 'MRC-LEDGER', name: 'Merchants Ledger (USD)', nameAr: 'دفتر التجار (دولار)', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalanceUSD },
             }),
             prisma.internalAccount.upsert({
                 where: { code: 'FEES-COLLECTED' },
-                update: { balance: actualFees },
-                create: { code: 'FEES-COLLECTED', name: 'Fees Collected', nameAr: 'الرسوم المحصلة', type: 'FEES', balance: actualFees },
+                update: { balance: actualFeesUSD },
+                create: { code: 'FEES-COLLECTED', name: 'Fees Collected (USD)', nameAr: 'الرسوم المحصلة (دولار)', type: 'FEES', balance: actualFeesUSD },
+            }),
+            // SYP Accounts
+            prisma.internalAccount.upsert({
+                where: { code: 'USR-LEDGER-SYP' },
+                update: { balance: actualUserBalanceSYP },
+                create: { code: 'USR-LEDGER-SYP', name: 'Users Ledger (SYP)', nameAr: 'دفتر المستخدمين (ليرة)', type: 'USERS_LEDGER', balance: actualUserBalanceSYP },
+            }),
+            prisma.internalAccount.upsert({
+                where: { code: 'AGT-LEDGER-SYP' },
+                update: { balance: actualAgentCreditSYP },
+                create: { code: 'AGT-LEDGER-SYP', name: 'Agents Ledger (SYP)', nameAr: 'دفتر الوكلاء (ليرة)', type: 'AGENTS_LEDGER', balance: actualAgentCreditSYP },
+            }),
+            prisma.internalAccount.upsert({
+                where: { code: 'MRC-LEDGER-SYP' },
+                update: { balance: actualMerchantBalanceSYP },
+                create: { code: 'MRC-LEDGER-SYP', name: 'Merchants Ledger (SYP)', nameAr: 'دفتر التجار (ليرة)', type: 'MERCHANTS_LEDGER', balance: actualMerchantBalanceSYP },
+            }),
+            prisma.internalAccount.upsert({
+                where: { code: 'FEES-COLLECTED-SYP' },
+                update: { balance: actualFeesSYP },
+                create: { code: 'FEES-COLLECTED-SYP', name: 'Fees Collected (SYP)', nameAr: 'الرسوم المحصلة (ليرة)', type: 'FEES', balance: actualFeesSYP },
             }),
         ]);
 
@@ -164,10 +219,18 @@ export async function POST(request: NextRequest) {
                 action: 'SYNC_INTERNAL_ACCOUNTS',
                 entity: 'InternalAccount',
                 newValue: JSON.stringify({
-                    userBalance: actualUserBalance,
-                    agentCredit: actualAgentCredit,
-                    merchantBalance: actualMerchantBalance,
-                    fees: actualFees,
+                    USD: {
+                        userBalance: actualUserBalanceUSD,
+                        agentCredit: actualAgentCreditUSD,
+                        merchantBalance: actualMerchantBalanceUSD,
+                        fees: actualFeesUSD,
+                    },
+                    SYP: {
+                        userBalance: actualUserBalanceSYP,
+                        agentCredit: actualAgentCreditSYP,
+                        merchantBalance: actualMerchantBalanceSYP,
+                        fees: actualFeesSYP,
+                    },
                     systemReserve: -totalOther,
                 }),
             },
@@ -177,10 +240,18 @@ export async function POST(request: NextRequest) {
             {
                 success: true,
                 synced: {
-                    userBalance: actualUserBalance,
-                    agentCredit: actualAgentCredit,
-                    merchantBalance: actualMerchantBalance,
-                    fees: actualFees,
+                    USD: {
+                        userBalance: actualUserBalanceUSD,
+                        agentCredit: actualAgentCreditUSD,
+                        merchantBalance: actualMerchantBalanceUSD,
+                        fees: actualFeesUSD,
+                    },
+                    SYP: {
+                        userBalance: actualUserBalanceSYP,
+                        agentCredit: actualAgentCreditSYP,
+                        merchantBalance: actualMerchantBalanceSYP,
+                        fees: actualFeesSYP,
+                    },
                     systemReserve: -totalOther,
                 },
             },

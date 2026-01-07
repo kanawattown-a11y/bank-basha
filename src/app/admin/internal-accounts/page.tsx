@@ -131,11 +131,11 @@ export default function InternalAccountsPage() {
         }
     };
 
-    const formatAmount = (amount: number) => {
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
         return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
         }).format(amount);
     };
 
@@ -243,11 +243,11 @@ export default function InternalAccountsPage() {
                                         <span className="text-dark-400 text-sm">{t('admin.internalAccounts.balance')}:</span>
                                         <div className="text-end">
                                             <span className={`font-bold ${account.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                                {formatAmount(account.balance)}
+                                                {account.code.endsWith('-SYP') ? '' : '$'}{formatAmount(account.balance, account.code.endsWith('-SYP') ? 'SYP' : 'USD')} {account.code.endsWith('-SYP') ? 'ل.س' : ''}
                                             </span>
                                             {account.balanceSYP !== undefined && account.balanceSYP !== 0 && (
                                                 <p className="text-blue-400 text-xs">
-                                                    {new Intl.NumberFormat('en-US').format(account.balanceSYP)} ل.س
+                                                    {formatAmount(account.balanceSYP, 'SYP')} ل.س
                                                 </p>
                                             )}
                                         </div>

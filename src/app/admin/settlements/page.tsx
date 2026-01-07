@@ -134,8 +134,9 @@ export default function AdminSettlementsPage() {
         }
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const formatAmount = (amount: number, currency?: string) => {
+        const decimals = currency === 'SYP' ? 0 : 2;
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
     };
 
     const formatDate = (dateString: string) => {
@@ -276,7 +277,7 @@ export default function AdminSettlementsPage() {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="text-primary-500 font-semibold">
-                                                        {settlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(settlement.requestedAmount)}
+                                                        {settlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(settlement.requestedAmount, settlement.currency)}
                                                     </div>
                                                     <div className="text-xs text-dark-400 mt-1">
                                                         {settlement.currency}
@@ -332,7 +333,7 @@ export default function AdminSettlementsPage() {
                                     <div>
                                         <div className="text-sm text-dark-400 mb-1">Requested Amount</div>
                                         <div className="text-2xl font-bold text-primary-500">
-                                            {selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.requestedAmount)}
+                                            {selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.requestedAmount, selectedSettlement.currency)}
                                         </div>
                                         <div className="text-xs text-dark-500 mt-1">Currency: {selectedSettlement.currency}</div>
                                     </div>
@@ -343,19 +344,19 @@ export default function AdminSettlementsPage() {
                                     <div className="bg-dark-800 p-4 rounded-xl space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-dark-400">Cash Collected:</span>
-                                            <span className="text-white">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.cashCollected || 0)}</span>
+                                            <span className="text-white">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.cashCollected || 0, selectedSettlement.currency)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-dark-400">Platform Fee:</span>
-                                            <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.platformShare || 0)}</span>
+                                            <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.platformShare || 0, selectedSettlement.currency)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-dark-400">Agent Fee:</span>
-                                            <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.agentShare || 0)}</span>
+                                            <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.agentShare || 0, selectedSettlement.currency)}</span>
                                         </div>
                                         <div className="flex justify-between font-semibold border-t border-dark-700 pt-2">
                                             <span className="text-dark-300">Credit to Give:</span>
-                                            <span className="text-green-400">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.amountDue || 0)}</span>
+                                            <span className="text-green-400">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.amountDue || 0, selectedSettlement.currency)}</span>
                                         </div>
                                     </div>
                                 )}
@@ -365,7 +366,7 @@ export default function AdminSettlementsPage() {
                                         <div className="flex justify-between">
                                             <span className="text-dark-400">Credit to Give:</span>
                                             <span className="text-green-400 font-semibold">
-                                                {selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.creditGiven || 0)}
+                                                {selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.creditGiven || 0, selectedSettlement.currency)}
                                             </span>
                                         </div>
                                         <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
@@ -379,11 +380,11 @@ export default function AdminSettlementsPage() {
                                         <div className="bg-dark-800 p-4 rounded-xl space-y-2">
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-dark-400">Cash Needed:</span>
-                                                <span className="text-white">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.cashToReceive || 0)}</span>
+                                                <span className="text-white">{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.cashToReceive || 0, selectedSettlement.currency)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-dark-400">Credit Deducted:</span>
-                                                <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.creditDeducted || 0)}</span>
+                                                <span className="text-red-400">-{selectedSettlement.currency === 'SYP' ? 'ل.س' : '$'}{formatAmount(selectedSettlement.creditDeducted || 0, selectedSettlement.currency)}</span>
                                             </div>
                                         </div>
 
