@@ -35,6 +35,7 @@ interface AgentDetail {
     wallet?: { balance: number };
     wallets?: { USD: { balance: number } | null; SYP: { balance: number } | null };
     agentProfile: {
+        id: string;
         agentCode: string;
         businessName: string;
         currentCredit: number;
