@@ -26,7 +26,7 @@ interface Agent {
     depositCommission: number | null;
     withdrawCommission: number | null;
     creditLimit: number;
-    user: {
+    user?: {
         id: string;
         fullName: string;
         fullNameAr: string | null;
@@ -279,7 +279,7 @@ export default function NewContractPage() {
                                     <option value="">-- اختر الوكيل --</option>
                                     {agents.map(agent => (
                                         <option key={agent.id} value={agent.id}>
-                                            {agent.user.fullNameAr || agent.user.fullName} - {agent.agentCode} - {agent.businessNameAr || agent.businessName}
+                                            {agent.user?.fullNameAr || agent.user?.fullName || 'غير متوفر'} - {agent.agentCode} - {agent.businessNameAr || agent.businessName}
                                         </option>
                                     ))}
                                 </select>
@@ -289,7 +289,7 @@ export default function NewContractPage() {
                                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                                             <div>
                                                 <p className="text-dark-400">الاسم</p>
-                                                <p className="text-white font-medium">{selectedAgent.user.fullNameAr || selectedAgent.user.fullName}</p>
+                                                <p className="text-white font-medium">{selectedAgent.user?.fullNameAr || selectedAgent.user?.fullName || 'غير متوفر'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-dark-400">النشاط</p>
@@ -297,7 +297,7 @@ export default function NewContractPage() {
                                             </div>
                                             <div>
                                                 <p className="text-dark-400">الهاتف</p>
-                                                <p className="text-white font-mono">{selectedAgent.user.phone}</p>
+                                                <p className="text-white font-mono">{selectedAgent.user?.phone || 'غير متوفر'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-dark-400">الكود</p>
