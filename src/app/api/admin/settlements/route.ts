@@ -65,38 +65,41 @@ export async function POST(request: NextRequest) {
             if (settlement.type === 'CASH_TO_CREDIT') {
                 // Agent gives cash → receives digital credit
                 const currency = settlement.currency || 'USD';
+                const cashField = currency === 'SYP' ? 'cashCollectedSYP' : 'cashCollected';
+                const creditField = currency === 'SYP' ? 'currentCreditSYP' : 'currentCredit';
 
-                if (currency === 'SYP') {
-                    await prisma.agentProfile.update({
-                        where: { id: settlement.agentId },
+                // ═══════════════════════════════════════════════════════════════
+                // ATOMIC TRANSACTION - Prevents Race Condition
+                // ═══════════════════════════════════════════════════════════════
+                await prisma.$transaction(async (tx) => {
+                    // Atomic balance check - only update if cash is sufficient
+                    const updated = await tx.agentProfile.updateMany({
+                        where: {
+                            id: settlement.agentId,
+                            [cashField]: { gte: settlement.cashCollected! }
+                        },
                         data: {
-                            cashCollectedSYP: { decrement: settlement.cashCollected! },
-                            currentCreditSYP: { increment: settlement.amountDue! },
+                            [cashField]: { decrement: settlement.cashCollected! },
+                            [creditField]: { increment: settlement.amountDue! },
                             totalSettlements: { increment: 1 },
                             lastSettlement: new Date(),
                         },
                     });
-                } else {
-                    await prisma.agentProfile.update({
-                        where: { id: settlement.agentId },
+
+                    if (updated.count === 0) {
+                        throw new Error('INSUFFICIENT_CASH');
+                    }
+
+                    await tx.settlement.update({
+                        where: { id: settlementId },
                         data: {
-                            cashCollected: { decrement: settlement.cashCollected! },
-                            currentCredit: { increment: settlement.amountDue! },
-                            totalSettlements: { increment: 1 },
-                            lastSettlement: new Date(),
+                            status: 'COMPLETED',
+                            reviewedBy: adminId,
+                            reviewedAt: new Date(),
+                            completedBy: adminId,
+                            completedAt: new Date(),
                         },
                     });
-                }
-
-                await prisma.settlement.update({
-                    where: { id: settlementId },
-                    data: {
-                        status: 'COMPLETED',
-                        reviewedBy: adminId,
-                        reviewedAt: new Date(),
-                        completedBy: adminId,
-                        completedAt: new Date(),
-                    },
                 });
 
                 // Notify agent

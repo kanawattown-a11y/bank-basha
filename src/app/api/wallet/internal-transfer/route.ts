@@ -83,21 +83,24 @@ export async function POST(request: NextRequest) {
         const sourceWallet = fromWallet === 'personal' ? personalWallet : businessWallet;
         const destWallet = toWallet === 'personal' ? personalWallet : businessWallet;
 
-        // Check balance
-        if (sourceWallet.balance < amount) {
-            return NextResponse.json(
-                { error: 'رصيد غير كافي' },
-                { status: 400, headers: getSecurityHeaders() }
-            );
-        }
-
-        // Perform transaction
+        // Perform transaction with ATOMIC balance check
         const result = await prisma.$transaction(async (tx) => {
-            // Deduct from source
-            await tx.wallet.update({
-                where: { id: sourceWallet.id },
+            // ═══════════════════════════════════════════════════════════════
+            // ATOMIC BALANCE CHECK - Prevents Race Condition
+            // Uses updateMany with gte to atomically verify and deduct
+            // ═══════════════════════════════════════════════════════════════
+            const sourceUpdate = await tx.wallet.updateMany({
+                where: {
+                    id: sourceWallet.id,
+                    balance: { gte: amount } // Only update if balance is sufficient
+                },
                 data: { balance: { decrement: amount } },
             });
+
+            // If no rows updated, balance was insufficient
+            if (sourceUpdate.count === 0) {
+                throw new Error('INSUFFICIENT_BALANCE');
+            }
 
             // Add to destination
             await tx.wallet.update({
@@ -151,8 +154,17 @@ export async function POST(request: NextRequest) {
                 business: updatedBusiness?.balance || 0,
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Internal transfer error:', error);
+
+        // Handle insufficient balance error
+        if (error?.message === 'INSUFFICIENT_BALANCE') {
+            return NextResponse.json(
+                { error: 'رصيد غير كافي' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500, headers: getSecurityHeaders() }

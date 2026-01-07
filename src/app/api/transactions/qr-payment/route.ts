@@ -75,13 +75,7 @@ export async function POST(request: NextRequest) {
         const { calculateCommission } = await import('@/lib/ledger/ledger');
         const { platformFee, totalFee } = await calculateCommission(amount, 'QR_PAYMENT', currency as 'USD' | 'SYP');
 
-        // Check balance
-        if (senderWallet.balance < amount + totalFee) {
-            return NextResponse.json(
-                { error: `رصيد غير كافٍ. المطلوب: ${formatCurrency(amount + totalFee, currency as Currency)}` },
-                { status: 400, headers: getSecurityHeaders() }
-            );
-        }
+        const requiredAmount = amount + totalFee;
 
         // Get or create merchant's business wallet for this currency
         let merchantWallet = await getUserWallet(merchantProfile.userId, currency as Currency, 'BUSINESS');
@@ -94,11 +88,22 @@ export async function POST(request: NextRequest) {
         const referenceNumber = generateReferenceNumber('QRP');
 
         const transaction = await prisma.$transaction(async (tx) => {
-            // Deduct from sender
-            await tx.wallet.update({
-                where: { id: senderWallet.id },
-                data: { balance: { decrement: amount + totalFee } },
+            // ═══════════════════════════════════════════════════════════════
+            // ATOMIC BALANCE CHECK - Prevents Race Condition
+            // Uses updateMany with gte to atomically verify and deduct
+            // ═══════════════════════════════════════════════════════════════
+            const senderUpdate = await tx.wallet.updateMany({
+                where: {
+                    id: senderWallet.id,
+                    balance: { gte: requiredAmount } // Only update if balance is sufficient
+                },
+                data: { balance: { decrement: requiredAmount } },
             });
+
+            // If no rows updated, balance was insufficient
+            if (senderUpdate.count === 0) {
+                throw new Error('INSUFFICIENT_BALANCE');
+            }
 
             // Add to merchant's business wallet
             await tx.wallet.update({
@@ -145,7 +150,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            // Create Double-Entry Ledger Entry
+            // Create Double-Entry Ledger Entry with tx context for proper rollback
             const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
             await createLedgerEntry({
                 description: `QR Payment: ${referenceNumber}`,
@@ -153,6 +158,7 @@ export async function POST(request: NextRequest) {
                 transactionId: newTransaction.id,
                 createdBy: payload.userId,
                 currency, // Pass currency for correct balance field
+                tx, // Pass transaction context for atomic rollback
                 lines: [
                     // Debit User Ledger (User pays)
                     { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount + totalFee, credit: 0 },
@@ -213,6 +219,25 @@ export async function POST(request: NextRequest) {
             ).catch(err => console.error('Push merchant error:', err));
         }
 
+        // Audit log for QR payment
+        await prisma.auditLog.create({
+            data: {
+                userId: payload.userId,
+                action: 'QR_PAYMENT_COMPLETED',
+                entity: 'Transaction',
+                entityId: transaction.id,
+                newValue: JSON.stringify({
+                    amount,
+                    currency,
+                    merchantCode,
+                    merchantName: merchantProfile.businessName,
+                    referenceNumber,
+                }),
+                ipAddress: request.headers.get('x-forwarded-for') || undefined,
+                userAgent: request.headers.get('user-agent') || undefined,
+            },
+        });
+
         return NextResponse.json(
             {
                 success: true,
@@ -222,8 +247,17 @@ export async function POST(request: NextRequest) {
             },
             { status: 200, headers: getSecurityHeaders() }
         );
-    } catch (error) {
+    } catch (error: any) {
         console.error('QR Payment error:', error);
+
+        // Handle insufficient balance error
+        if (error?.message === 'INSUFFICIENT_BALANCE') {
+            return NextResponse.json(
+                { error: 'رصيد غير كافٍ' },
+                { status: 400, headers: getSecurityHeaders() }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500, headers: getSecurityHeaders() }

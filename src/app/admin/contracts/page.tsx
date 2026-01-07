@@ -17,6 +17,7 @@ import {
     ClockIcon,
     XCircleIcon,
     ArrowPathIcon,
+    ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 
 interface Contract {
@@ -179,6 +180,9 @@ export default function ContractsPage() {
                 <div className="max-w-7xl mx-auto px-4 py-4">
                     <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
+                            <Link href="/admin" className="btn-ghost btn-icon">
+                                <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                            </Link>
                             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
                                 <DocumentDuplicateIcon className="w-6 h-6 text-white" />
                             </div>

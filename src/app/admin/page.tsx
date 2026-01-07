@@ -153,6 +153,7 @@ export default function AdminDashboard() {
         { id: 'support', icon: TicketIcon, label: t('support.title'), link: '/admin/support' },
         { id: 'password-requests', icon: ShieldExclamationIcon, label: t('admin.passwordRequests.title'), link: '/admin/password-requests' },
         { id: 'ledger', icon: ChartBarIcon, label: t('admin.ledger.title'), link: '/admin/ledger' },
+        { id: 'audit-logs', icon: DocumentTextIcon, label: 'سجل النشاطات', link: '/admin/audit-logs' },
         { id: 'contracts', icon: DocumentDuplicateIcon, label: t('admin.contracts.title'), link: '/admin/contracts' },
         { id: 'advanced-settings', icon: ExclamationTriangleIcon, label: t('admin.settings.advancedSettings'), link: '/admin/advanced-settings' },
         { id: 'bin', icon: TrashIcon, label: t('admin.bin.title'), link: '/admin/bin' },

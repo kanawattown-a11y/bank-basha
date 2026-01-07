@@ -12,28 +12,43 @@ import {
     ExclamationTriangleIcon,
     ArrowLeftIcon,
     LanguageIcon,
+    CurrencyDollarIcon,
+    BanknotesIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 
 interface AdvancedSettings {
     id: string;
-    // User Limits
+    // User Limits - USD
     userDailyLimit: number;
     userWeeklyLimit: number;
     userMonthlyLimit: number;
     userRateLimitPer10Min: number;
-    // Merchant Limits
+    // User Limits - SYP
+    userDailyLimitSYP: number;
+    userWeeklyLimitSYP: number;
+    userMonthlyLimitSYP: number;
+    // Merchant Limits - USD
     merchantDailyPaymentLimit: number;
     merchantMonthlyLimit: number;
-    // Agent Limits
+    // Merchant Limits - SYP
+    merchantDailyPaymentLimitSYP: number;
+    merchantMonthlyLimitSYP: number;
+    // Agent Limits - USD
     agentDailyCreditLimit: number;
     agentDailyWithdrawLimit: number;
     agentMaxCashHold: number;
-    // Risk Thresholds
+    // Agent Limits - SYP
+    agentDailyCreditLimitSYP: number;
+    agentDailyWithdrawLimitSYP: number;
+    agentMaxCashHoldSYP: number;
+    // Risk Thresholds - USD
     riskHighAmountThreshold: number;
     riskRapidTxThreshold: number;
     riskNewDeviceHoldDays: number;
+    // Risk Thresholds - SYP
+    riskHighAmountThresholdSYP: number;
     // Auto-freeze triggers
     autoFreezeHighAmount: boolean;
     autoFreezeNewDevice: boolean;
@@ -99,6 +114,11 @@ export default function AdvancedSettingsPage() {
         setSettings({ ...settings, [key]: value });
     };
 
+    // Format number with commas
+    const formatNumber = (num: number) => {
+        return num.toLocaleString();
+    };
+
     if (!mounted || loading) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[400px]" suppressHydrationWarning>
@@ -116,7 +136,7 @@ export default function AdvancedSettingsPage() {
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
+        <div className="p-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -164,42 +184,87 @@ export default function AdvancedSettingsPage() {
                         </div>
                         <h2 className="text-xl font-semibold text-white">{t('admin.advancedSettings.sections.users')}</h2>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.dailyLimit')}</label>
-                            <input
-                                type="number"
-                                value={settings.userDailyLimit}
-                                onChange={(e) => updateSetting('userDailyLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+
+                    {/* USD Section */}
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <CurrencyDollarIcon className="w-5 h-5 text-green-500" />
+                            <span className="text-green-500 font-semibold">USD - دولار أمريكي</span>
                         </div>
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.weeklyLimit')}</label>
-                            <input
-                                type="number"
-                                value={settings.userWeeklyLimit}
-                                onChange={(e) => updateSetting('userWeeklyLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+                        <div className="grid md:grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.dailyLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userDailyLimit}
+                                    onChange={(e) => updateSetting('userDailyLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.weeklyLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userWeeklyLimit}
+                                    onChange={(e) => updateSetting('userWeeklyLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.monthlyLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userMonthlyLimit}
+                                    onChange={(e) => updateSetting('userMonthlyLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.rateLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userRateLimitPer10Min}
+                                    onChange={(e) => updateSetting('userRateLimitPer10Min', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.monthlyLimit')}</label>
-                            <input
-                                type="number"
-                                value={settings.userMonthlyLimit}
-                                onChange={(e) => updateSetting('userMonthlyLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+                    </div>
+
+                    {/* SYP Section */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <BanknotesIcon className="w-5 h-5 text-primary-500" />
+                            <span className="text-primary-500 font-semibold">SYP - ليرة سورية</span>
                         </div>
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.rateLimit')}</label>
-                            <input
-                                type="number"
-                                value={settings.userRateLimitPer10Min}
-                                onChange={(e) => updateSetting('userRateLimitPer10Min', Number(e.target.value))}
-                                className="input w-full"
-                            />
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.dailyLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userDailyLimitSYP}
+                                    onChange={(e) => updateSetting('userDailyLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.weeklyLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userWeeklyLimitSYP}
+                                    onChange={(e) => updateSetting('userWeeklyLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.monthlyLimit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.userMonthlyLimitSYP}
+                                    onChange={(e) => updateSetting('userMonthlyLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -212,24 +277,60 @@ export default function AdvancedSettingsPage() {
                         </div>
                         <h2 className="text-xl font-semibold text-white">{t('admin.advancedSettings.sections.merchants')}</h2>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.merchantDaily')}</label>
-                            <input
-                                type="number"
-                                value={settings.merchantDailyPaymentLimit}
-                                onChange={(e) => updateSetting('merchantDailyPaymentLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+
+                    {/* USD Section */}
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <CurrencyDollarIcon className="w-5 h-5 text-green-500" />
+                            <span className="text-green-500 font-semibold">USD - دولار أمريكي</span>
                         </div>
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.merchantMonthly')}</label>
-                            <input
-                                type="number"
-                                value={settings.merchantMonthlyLimit}
-                                onChange={(e) => updateSetting('merchantMonthlyLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.merchantDaily')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.merchantDailyPaymentLimit}
+                                    onChange={(e) => updateSetting('merchantDailyPaymentLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.merchantMonthly')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.merchantMonthlyLimit}
+                                    onChange={(e) => updateSetting('merchantMonthlyLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SYP Section */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <BanknotesIcon className="w-5 h-5 text-primary-500" />
+                            <span className="text-primary-500 font-semibold">SYP - ليرة سورية</span>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.merchantDaily')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.merchantDailyPaymentLimitSYP}
+                                    onChange={(e) => updateSetting('merchantDailyPaymentLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.merchantMonthly')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.merchantMonthlyLimitSYP}
+                                    onChange={(e) => updateSetting('merchantMonthlyLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -242,33 +343,78 @@ export default function AdvancedSettingsPage() {
                         </div>
                         <h2 className="text-xl font-semibold text-white">{t('admin.advancedSettings.sections.agents')}</h2>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentCredit')}</label>
-                            <input
-                                type="number"
-                                value={settings.agentDailyCreditLimit}
-                                onChange={(e) => updateSetting('agentDailyCreditLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+
+                    {/* USD Section */}
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <CurrencyDollarIcon className="w-5 h-5 text-green-500" />
+                            <span className="text-green-500 font-semibold">USD - دولار أمريكي</span>
                         </div>
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentWithdraw')}</label>
-                            <input
-                                type="number"
-                                value={settings.agentDailyWithdrawLimit}
-                                onChange={(e) => updateSetting('agentDailyWithdrawLimit', Number(e.target.value))}
-                                className="input w-full"
-                            />
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentCredit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.agentDailyCreditLimit}
+                                    onChange={(e) => updateSetting('agentDailyCreditLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentWithdraw')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.agentDailyWithdrawLimit}
+                                    onChange={(e) => updateSetting('agentDailyWithdrawLimit', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentCashHold')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.agentMaxCashHold}
+                                    onChange={(e) => updateSetting('agentMaxCashHold', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentCashHold')}</label>
-                            <input
-                                type="number"
-                                value={settings.agentMaxCashHold}
-                                onChange={(e) => updateSetting('agentMaxCashHold', Number(e.target.value))}
-                                className="input w-full"
-                            />
+                    </div>
+
+                    {/* SYP Section */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <BanknotesIcon className="w-5 h-5 text-primary-500" />
+                            <span className="text-primary-500 font-semibold">SYP - ليرة سورية</span>
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentCredit')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.agentDailyCreditLimitSYP}
+                                    onChange={(e) => updateSetting('agentDailyCreditLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentWithdraw')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.agentDailyWithdrawLimitSYP}
+                                    onChange={(e) => updateSetting('agentDailyWithdrawLimitSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.agentCashHold')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.agentMaxCashHoldSYP}
+                                    onChange={(e) => updateSetting('agentMaxCashHoldSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -281,16 +427,44 @@ export default function AdvancedSettingsPage() {
                         </div>
                         <h2 className="text-xl font-semibold text-white">{t('admin.advancedSettings.sections.risk')}</h2>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-4 mb-6">
-                        <div>
-                            <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.riskHighAmount')}</label>
-                            <input
-                                type="number"
-                                value={settings.riskHighAmountThreshold}
-                                onChange={(e) => updateSetting('riskHighAmountThreshold', Number(e.target.value))}
-                                className="input w-full"
-                            />
+
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        {/* USD Risk */}
+                        <div className="bg-dark-800/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <CurrencyDollarIcon className="w-5 h-5 text-green-500" />
+                                <span className="text-green-500 font-semibold">USD</span>
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.riskHighAmount')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.riskHighAmountThreshold}
+                                    onChange={(e) => updateSetting('riskHighAmountThreshold', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
                         </div>
+
+                        {/* SYP Risk */}
+                        <div className="bg-dark-800/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <BanknotesIcon className="w-5 h-5 text-primary-500" />
+                                <span className="text-primary-500 font-semibold">SYP</span>
+                            </div>
+                            <div>
+                                <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.riskHighAmount')}</label>
+                                <input
+                                    type="number"
+                                    value={settings.riskHighAmountThresholdSYP}
+                                    onChange={(e) => updateSetting('riskHighAmountThresholdSYP', Number(e.target.value))}
+                                    className="input w-full"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label className="block text-dark-400 text-sm mb-2">{t('admin.advancedSettings.labels.riskRapidTx')}</label>
                             <input
@@ -310,6 +484,7 @@ export default function AdvancedSettingsPage() {
                             />
                         </div>
                     </div>
+
                     <div className="grid md:grid-cols-2 gap-4">
                         <label className="flex items-center gap-3 cursor-pointer">
                             <input

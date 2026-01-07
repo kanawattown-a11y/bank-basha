@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            // 4. Create Double-Entry Ledger Entry
+            // 4. Create Double-Entry Ledger Entry with tx context for proper rollback
             const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
             await createLedgerEntry({
                 description: `Credit Grant: ${transaction.referenceNumber}`,
@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
                 transactionId: transaction.id,
                 createdBy: payload.userId,
                 currency, // Pass currency for correct balance field
+                tx, // Pass transaction context for atomic rollback
                 lines: [
                     // Debit System Reserve (source of all money)
                     { accountCode: INTERNAL_ACCOUNTS.SYSTEM_RESERVE, debit: amount, credit: 0 },
