@@ -82,10 +82,11 @@ export default function AdminAgentDetailPage() {
     const [agent, setAgent] = useState<AgentDetail | null>(null);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [settlements, setSettlements] = useState<Settlement[]>([]);
+    const [contracts, setContracts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showImageModal, setShowImageModal] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'info' | 'transactions' | 'settlements'>('info');
+    const [activeTab, setActiveTab] = useState<'info' | 'transactions' | 'settlements' | 'contracts'>('info');
 
     const fetchAgent = useCallback(async () => {
         try {
@@ -101,6 +102,7 @@ export default function AdminAgentDetailPage() {
             setAgent(data.agent);
             setTransactions(data.transactions || []);
             setSettlements(data.settlements || []);
+            setContracts(data.contracts || []);
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -310,6 +312,15 @@ export default function AdminAgentDetailPage() {
                             >
                                 {t('admin.agentDetails.tabs.settlements')} ({settlements.length})
                             </button>
+                            <button
+                                className={`px-6 py-4 font-medium transition-colors ${activeTab === 'contracts'
+                                    ? 'text-primary-500 border-b-2 border-primary-500'
+                                    : 'text-dark-400 hover:text-white'
+                                    }`}
+                                onClick={() => setActiveTab('contracts')}
+                            >
+                                📄 العقود ({contracts.length})
+                            </button>
                         </div>
                     </div>
 
@@ -484,6 +495,58 @@ export default function AdminAgentDetailPage() {
                                             </span>
                                         </div>
                                     </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                    {/* Contracts Tab */}
+                    {activeTab === 'contracts' && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-white">عقود الوكيل</h3>
+                                <Link
+                                    href={`/admin/contracts/new?agentId=${agent?.agentProfile?.id}`}
+                                    className="btn-primary text-sm"
+                                >
+                                    + إنشاء عقد جديد
+                                </Link>
+                            </div>
+                            {contracts.length === 0 ? (
+                                <div className="card p-8 text-center">
+                                    <p className="text-dark-400 mb-4">لا توجد عقود لهذا الوكيل</p>
+                                    <Link
+                                        href={`/admin/contracts/new?agentId=${agent?.agentProfile?.id}`}
+                                        className="btn-primary inline-block"
+                                    >
+                                        إنشاء أول عقد
+                                    </Link>
+                                </div>
+                            ) : (
+                                contracts.map((contract) => (
+                                    <Link href={`/admin/contracts/${contract.id}`} key={contract.id} className="card p-4 block hover:border-primary-500/30 transition-colors">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-white font-medium mb-1">
+                                                    {contract.titleAr || contract.title}
+                                                </p>
+                                                <p className="text-dark-400 text-sm">
+                                                    رقم العقد: <span className="font-mono">{contract.contractNumber}</span>
+                                                </p>
+                                                <p className="text-dark-500 text-xs">
+                                                    {formatDate(contract.createdAt)}
+                                                </p>
+                                            </div>
+                                            <div className="text-end">
+                                                <span className={`badge ${contract.status === 'ACTIVE' ? 'badge-success' : contract.status === 'PENDING_SIGNATURE' ? 'badge-warning' : contract.status === 'DRAFT' ? 'badge' : 'badge-error'}`}>
+                                                    {contract.status === 'ACTIVE' ? 'نشط' : contract.status === 'PENDING_SIGNATURE' ? 'بانتظار التوقيع' : contract.status === 'DRAFT' ? 'مسودة' : 'منتهي'}
+                                                </span>
+                                                {contract.fileUrl && (
+                                                    <p className="text-green-500 text-xs mt-1">📎 PDF مرفق</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </Link>
                                 ))
                             )}
                         </div>

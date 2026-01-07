@@ -136,59 +136,64 @@ export default function CentralBankPage() {
                 </div>
 
                 {/* System Summary */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="stat-card">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="stat-card overflow-hidden">
                         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 mx-auto mb-3">
                             <UserGroupIcon className="w-6 h-6 text-blue-500" />
                         </div>
-                        <div className="stat-value text-blue-500">
+                        <div className="stat-value text-blue-500 text-lg sm:text-xl md:text-2xl break-all">
                             ${formatAmount(data?.summary.totalUserBalances || 0)}
                         </div>
                         {data?.summary.totalUserBalancesSYP !== undefined && data.summary.totalUserBalancesSYP > 0 && (
-                            <div className="text-sm text-blue-400">
-                                {formatAmount(data.summary.totalUserBalancesSYP)} ل.س
+                            <div className="text-xs sm:text-sm text-blue-400 break-all">
+                                {formatAmount(data.summary.totalUserBalancesSYP, 'SYP')} ل.س
                             </div>
                         )}
                         <div className="stat-label">{t('admin.centralBank.userBalance')}</div>
                     </div>
 
-                    <div className="stat-card">
+                    <div className="stat-card overflow-hidden">
                         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-500/10 mx-auto mb-3">
                             <BanknotesIcon className="w-6 h-6 text-green-500" />
                         </div>
-                        <div className="stat-value text-green-500">
+                        <div className="stat-value text-green-500 text-lg sm:text-xl md:text-2xl break-all">
                             ${formatAmount(data?.summary.totalAgentCredit || 0)}
                         </div>
                         {data?.summary.totalAgentCreditSYP !== undefined && data.summary.totalAgentCreditSYP > 0 && (
-                            <div className="text-sm text-green-400">
-                                {formatAmount(data.summary.totalAgentCreditSYP)} ل.س
+                            <div className="text-xs sm:text-sm text-green-400 break-all">
+                                {formatAmount(data.summary.totalAgentCreditSYP, 'SYP')} ل.س
                             </div>
                         )}
                         <div className="stat-label">{t('admin.centralBank.agentCredit')}</div>
                     </div>
 
-                    <div className="stat-card">
+                    <div className="stat-card overflow-hidden">
                         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-500/10 mx-auto mb-3">
                             <CurrencyDollarIcon className="w-6 h-6 text-yellow-500" />
                         </div>
-                        <div className="stat-value text-yellow-500">
+                        <div className="stat-value text-yellow-500 text-lg sm:text-xl md:text-2xl break-all">
                             ${formatAmount(data?.summary.totalAgentCash || 0)}
                         </div>
                         {data?.summary.totalAgentCashSYP !== undefined && data.summary.totalAgentCashSYP > 0 && (
-                            <div className="text-sm text-yellow-400">
-                                {formatAmount(data.summary.totalAgentCashSYP)} ل.س
+                            <div className="text-xs sm:text-sm text-yellow-400 break-all">
+                                {formatAmount(data.summary.totalAgentCashSYP, 'SYP')} ل.س
                             </div>
                         )}
                         <div className="stat-label">{t('admin.centralBank.agentCash')}</div>
                     </div>
 
-                    <div className="stat-card">
+                    <div className="stat-card overflow-hidden">
                         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-500/10 mx-auto mb-3">
                             <BuildingLibraryIcon className="w-6 h-6 text-purple-500" />
                         </div>
-                        <div className={`stat-value ${(data?.summary.systemBalance || 0) === 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <div className={`stat-value text-lg sm:text-xl md:text-2xl break-all ${(data?.summary.systemBalance || 0) === 0 ? 'text-green-500' : 'text-red-500'}`}>
                             ${formatAmount(data?.summary.systemBalance || 0)}
                         </div>
+                        {data?.summary.systemBalanceSYP !== undefined && data.summary.systemBalanceSYP !== 0 && (
+                            <div className={`text-xs sm:text-sm break-all ${data.summary.systemBalanceSYP === 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {formatAmount(data.summary.systemBalanceSYP, 'SYP')} ل.س
+                            </div>
+                        )}
                         <div className="stat-label">{t('admin.centralBank.systemBalance')}</div>
                     </div>
                 </div>

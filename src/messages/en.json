@@ -706,6 +706,27 @@
                 "failed": "Failed"
             }
         },
+        "contracts": {
+            "title": "Contract Management",
+            "subtitle": "Agent contracts and legal documents",
+            "newContract": "Create New Contract",
+            "contractNumber": "Contract #",
+            "empty": "No contracts found",
+            "types": {
+                "AGENT_AGREEMENT": "Agent Agreement",
+                "NDA": "Non-Disclosure Agreement",
+                "SERVICE_AGREEMENT": "Service Agreement",
+                "AMENDMENT": "Amendment"
+            },
+            "status": {
+                "DRAFT": "Draft",
+                "PENDING_SIGNATURE": "Pending Signature",
+                "ACTIVE": "Active",
+                "EXPIRED": "Expired",
+                "TERMINATED": "Terminated",
+                "CANCELLED": "Cancelled"
+            }
+        },
         "riskManagement": {
             "title": "Risk Management",
             "subtitle": "Review alerts and held transactions",

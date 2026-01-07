@@ -50,9 +50,12 @@ export async function GET() {
             });
         }
 
-        // Find central bank USD wallet for display
+        // Find central bank wallets for display
         const centralBankUSDWallet = (centralBank.wallets as any[])?.find(
             (w: { currency: string }) => w.currency === 'USD'
+        );
+        const centralBankSYPWallet = (centralBank.wallets as any[])?.find(
+            (w: { currency: string }) => w.currency === 'SYP'
         );
 
         // Get all user wallet balances by currency
@@ -103,6 +106,7 @@ export async function GET() {
         return NextResponse.json({
             centralBank: {
                 balance: centralBankUSDWallet?.balance || 0,
+                balanceSYP: centralBankSYPWallet?.balance || 0,
                 name: centralBank.fullNameAr || centralBank.fullName,
             },
             summary: {
@@ -112,9 +116,12 @@ export async function GET() {
                 totalAgentCreditSYP: agentCredits._sum.currentCreditSYP || 0,
                 totalAgentCash: agentCredits._sum.cashCollected || 0,
                 totalAgentCashSYP: agentCredits._sum.cashCollectedSYP || 0,
-                // System should balance to zero
+                // System should balance to zero (USD)
                 systemBalance: (centralBankUSDWallet?.balance || 0)
                     + (userWalletsUSD._sum.balance || 0),
+                // System should balance to zero (SYP)
+                systemBalanceSYP: (centralBankSYPWallet?.balance || 0)
+                    + (userWalletsSYP._sum.balance || 0),
             },
             recentCreditGrants: recentTransactions.map(t => ({
                 id: t.id,

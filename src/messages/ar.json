@@ -690,6 +690,27 @@
                 "failed": "فشل"
             }
         },
+        "contracts": {
+            "title": "إدارة العقود",
+            "subtitle": "عقود الوكلاء والمستندات القانونية",
+            "newContract": "إنشاء عقد جديد",
+            "contractNumber": "رقم العقد",
+            "empty": "لا توجد عقود",
+            "types": {
+                "AGENT_AGREEMENT": "عقد وكالة",
+                "NDA": "اتفاقية سرية",
+                "SERVICE_AGREEMENT": "اتفاقية خدمة",
+                "AMENDMENT": "ملحق تعديل"
+            },
+            "status": {
+                "DRAFT": "مسودة",
+                "PENDING_SIGNATURE": "بانتظار التوقيع",
+                "ACTIVE": "نشط",
+                "EXPIRED": "منتهي",
+                "TERMINATED": "ملغي",
+                "CANCELLED": "ملغي"
+            }
+        },
         "riskManagement": {
             "title": "إدارة المخاطر",
             "subtitle": "مراجعة التنبيهات والمعاملات المجمدة",

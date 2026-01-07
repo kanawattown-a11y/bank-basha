@@ -41,22 +41,35 @@ export async function GET(request: NextRequest) {
             orderBy: { code: 'asc' },
         });
 
-        // Calculate totals
-        const systemReserve = accounts.find(a => a.code === 'SYS-RESERVE')?.balance || 0;
-        const otherTotal = accounts
+        // Calculate totals - USD (accounts without -SYP suffix)
+        const usdAccounts = accounts.filter(a => !a.code.endsWith('-SYP'));
+        const sypAccounts = accounts.filter(a => a.code.endsWith('-SYP'));
+
+        const systemReserve = usdAccounts.find(a => a.code === 'SYS-RESERVE')?.balance || 0;
+        const otherTotal = usdAccounts
             .filter(a => a.code !== 'SYS-RESERVE')
             .reduce((sum, a) => sum + a.balance, 0);
-
         const isBalanced = Math.abs(systemReserve + otherTotal) < 0.01;
+
+        // Calculate totals - SYP
+        const systemReserveSYP = sypAccounts.find(a => a.code === 'SYS-RESERVE-SYP')?.balance || 0;
+        const otherTotalSYP = sypAccounts
+            .filter(a => a.code !== 'SYS-RESERVE-SYP')
+            .reduce((sum, a) => sum + a.balance, 0);
+        const isBalancedSYP = Math.abs(systemReserveSYP + otherTotalSYP) < 1; // SYP doesn't have decimals
 
         return NextResponse.json(
             {
                 accounts,
                 summary: {
                     systemReserve,
+                    systemReserveSYP,
                     otherTotal,
+                    otherTotalSYP,
                     difference: systemReserve + otherTotal,
+                    differenceSYP: systemReserveSYP + otherTotalSYP,
                     isBalanced,
+                    isBalancedSYP,
                 },
             },
             { status: 200, headers: getSecurityHeaders() }

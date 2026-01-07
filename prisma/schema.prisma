@@ -224,6 +224,7 @@ model AgentProfile {
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   settlements     Settlement[] @relation("AgentSettlements")
   providedCash    Settlement[] @relation("ProvidedCash")
+  contracts       Contract[]   @relation("AgentContracts")
   
   @@index([agentCode])
   @@index([userId])
@@ -1142,4 +1143,75 @@ model TicketAttachment {
   
   @@index([ticketId])
   @@index([messageId])
+}
+
+// ============================================
+// CONTRACTS MANAGEMENT
+// ============================================
+
+// ContractType: AGENT_AGREEMENT, NDA, SERVICE_AGREEMENT, AMENDMENT
+// ContractStatus: DRAFT, PENDING_SIGNATURE, ACTIVE, EXPIRED, TERMINATED, CANCELLED
+
+model Contract {
+  id              String    @id @default(uuid())
+  contractNumber  String    @unique
+  agentId         String
+  
+  // Contract Info
+  type            String    // ContractType
+  title           String
+  titleAr         String?
+  
+  // PDF Document
+  fileUrl         String?   // S3 URL for generated PDF
+  fileSize        Int?
+  
+  // Contract Terms
+  startDate       DateTime
+  endDate         DateTime?
+  
+  // Commission Terms (can override agent defaults)
+  depositCommission   Float?
+  withdrawCommission  Float?
+  creditLimit         Float?
+  
+  // Contract Content
+  clauses         String?   // JSON array of contract clauses
+  customTerms     String?   // Additional custom terms
+  
+  // Signing
+  signedByAgent     Boolean   @default(false)
+  signedByAdmin     Boolean   @default(false)
+  agentSignedAt     DateTime?
+  adminSignedAt     DateTime?
+  agentSignatureUrl String?   // S3 URL for agent signature image
+  adminSignatureUrl String?   // S3 URL for admin signature image
+  
+  // Status: DRAFT, PENDING_SIGNATURE, ACTIVE, EXPIRED, TERMINATED, CANCELLED
+  status          String    @default("DRAFT")
+  
+  // Termination
+  terminatedAt    DateTime?
+  terminatedBy    String?
+  terminationReason String?
+  
+  // Metadata
+  notes           String?
+  metadata        String?   // JSON for additional data
+  
+  // Admin Control
+  createdBy       String
+  updatedBy       String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  agent           AgentProfile @relation("AgentContracts", fields: [agentId], references: [id], onDelete: Cascade)
+  
+  @@index([agentId])
+  @@index([status])
+  @@index([contractNumber])
+  @@index([type])
+  @@index([createdAt])
 }

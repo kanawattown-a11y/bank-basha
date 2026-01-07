@@ -35,9 +35,13 @@ interface InternalAccount {
 
 interface Summary {
     systemReserve: number;
+    systemReserveSYP: number;
     otherTotal: number;
+    otherTotalSYP: number;
     difference: number;
+    differenceSYP: number;
     isBalanced: boolean;
+    isBalancedSYP: boolean;
 }
 
 export default function InternalAccountsPage() {
@@ -201,26 +205,39 @@ export default function InternalAccountsPage() {
 
             {/* Balance Status */}
             {summary && (
-                <div className={`card p-6 mb-8 border-2 ${summary.isBalanced ? 'border-green-500/30' : 'border-red-500/30'}`}>
-                    <div className="flex items-center gap-4">
-                        {summary.isBalanced ? (
-                            <div className="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center">
+                <div className={`card p-6 mb-8 border-2 ${summary.isBalanced && summary.isBalancedSYP ? 'border-green-500/30' : 'border-red-500/30'}`}>
+                    <div className="flex items-start gap-4">
+                        {summary.isBalanced && summary.isBalancedSYP ? (
+                            <div className="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
                                 <CheckCircleIcon className="w-8 h-8 text-green-500" />
                             </div>
                         ) : (
-                            <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
+                            <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
                                 <ExclamationCircleIcon className="w-8 h-8 text-red-500" />
                             </div>
                         )}
-                        <div className="flex-1">
-                            <h3 className="text-xl font-semibold text-white mb-1">
-                                {summary.isBalanced ? t('admin.internalAccounts.balanced') : t('admin.internalAccounts.unbalanced')}
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-xl font-semibold text-white mb-3">
+                                {summary.isBalanced && summary.isBalancedSYP ? t('admin.internalAccounts.balanced') : t('admin.internalAccounts.unbalanced')}
                             </h3>
-                            <p className="text-dark-400">
-                                {t('admin.internalAccounts.systemReserve')}: {formatAmount(summary.systemReserve)} |
-                                {t('admin.internalAccounts.otherTotal')}: {formatAmount(summary.otherTotal)} |
-                                {t('admin.internalAccounts.difference')}: {formatAmount(summary.difference)}
-                            </p>
+                            {/* USD Balance */}
+                            <div className="bg-green-500/5 rounded-lg p-3 mb-2">
+                                <p className="text-green-400 font-medium text-sm mb-1">$ دولار (USD)</p>
+                                <p className="text-dark-300 text-sm">
+                                    {t('admin.internalAccounts.systemReserve')}: <span className="text-green-400 font-bold">${formatAmount(summary.systemReserve)}</span> |
+                                    {t('admin.internalAccounts.otherTotal')}: <span className="text-green-400 font-bold">${formatAmount(summary.otherTotal)}</span> |
+                                    {t('admin.internalAccounts.difference')}: <span className={`font-bold ${summary.isBalanced ? 'text-green-500' : 'text-red-500'}`}>${formatAmount(summary.difference)}</span>
+                                </p>
+                            </div>
+                            {/* SYP Balance */}
+                            <div className="bg-blue-500/5 rounded-lg p-3">
+                                <p className="text-blue-400 font-medium text-sm mb-1">ل.س ليرة سورية (SYP)</p>
+                                <p className="text-dark-300 text-sm">
+                                    {t('admin.internalAccounts.systemReserve')}: <span className="text-blue-400 font-bold">{formatAmount(summary.systemReserveSYP, 'SYP')} ل.س</span> |
+                                    {t('admin.internalAccounts.otherTotal')}: <span className="text-blue-400 font-bold">{formatAmount(summary.otherTotalSYP, 'SYP')} ل.س</span> |
+                                    {t('admin.internalAccounts.difference')}: <span className={`font-bold ${summary.isBalancedSYP ? 'text-green-500' : 'text-red-500'}`}>{formatAmount(summary.differenceSYP, 'SYP')} ل.س</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -84,6 +84,18 @@ export async function GET(
             take: 20,
         });
 
+        // Get contracts for this agent
+        let contracts: any[] = [];
+        try {
+            contracts = await (prisma as any).contract.findMany({
+                where: { agentId: agentProfile.id },
+                orderBy: { createdAt: 'desc' },
+            });
+        } catch {
+            // Contract model might not exist yet
+            contracts = [];
+        }
+
         return NextResponse.json(
             {
                 agent: {
@@ -113,6 +125,7 @@ export async function GET(
                         : t.sender?.fullName || 'N/A',
                 })),
                 settlements,
+                contracts,
             },
             { status: 200, headers: getSecurityHeaders() }
         );
