@@ -235,8 +235,15 @@ export async function POST(request: NextRequest) {
         // ═══════════════════════════════════════════════════════════════
 
         let s3Key: string | undefined;
+        let s3Error: string | undefined;
 
-        if (process.env.AWS_ACCESS_KEY_ID) {
+        // Check if AWS is configured
+        const hasAwsConfig = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY;
+        const hasBucket = process.env.S3_BACKUP_BUCKET;
+
+        console.log(`📋 AWS Config: KEY=${!!process.env.AWS_ACCESS_KEY_ID}, SECRET=${!!process.env.AWS_SECRET_ACCESS_KEY}, BUCKET=${S3_BUCKET}`);
+
+        if (hasAwsConfig && hasBucket) {
             try {
                 const dateStr = snapshotHour.toISOString().replace(/[:.]/g, '-');
                 s3Key = `hourly-snapshots/${snapshotHour.toISOString().split('T')[0]}/${dateStr}.json`;
@@ -257,6 +264,8 @@ export async function POST(request: NextRequest) {
                     checksum,
                 };
 
+                console.log(`⏳ Uploading to S3 bucket: ${S3_BUCKET}, key: ${s3Key}...`);
+
                 await s3Client.send(
                     new PutObjectCommand({
                         Bucket: S3_BUCKET,
@@ -276,10 +285,17 @@ export async function POST(request: NextRequest) {
                     data: { s3Key },
                 });
 
-                console.log(`☁️ Uploaded to S3: ${s3Key}`);
-            } catch (s3Error) {
-                console.error('S3 upload failed (non-critical):', s3Error);
+                console.log(`☁️ ✅ Uploaded to S3 successfully: ${s3Key}`);
+            } catch (err: any) {
+                s3Error = err?.message || 'Unknown S3 error';
+                console.error('❌ S3 upload failed:', {
+                    error: s3Error,
+                    code: err?.Code || err?.$metadata?.httpStatusCode,
+                    bucket: S3_BUCKET,
+                });
             }
+        } else {
+            console.log('⚠️ S3 upload skipped: Missing AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, or S3_BACKUP_BUCKET');
         }
 
         console.log(`✅ Hourly snapshot created: ${wallets.length} wallets, ${agents.length} agents`);
