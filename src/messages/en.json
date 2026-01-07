@@ -448,6 +448,7 @@
             "pendingKYC": "Pending KYC",
             "pendingWithdrawals": "Pending Withdrawals",
             "totalVolume": "Total Volume",
+            "todayVolume": "Today's Volume",
             "overview": "Overview",
             "subtitle": "Welcome, here is an overview of the system",
             "pendingKyc": "Pending KYC",
