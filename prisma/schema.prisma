@@ -86,7 +86,7 @@ model User {
   ticketMessages  TicketMessage[] @relation("TicketMessageAuthor")
   ticketAttachments TicketAttachment[] @relation("TicketAttachmentUploader")
   passwordResetRequests PasswordResetRequest[]
-  
+  profitWithdrawals ProfitWithdrawal[] @relation("AdminProfitWithdrawals")
   @@index([phone])
   @@index([email])
   @@index([userType])
@@ -1222,5 +1222,47 @@ model Contract {
   @@index([status])
   @@index([contractNumber])
   @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================
+// PROFIT WITHDRAWALS
+// ============================================
+
+model ProfitWithdrawal {
+  id              String    @id @default(uuid())
+  referenceNumber String    @unique
+  
+  // Admin who made the withdrawal
+  adminId         String
+  admin           User      @relation("AdminProfitWithdrawals", fields: [adminId], references: [id])
+  
+  // Amount and currency
+  amount          Float
+  currency        String    @default("USD") // USD or SYP
+  
+  // Withdrawal method
+  method          String    // BANK_TRANSFER, CASH, CRYPTO
+  
+  // Bank details (optional)
+  bankName        String?
+  accountNumber   String?
+  iban            String?
+  
+  // Status
+  status          String    @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  
+  // Notes
+  notes           String?
+  
+  // Timestamps
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([adminId])
+  @@index([status])
+  @@index([currency])
   @@index([createdAt])
 }

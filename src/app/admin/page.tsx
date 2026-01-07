@@ -140,6 +140,7 @@ export default function AdminDashboard() {
     const sidebarItems = [
         { id: 'overview', icon: HomeIcon, label: t('admin.dashboard.overview'), link: '/admin' },
         { id: 'central-bank', icon: BuildingLibraryIcon, label: t('admin.centralBank.title'), link: '/admin/central-bank' },
+        { id: 'platform-profits', icon: BanknotesIcon, label: 'أرباح المنصة', link: '/admin/platform-profits' },
         { id: 'internal-accounts', icon: BanknotesIcon, label: t('admin.internalAccounts.title'), link: '/admin/internal-accounts' },
         { id: 'risk-management', icon: ShieldExclamationIcon, label: t('admin.riskManagement.title'), link: '/admin/risk-management' },
         { id: 'users', icon: UsersIcon, label: t('admin.users.title'), link: '/admin/users' },
