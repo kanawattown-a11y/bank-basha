@@ -32,12 +32,12 @@ interface Contract {
     signedByAgent: boolean;
     signedByAdmin: boolean;
     createdAt: string;
-    agent: {
+    agent?: {
         id: string;
         agentCode: string;
         businessName: string;
         businessNameAr: string | null;
-        user: {
+        user?: {
             id: string;
             fullName: string;
             fullNameAr: string | null;
