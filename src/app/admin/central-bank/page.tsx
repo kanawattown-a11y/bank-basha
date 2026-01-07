@@ -224,7 +224,7 @@ export default function CentralBankPage() {
                                         <p className="text-dark-500 text-sm">{grant.reference}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-green-500 font-bold">${formatAmount(grant.amount)}</p>
+                                        <p className="text-green-500 font-bold">{grant.currency === 'SYP' ? '' : '$'}{formatAmount(grant.amount, grant.currency)}{grant.currency === 'SYP' ? ' ل.س' : ''}</p>
                                         <p className="text-dark-500 text-sm">{formatDate(grant.date)}</p>
                                     </div>
                                 </div>

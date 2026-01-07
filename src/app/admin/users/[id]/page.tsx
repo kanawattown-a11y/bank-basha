@@ -57,6 +57,7 @@ interface Transaction {
     type: string;
     amount: number;
     fee: number;
+    currency: string;
     status: string;
     description: string;
     descriptionAr: string;
@@ -565,10 +566,10 @@ export default function AdminUserDetailPage() {
                                         </div>
                                         <div className="text-end">
                                             <p className={`font-bold ${tx.isOutgoing ? 'text-red-500' : 'text-green-500'}`}>
-                                                {tx.isOutgoing ? '-' : '+'}{formatAmount(tx.amount)} $
+                                                {tx.isOutgoing ? '-' : '+'}{tx.currency === 'SYP' ? '' : '$'}{formatAmount(tx.amount, tx.currency)}{tx.currency === 'SYP' ? ' ل.س' : ''}
                                             </p>
                                             {tx.fee > 0 && (
-                                                <p className="text-dark-500 text-xs">{t('admin.userDetails.history.fee')}: {formatAmount(tx.fee)} $</p>
+                                                <p className="text-dark-500 text-xs">{t('admin.userDetails.history.fee')}: {tx.currency === 'SYP' ? '' : '$'}{formatAmount(tx.fee, tx.currency)}{tx.currency === 'SYP' ? ' ل.س' : ''}</p>
                                             )}
                                         </div>
                                     </div>

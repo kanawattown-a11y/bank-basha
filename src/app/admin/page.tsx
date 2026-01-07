@@ -48,6 +48,7 @@ interface PendingSettlement {
     agentCode: string;
     businessName: string;
     amountDue: number;
+    currency: string;
     createdAt: string;
 }
 
@@ -379,7 +380,7 @@ export default function AdminDashboard() {
                                         <div>
                                             <p className="text-white font-medium">{settlement.businessName}</p>
                                             <p className="text-dark-400 text-sm">
-                                                {settlement.agentCode} • {formatAmount(settlement.amountDue)} $
+                                                {settlement.agentCode} • {settlement.currency === 'SYP' ? '' : '$'}{formatAmount(settlement.amountDue)}{settlement.currency === 'SYP' ? ' ل.س' : ''}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">

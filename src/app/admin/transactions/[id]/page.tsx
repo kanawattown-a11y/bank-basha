@@ -21,6 +21,7 @@ interface TransactionDetail {
     platformFee: number;
     agentFee: number;
     netAmount: number;
+    currency: string;
     description: string;
     descriptionAr: string;
     createdAt: string;
@@ -186,38 +187,53 @@ export default function AdminTransactionDetailPage() {
 
                     {/* Amount Details */}
                     <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">تفاصيل المبالغ</h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">تفاصيل المبالغ</h3>
+                            <span className={`px-3 py-1 rounded-lg text-sm font-medium ${transaction.currency === 'SYP' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
+                                {transaction.currency === 'SYP' ? 'ل.س - ليرة سورية' : '$ - دولار'}
+                            </span>
+                        </div>
 
                         <div className="space-y-3">
                             <div className="flex justify-between items-center pb-3 border-b border-dark-800">
                                 <span className="text-dark-300">المبلغ الأساسي</span>
-                                <span className="text-xl font-bold text-white">${formatAmount(transaction.amount)}</span>
+                                <span className="text-xl font-bold text-white">
+                                    {transaction.currency === 'SYP' ? '' : '$'}{formatAmount(transaction.amount, transaction.currency)}{transaction.currency === 'SYP' ? ' ل.س' : ''}
+                                </span>
                             </div>
 
                             {transaction.fee > 0 && (
                                 <>
                                     <div className="flex justify-between items-center">
                                         <span className="text-dark-300">رسوم المنصة</span>
-                                        <span className="text-red-400">${formatAmount(transaction.platformFee)}</span>
+                                        <span className="text-red-400">
+                                            {transaction.currency === 'SYP' ? '' : '$'}{formatAmount(transaction.platformFee, transaction.currency)}{transaction.currency === 'SYP' ? ' ل.س' : ''}
+                                        </span>
                                     </div>
 
                                     {transaction.agentFee > 0 && (
                                         <div className="flex justify-between items-center">
                                             <span className="text-dark-300">عمولة الوكيل</span>
-                                            <span className="text-red-400">${formatAmount(transaction.agentFee)}</span>
+                                            <span className="text-red-400">
+                                                {transaction.currency === 'SYP' ? '' : '$'}{formatAmount(transaction.agentFee, transaction.currency)}{transaction.currency === 'SYP' ? ' ل.س' : ''}
+                                            </span>
                                         </div>
                                     )}
 
                                     <div className="flex justify-between items-center pb-3 border-b border-dark-800">
                                         <span className="text-dark-300">إجمالي الرسوم</span>
-                                        <span className="text-red-400">${formatAmount(transaction.fee)}</span>
+                                        <span className="text-red-400">
+                                            {transaction.currency === 'SYP' ? '' : '$'}{formatAmount(transaction.fee, transaction.currency)}{transaction.currency === 'SYP' ? ' ل.س' : ''}
+                                        </span>
                                     </div>
                                 </>
                             )}
 
                             <div className="flex justify-between items-center pt-2">
                                 <span className="text-lg font-semibold text-white">صافي المبلغ</span>
-                                <span className="text-2xl font-bold text-green-400">${formatAmount(transaction.netAmount)}</span>
+                                <span className="text-2xl font-bold text-green-400">
+                                    {transaction.currency === 'SYP' ? '' : '$'}{formatAmount(transaction.netAmount, transaction.currency)}{transaction.currency === 'SYP' ? ' ل.س' : ''}
+                                </span>
                             </div>
                         </div>
                     </div>

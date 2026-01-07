@@ -54,6 +54,7 @@ interface Transaction {
     type: string;
     amount: number;
     fee: number;
+    currency: string;
     status: string;
     description: string;
     descriptionAr: string;
@@ -65,6 +66,7 @@ interface Transaction {
 interface Settlement {
     id: string;
     amountDue: number;
+    currency: string;
     status: string;
     createdAt: string;
     processedAt: string | null;
@@ -445,10 +447,10 @@ export default function AdminAgentDetailPage() {
                                             </div>
                                             <div className="text-end">
                                                 <p className={`font-bold ${tx.isOutgoing ? 'text-red-500' : 'text-green-500'}`}>
-                                                    {tx.isOutgoing ? '-' : '+'}{formatAmount(tx.amount)} $
+                                                    {tx.isOutgoing ? '-' : '+'}{tx.currency === 'SYP' ? '' : '$'}{formatAmount(tx.amount, tx.currency)}{tx.currency === 'SYP' ? ' ل.س' : ''}
                                                 </p>
                                                 {tx.fee > 0 && (
-                                                    <p className="text-dark-500 text-xs">رسوم: {formatAmount(tx.fee)} $</p>
+                                                    <p className="text-dark-500 text-xs">رسوم: {tx.currency === 'SYP' ? '' : '$'}{formatAmount(tx.fee, tx.currency)}{tx.currency === 'SYP' ? ' ل.س' : ''}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -471,7 +473,7 @@ export default function AdminAgentDetailPage() {
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="text-white font-medium mb-1">
-                                                    تسوية ${formatAmount(settlement.amountDue)}
+                                                    تسوية {settlement.currency === 'SYP' ? '' : '$'}{formatAmount(settlement.amountDue, settlement.currency)}{settlement.currency === 'SYP' ? ' ل.س' : ''}
                                                 </p>
                                                 <p className="text-dark-400 text-sm">
                                                     {formatDate(settlement.createdAt)}
