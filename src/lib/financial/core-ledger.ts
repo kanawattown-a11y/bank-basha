@@ -29,6 +29,7 @@ export interface LedgerEntryInput {
     lines: LedgerLine[];
     createdBy?: string;
     currency?: 'USD' | 'SYP';  // Currency for balance field selection
+    tx?: any;  // Optional Prisma transaction client for nested transactions
 }
 
 export interface TransactionContext {
@@ -186,6 +187,7 @@ function generateEntryNumber(): string {
 /**
  * Create immutable double-entry ledger entry
  * THROWS if debits !== credits
+ * Accepts optional tx parameter to run within an existing transaction
  */
 export async function createLedgerEntry(input: LedgerEntryInput): Promise<string> {
     // Validate double entry
@@ -205,7 +207,8 @@ export async function createLedgerEntry(input: LedgerEntryInput): Promise<string
     }
 
     // Get previous entry hash for blockchain-like integrity
-    const lastEntry = await prisma.ledgerEntry.findFirst({
+    const db = input.tx || prisma;
+    const lastEntry = await db.ledgerEntry.findFirst({
         orderBy: { createdAt: 'desc' },
         select: { hash: true },
     });
@@ -216,8 +219,8 @@ export async function createLedgerEntry(input: LedgerEntryInput): Promise<string
         lastEntry?.hash || undefined
     );
 
-    // Create entry with lines in transaction
-    const entry = await prisma.$transaction(async (tx) => {
+    // Helper function to run the ledger creation logic
+    const runLedgerCreation = async (tx: any) => {
         // Create ledger entry
         const ledgerEntry = await tx.ledgerEntry.create({
             data: {
@@ -279,7 +282,18 @@ export async function createLedgerEntry(input: LedgerEntryInput): Promise<string
         }
 
         return ledgerEntry;
-    });
+    };
+
+    // If tx was provided, use it directly (no new transaction)
+    // Otherwise, create a new transaction
+    let entry;
+    if (input.tx) {
+        entry = await runLedgerCreation(input.tx);
+    } else {
+        entry = await prisma.$transaction(async (tx) => {
+            return runLedgerCreation(tx);
+        });
+    }
 
     return entry.id;
 }

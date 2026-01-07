@@ -363,6 +363,7 @@ export async function processDeposit(
                 transactionId: transaction.id,
                 createdBy: agentId,
                 currency, // Pass currency for correct balance field
+                tx, // Pass transaction context
                 lines: [
                     // Debit Agent Ledger (Agent gives credit)
                     { accountCode: INTERNAL_ACCOUNTS.AGENTS_LEDGER, debit: amount, credit: 0 },
@@ -537,6 +538,7 @@ export async function processWithdrawal(
                 transactionId: transaction.id,
                 createdBy: agentId,
                 currency, // Pass currency for correct balance field
+                tx, // Pass transaction context
                 lines: [
                     // Debit User Ledger (User gives up balance)
                     { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount, credit: 0 },
@@ -667,6 +669,7 @@ export async function processTransfer(
                 transactionId: transaction.id,
                 createdBy: senderId,
                 currency, // Pass currency for correct balance field
+                tx, // Pass transaction context
                 lines: [
                     // Debit Sender (gives up balance)
                     { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount + totalFee, credit: 0 },
@@ -797,6 +800,7 @@ export async function processQRPayment(
                 transactionId: transaction.id,
                 createdBy: payerId,
                 currency, // Pass currency for correct balance field
+                tx, // Pass transaction context
                 lines: [
                     // Debit User Ledger (User pays)
                     { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: amount, credit: 0 },
