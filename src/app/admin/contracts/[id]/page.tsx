@@ -19,6 +19,7 @@ import {
     PrinterIcon,
     DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
+import { generateContractPDF } from '@/lib/pdf/contract-pdf';
 
 interface Contract {
     id: string;
@@ -262,16 +263,26 @@ export default function ContractDetailPage() {
                             </div>
                         </div>
 
+
                         <div className="flex items-center gap-2">
+                            {/* Generate PDF Button */}
+                            <button
+                                onClick={() => generateContractPDF(contract)}
+                                className="btn-primary flex items-center gap-2"
+                            >
+                                <PrinterIcon className="w-5 h-5" />
+                                تصدير PDF
+                            </button>
+                            {/* Download existing PDF if available */}
                             {contract.fileUrl && (
                                 <a
                                     href={contract.fileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn-primary flex items-center gap-2"
+                                    className="btn-ghost flex items-center gap-2"
                                 >
                                     <ArrowDownTrayIcon className="w-5 h-5" />
-                                    تحميل PDF
+                                    PDF مرفق
                                 </a>
                             )}
                             <button
