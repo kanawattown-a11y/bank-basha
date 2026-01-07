@@ -96,16 +96,29 @@ export async function GET(
             },
         });
 
+        // Get wallets for dual currency
+        const wallets = user.wallets as any[];
+        const usdWallet = wallets?.find((w: { currency: string; walletType: string }) => w.currency === 'USD' && w.walletType === 'BUSINESS')
+            || wallets?.find((w: { currency: string }) => w.currency === 'USD');
+        const sypWallet = wallets?.find((w: { currency: string; walletType: string }) => w.currency === 'SYP' && w.walletType === 'BUSINESS')
+            || wallets?.find((w: { currency: string }) => w.currency === 'SYP');
+
         return NextResponse.json({
             merchant: {
-                id: user.id,
+                id: merchantProfile.id, // Use merchantProfile.id for consistency
+                userId: user.id,
                 fullName: user.fullName,
                 fullNameAr: user.fullNameAr,
                 phone: user.phone,
                 email: user.email,
                 isActive: user.isActive,
                 createdAt: user.createdAt,
-                balance: ((user.wallets as any[])?.find((w: { currency: string }) => w.currency === 'USD')?.balance) || 0,
+                balance: usdWallet?.balance || 0,
+                // Dual currency balances
+                balances: {
+                    USD: usdWallet?.balance || 0,
+                    SYP: sypWallet?.balance || 0,
+                },
 
                 // Merchant Profile
                 businessName: merchantProfile.businessName,
@@ -114,8 +127,10 @@ export async function GET(
                 qrCode: merchantProfile.qrCode,
                 businessType: merchantProfile.businessType,
                 businessAddress: merchantProfile.businessAddress,
-                totalSales: merchantProfile.totalSales,
-                totalTransactions: merchantProfile.totalTransactions,
+                totalSales: merchantProfile.totalSales || 0,
+                totalSalesSYP: (merchantProfile as any).totalSalesSYP || 0,
+                totalTransactions: merchantProfile.totalTransactions || 0,
+                totalTransactionsSYP: (merchantProfile as any).totalTransactionsSYP || 0,
 
                 // License from merchant request
                 licenseUrl: user.merchantRequests[0]?.licenseUrl || null,

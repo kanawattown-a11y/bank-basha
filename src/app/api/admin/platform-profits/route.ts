@@ -1,25 +1,29 @@
 /**
  * Platform Profits API
  * GET - Get profit statistics and history
- * POST - Withdraw profits
+ * POST - Withdraw profits (to bank/cash OR to user wallet)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { verifyAccessToken, getSecurityHeaders, generateReferenceNumber } from '@/lib/auth/security';
+import { verifyAccessToken, getSecurityHeaders, generateReferenceNumber, sanitizePhoneNumber } from '@/lib/auth/security';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const withdrawSchema = z.object({
     amount: z.number().positive('Amount must be positive'),
     currency: z.enum(['USD', 'SYP']),
-    method: z.enum(['BANK_TRANSFER', 'CASH', 'CRYPTO']),
+    method: z.enum(['BANK_TRANSFER', 'CASH', 'CRYPTO', 'USER_WALLET']),
     notes: z.string().optional(),
+    // For bank transfer
     bankDetails: z.object({
         bankName: z.string().optional(),
         accountNumber: z.string().optional(),
         iban: z.string().optional(),
     }).optional(),
+    // For user wallet transfer
+    phone: z.string().optional(),
+    walletType: z.enum(['PERSONAL', 'BUSINESS']).optional(),
 });
 
 // GET: Get profit statistics
@@ -44,9 +48,8 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url);
-        const period = searchParams.get('period') || 'all'; // today, week, month, year, all
+        const period = searchParams.get('period') || 'all';
 
-        // Get date range based on period
         const now = new Date();
         let startDate: Date | undefined;
 
@@ -65,13 +68,11 @@ export async function GET(request: NextRequest) {
                 break;
         }
 
-        // Get fee accounts balances
         const [feesAccountUSD, feesAccountSYP] = await Promise.all([
             prisma.internalAccount.findUnique({ where: { code: 'FEES-COLLECTED' } }),
             prisma.internalAccount.findUnique({ where: { code: 'FEES-COLLECTED-SYP' } }),
         ]);
 
-        // Get platform fees from transactions
         const transactionWhere: any = {
             status: 'COMPLETED',
             platformFee: { gt: 0 },
@@ -93,7 +94,6 @@ export async function GET(request: NextRequest) {
             }),
         ]);
 
-        // Get fees by transaction type
         const feesByType = await prisma.transaction.groupBy({
             by: ['type', 'currency'],
             _sum: { platformFee: true },
@@ -101,7 +101,6 @@ export async function GET(request: NextRequest) {
             where: transactionWhere,
         });
 
-        // Get withdrawal history
         const withdrawals = await prisma.profitWithdrawal.findMany({
             orderBy: { createdAt: 'desc' },
             take: 20,
@@ -112,7 +111,6 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        // Get total withdrawn
         const [totalWithdrawnUSD, totalWithdrawnSYP] = await Promise.all([
             prisma.profitWithdrawal.aggregate({
                 _sum: { amount: true },
@@ -124,7 +122,6 @@ export async function GET(request: NextRequest) {
             }),
         ]);
 
-        // Daily profit chart (last 30 days)
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         const dailyProfits = await prisma.transaction.groupBy({
             by: ['currency'],
@@ -137,32 +134,27 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json({
-            // Current balances
             availableBalance: {
                 USD: feesAccountUSD?.balance || 0,
                 SYP: feesAccountSYP?.balance || 0,
             },
-            // Period stats
             periodStats: {
                 feesUSD: feesUSD._sum.platformFee || 0,
                 feesSYP: feesSYP._sum.platformFee || 0,
                 transactionsUSD: feesUSD._count,
                 transactionsSYP: feesSYP._count,
             },
-            // Breakdown by type
             feesByType: feesByType.map(f => ({
                 type: f.type,
                 currency: f.currency,
                 total: f._sum.platformFee || 0,
                 count: f._count,
             })),
-            // Withdrawal info
             totalWithdrawn: {
                 USD: totalWithdrawnUSD._sum.amount || 0,
                 SYP: totalWithdrawnSYP._sum.amount || 0,
             },
             withdrawals,
-            // Chart data
             dailyProfits,
         }, { headers: getSecurityHeaders() });
 
@@ -206,7 +198,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { amount, currency, method, notes, bankDetails } = result.data;
+        const { amount, currency, method, notes, bankDetails, phone, walletType } = result.data;
 
         // Get fees account
         const accountCode = currency === 'SYP' ? 'FEES-COLLECTED-SYP' : 'FEES-COLLECTED';
@@ -221,47 +213,164 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Process withdrawal in transaction
         const referenceNumber = generateReferenceNumber('PWD');
+        let recipientName = '';
 
-        await prisma.$transaction(async (tx) => {
-            // Deduct from fees account
-            await tx.internalAccount.update({
-                where: { code: accountCode },
-                data: { balance: { decrement: amount } },
-            });
+        // ═══════════════════════════════════════════════════════════════
+        // WITHDRAW TO USER WALLET
+        // ═══════════════════════════════════════════════════════════════
+        if (method === 'USER_WALLET') {
+            if (!phone) {
+                return NextResponse.json(
+                    { error: 'رقم الهاتف مطلوب للتحويل إلى المحفظة' },
+                    { status: 400, headers: getSecurityHeaders() }
+                );
+            }
 
-            // Create withdrawal record
-            await tx.profitWithdrawal.create({
-                data: {
-                    referenceNumber,
-                    adminId: payload.userId,
-                    amount,
-                    currency,
-                    method,
-                    notes,
-                    bankName: bankDetails?.bankName,
-                    accountNumber: bankDetails?.accountNumber,
-                    iban: bankDetails?.iban,
-                    status: 'COMPLETED',
-                    completedAt: new Date(),
+            const sanitizedPhone = sanitizePhoneNumber(phone);
+
+            // Find user by phone
+            const targetUser = await prisma.user.findUnique({
+                where: { phone: sanitizedPhone },
+                include: {
+                    wallets: true,
                 },
             });
 
-            // Create ledger entry
-            const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
-            await createLedgerEntry({
-                description: `Profit Withdrawal: ${referenceNumber}`,
-                descriptionAr: `سحب أرباح: ${referenceNumber}`,
-                createdBy: payload.userId,
-                currency,
-                tx,
-                lines: [
-                    { accountCode: INTERNAL_ACCOUNTS.FEES, debit: amount, credit: 0 },
-                    { accountCode: INTERNAL_ACCOUNTS.SYSTEM_RESERVE, debit: 0, credit: amount },
-                ],
+            if (!targetUser) {
+                return NextResponse.json(
+                    { error: 'لم يتم العثور على مستخدم بهذا الرقم' },
+                    { status: 404, headers: getSecurityHeaders() }
+                );
+            }
+
+            // Find the correct wallet
+            const targetWalletType = walletType || 'PERSONAL';
+            const targetWallet = targetUser.wallets.find(
+                w => w.currency === currency && w.walletType === targetWalletType
+            );
+
+            if (!targetWallet) {
+                return NextResponse.json(
+                    { error: `لا توجد محفظة ${currency} للمستخدم` },
+                    { status: 404, headers: getSecurityHeaders() }
+                );
+            }
+
+            recipientName = targetUser.fullNameAr || targetUser.fullName;
+
+            // Process in transaction
+            await prisma.$transaction(async (tx) => {
+                // 1. Deduct from fees account
+                await tx.internalAccount.update({
+                    where: { code: accountCode },
+                    data: { balance: { decrement: amount } },
+                });
+
+                // 2. Add to user wallet
+                await tx.wallet.update({
+                    where: { id: targetWallet.id },
+                    data: { balance: { increment: amount } },
+                });
+
+                // 3. Create transaction record
+                await tx.transaction.create({
+                    data: {
+                        referenceNumber,
+                        type: 'DEPOSIT',
+                        amount,
+                        currency,
+                        status: 'COMPLETED',
+                        receiverId: targetUser.id,
+                        receiverWalletId: targetWallet.id,
+                        description: `Platform profit distribution`,
+                        descriptionAr: `توزيع أرباح المنصة`,
+                        completedAt: new Date(),
+                    },
+                });
+
+                // 4. Create withdrawal record
+                await tx.profitWithdrawal.create({
+                    data: {
+                        referenceNumber,
+                        adminId: payload.userId,
+                        amount,
+                        currency,
+                        method: 'USER_WALLET',
+                        notes: notes || `تحويل إلى ${recipientName}`,
+                        accountNumber: sanitizedPhone,
+                        status: 'COMPLETED',
+                        completedAt: new Date(),
+                    },
+                });
+
+                // 5. Create ledger entry
+                const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+                await createLedgerEntry({
+                    description: `Profit Distribution to ${sanitizedPhone}: ${referenceNumber}`,
+                    descriptionAr: `توزيع أرباح إلى ${recipientName}: ${referenceNumber}`,
+                    createdBy: payload.userId,
+                    currency,
+                    tx,
+                    lines: [
+                        { accountCode: INTERNAL_ACCOUNTS.FEES, debit: amount, credit: 0 },
+                        { accountCode: INTERNAL_ACCOUNTS.USERS_LEDGER, debit: 0, credit: amount },
+                    ],
+                });
             });
-        });
+
+            // Send notification to user
+            await prisma.notification.create({
+                data: {
+                    userId: targetUser.id,
+                    type: 'TRANSACTION',
+                    title: 'Profit Distribution Received',
+                    titleAr: 'استلام أرباح',
+                    message: `You received ${currency === 'SYP' ? `${amount.toLocaleString()} SYP` : `$${amount.toFixed(2)}`} from platform profits`,
+                    messageAr: `استلمت ${currency === 'SYP' ? `${amount.toLocaleString()} ل.س` : `$${amount.toFixed(2)}`} من أرباح المنصة`,
+                },
+            });
+
+        } else {
+            // ═══════════════════════════════════════════════════════════════
+            // EXTERNAL WITHDRAWAL (Bank, Cash, Crypto)
+            // ═══════════════════════════════════════════════════════════════
+            await prisma.$transaction(async (tx) => {
+                await tx.internalAccount.update({
+                    where: { code: accountCode },
+                    data: { balance: { decrement: amount } },
+                });
+
+                await tx.profitWithdrawal.create({
+                    data: {
+                        referenceNumber,
+                        adminId: payload.userId,
+                        amount,
+                        currency,
+                        method,
+                        notes,
+                        bankName: bankDetails?.bankName,
+                        accountNumber: bankDetails?.accountNumber,
+                        iban: bankDetails?.iban,
+                        status: 'COMPLETED',
+                        completedAt: new Date(),
+                    },
+                });
+
+                const { createLedgerEntry, INTERNAL_ACCOUNTS } = await import('@/lib/financial/core-ledger');
+                await createLedgerEntry({
+                    description: `Profit Withdrawal: ${referenceNumber}`,
+                    descriptionAr: `سحب أرباح: ${referenceNumber}`,
+                    createdBy: payload.userId,
+                    currency,
+                    tx,
+                    lines: [
+                        { accountCode: INTERNAL_ACCOUNTS.FEES, debit: amount, credit: 0 },
+                        { accountCode: INTERNAL_ACCOUNTS.SYSTEM_RESERVE, debit: 0, credit: amount },
+                    ],
+                });
+            });
+        }
 
         // Audit log
         await prisma.auditLog.create({
@@ -270,7 +379,7 @@ export async function POST(request: NextRequest) {
                 action: 'PROFIT_WITHDRAWAL',
                 entity: 'ProfitWithdrawal',
                 entityId: referenceNumber,
-                newValue: JSON.stringify({ amount, currency, method }),
+                newValue: JSON.stringify({ amount, currency, method, phone, recipientName }),
                 ipAddress: request.headers.get('x-forwarded-for') || undefined,
             },
         });
@@ -278,6 +387,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             referenceNumber,
+            recipientName: recipientName || undefined,
         }, { headers: getSecurityHeaders() });
 
     } catch (error) {

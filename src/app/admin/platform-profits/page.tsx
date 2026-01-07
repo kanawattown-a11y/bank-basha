@@ -67,11 +67,13 @@ export default function PlatformProfitsPage() {
     const [withdrawForm, setWithdrawForm] = useState({
         amount: '',
         currency: 'USD',
-        method: 'BANK_TRANSFER',
+        method: 'USER_WALLET',
         notes: '',
         bankName: '',
         accountNumber: '',
         iban: '',
+        phone: '',
+        walletType: 'PERSONAL',
     });
 
     const fetchStats = async () => {
@@ -109,6 +111,8 @@ export default function PlatformProfitsPage() {
                     currency: withdrawForm.currency,
                     method: withdrawForm.method,
                     notes: withdrawForm.notes,
+                    phone: withdrawForm.phone,
+                    walletType: withdrawForm.walletType,
                     bankDetails: {
                         bankName: withdrawForm.bankName,
                         accountNumber: withdrawForm.accountNumber,
@@ -119,9 +123,12 @@ export default function PlatformProfitsPage() {
 
             const data = await res.json();
             if (data.success) {
-                setMessage({ type: 'success', text: `تم السحب بنجاح! الرقم المرجعي: ${data.referenceNumber}` });
+                const successMsg = data.recipientName
+                    ? `تم التحويل بنجاح إلى ${data.recipientName}! الرقم المرجعي: ${data.referenceNumber}`
+                    : `تم السحب بنجاح! الرقم المرجعي: ${data.referenceNumber}`;
+                setMessage({ type: 'success', text: successMsg });
                 setShowWithdrawModal(false);
-                setWithdrawForm({ amount: '', currency: 'USD', method: 'BANK_TRANSFER', notes: '', bankName: '', accountNumber: '', iban: '' });
+                setWithdrawForm({ amount: '', currency: 'USD', method: 'USER_WALLET', notes: '', bankName: '', accountNumber: '', iban: '', phone: '', walletType: 'PERSONAL' });
                 fetchStats();
             } else {
                 setMessage({ type: 'error', text: data.error || 'حدث خطأ' });
@@ -372,7 +379,7 @@ export default function PlatformProfitsPage() {
                                                         {formatCurrency(w.amount, w.currency)}
                                                     </td>
                                                     <td className="px-4 py-3 text-dark-300 text-sm">
-                                                        {w.method === 'BANK_TRANSFER' ? 'تحويل بنكي' : w.method === 'CASH' ? 'نقداً' : 'عملات رقمية'}
+                                                        {w.method === 'USER_WALLET' ? '📱 محفظة مستخدم' : w.method === 'BANK_TRANSFER' ? 'تحويل بنكي' : w.method === 'CASH' ? 'نقداً' : 'عملات رقمية'}
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <span className={`px-2 py-1 rounded text-xs ${w.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
@@ -454,11 +461,40 @@ export default function PlatformProfitsPage() {
                                     onChange={(e) => setWithdrawForm(f => ({ ...f, method: e.target.value }))}
                                     className="input w-full"
                                 >
-                                    <option value="BANK_TRANSFER">تحويل بنكي</option>
-                                    <option value="CASH">نقداً</option>
-                                    <option value="CRYPTO">عملات رقمية</option>
+                                    <option value="USER_WALLET">📱 تحويل لمحفظة مستخدم</option>
+                                    <option value="BANK_TRANSFER">🏦 تحويل بنكي</option>
+                                    <option value="CASH">💵 نقداً</option>
+                                    <option value="CRYPTO">₿ عملات رقمية</option>
                                 </select>
                             </div>
+
+                            {/* Phone (if user wallet) */}
+                            {withdrawForm.method === 'USER_WALLET' && (
+                                <>
+                                    <div>
+                                        <label className="block text-dark-400 text-sm mb-1">رقم هاتف المستخدم</label>
+                                        <input
+                                            type="tel"
+                                            value={withdrawForm.phone}
+                                            onChange={(e) => setWithdrawForm(f => ({ ...f, phone: e.target.value }))}
+                                            className="input w-full"
+                                            placeholder="+963 9xx xxx xxx"
+                                            dir="ltr"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-dark-400 text-sm mb-1">نوع المحفظة</label>
+                                        <select
+                                            value={withdrawForm.walletType}
+                                            onChange={(e) => setWithdrawForm(f => ({ ...f, walletType: e.target.value }))}
+                                            className="input w-full"
+                                        >
+                                            <option value="PERSONAL">شخصية</option>
+                                            <option value="BUSINESS">تجارية</option>
+                                        </select>
+                                    </div>
+                                </>
+                            )}
 
                             {/* Bank Details (if bank transfer) */}
                             {withdrawForm.method === 'BANK_TRANSFER' && (
