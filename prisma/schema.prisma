@@ -1268,52 +1268,6 @@ model ProfitWithdrawal {
 }
 
 // ============================================
-// DAILY BACKUPS
-// ============================================
-
-model DailySnapshot {
-  id              String    @id @default(uuid())
-  snapshotDate    DateTime  @unique
-  
-  // Statistics
-  totalUsers        Int       @default(0)
-  totalAgents       Int       @default(0)
-  totalMerchants    Int       @default(0)
-  totalUserBalance  Float     @default(0)
-  totalUserBalanceSYP Float   @default(0)
-  totalAgentCredit  Float     @default(0)
-  totalAgentCreditSYP Float   @default(0)
-  totalAgentCash    Float     @default(0)
-  totalAgentCashSYP Float     @default(0)
-  totalMerchantBalance Float  @default(0)
-  totalMerchantBalanceSYP Float @default(0)
-  systemReserve     Float     @default(0)
-  systemReserveSYP  Float     @default(0)
-  feesCollected     Float     @default(0)
-  feesCollectedSYP  Float     @default(0)
-  totalTransactions Int       @default(0)
-  totalVolume       Float     @default(0)
-  totalVolumeSYP    Float     @default(0)
-  
-  // S3 Backup
-  s3BucketName    String?
-  s3Key           String?
-  s3Url           String?
-  fileSize        Int?
-  checksum        String?
-  
-  // Status
-  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
-  errorMessage    String?
-  
-  completedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  
-  @@index([snapshotDate])
-  @@index([status])
-}
-
-// ============================================
 // HOURLY BALANCE SNAPSHOTS
 // ============================================
 
