@@ -516,32 +516,26 @@ export async function generateContractPDF(contract: ContractData): Promise<void>
             backgroundColor: BRAND.dark,
         });
 
-        // Create PDF
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4',
-        });
-
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-
+        // Create PDF with dynamic height to fit all content on one page
+        const pdfWidth = 210; // A4 width in mm
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
 
+        // Calculate the height needed for the PDF based on the image aspect ratio
         const ratio = pdfWidth / (imgWidth / 2); // /2 because scale is 2
-        const scaledHeight = (imgHeight / 2) * ratio;
+        const pdfHeight = (imgHeight / 2) * ratio;
 
-        // Add pages as needed
-        let yOffset = 0;
-        while (yOffset < scaledHeight) {
-            if (yOffset > 0) {
-                pdf.addPage();
-            }
-            pdf.addImage(imgData, 'JPEG', 0, -yOffset, pdfWidth, scaledHeight);
-            yOffset += pdfHeight;
-        }
+        // Create PDF with custom height to fit all content
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: [pdfWidth, pdfHeight],
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+        // Add the entire image on one page
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
         // Save PDF
         const fileName = `عقد_${contract.contractNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
