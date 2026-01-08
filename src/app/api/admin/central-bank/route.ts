@@ -91,6 +91,24 @@ export async function GET() {
             },
         });
 
+        // Get Internal Accounts (the REAL system balances)
+        const internalAccounts = await prisma.internalAccount.findMany({
+            where: {
+                code: {
+                    in: ['SYS-RESERVE', 'SYS-RESERVE-SYP', 'FEES-COLLECTED', 'FEES-COLLECTED-SYP', 'AGENTS-LEDGER', 'AGENTS-LEDGER-SYP', 'USERS-LEDGER', 'USERS-LEDGER-SYP']
+                }
+            }
+        });
+
+        const getAccountBalance = (code: string) =>
+            internalAccounts.find(a => a.code === code)?.balance || 0;
+
+        // System Reserve is the central bank's actual reserve
+        const systemReserveUSD = getAccountBalance('SYS-RESERVE');
+        const systemReserveSYP = getAccountBalance('SYS-RESERVE-SYP');
+        const feesCollectedUSD = getAccountBalance('FEES-COLLECTED');
+        const feesCollectedSYP = getAccountBalance('FEES-COLLECTED-SYP');
+
         // Get recent credit grants
         const recentTransactions = await prisma.transaction.findMany({
             where: { type: 'CREDIT_GRANT' },
@@ -105,9 +123,12 @@ export async function GET() {
 
         return NextResponse.json({
             centralBank: {
-                balance: centralBankUSDWallet?.balance || 0,
-                balanceSYP: centralBankSYPWallet?.balance || 0,
-                name: centralBank.fullNameAr || centralBank.fullName,
+                // Central Bank balance = System Reserve (what's held by the system)
+                balance: systemReserveUSD,
+                balanceSYP: systemReserveSYP,
+                feesCollected: feesCollectedUSD,
+                feesCollectedSYP: feesCollectedSYP,
+                name: 'البنك المركزي',
             },
             summary: {
                 totalUserBalances: userWalletsUSD._sum.balance || 0,
@@ -117,12 +138,15 @@ export async function GET() {
                 totalAgentCash: agentCredits._sum.cashCollected || 0,
                 totalAgentCashSYP: agentCredits._sum.cashCollectedSYP || 0,
                 // System should balance to zero (USD)
-                systemBalance: (centralBankUSDWallet?.balance || 0)
-                    + (userWalletsUSD._sum.balance || 0),
+                systemBalance: systemReserveUSD + (userWalletsUSD._sum.balance || 0),
                 // System should balance to zero (SYP)
-                systemBalanceSYP: (centralBankSYPWallet?.balance || 0)
-                    + (userWalletsSYP._sum.balance || 0),
+                systemBalanceSYP: systemReserveSYP + (userWalletsSYP._sum.balance || 0),
             },
+            internalAccounts: internalAccounts.map(a => ({
+                code: a.code,
+                name: a.name,
+                balance: a.balance,
+            })),
             recentCreditGrants: recentTransactions.map(t => ({
                 id: t.id,
                 amount: t.amount,
